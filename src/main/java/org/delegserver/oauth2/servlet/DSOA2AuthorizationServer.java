@@ -31,74 +31,11 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 		super.prepare(state);
 		
         if (state.getState() == AUTHORIZATION_ACTION_OK) {
+        	
         	AuthorizedState authorizedState = (AuthorizedState) state;
         	OA2ServiceTransaction serviceTransaction = ((OA2ServiceTransaction) authorizedState.getTransaction());
         	
-    		DNRecordStore<DNRecord> dnRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
-    		DNRecord dnRecord = dnRecordStore.create();
-    		
-    		/* DN HASHING */
-    		
-    		String dnHash = DigestUtils.sha256Hex( DNUtil.getUserDN(serviceTransaction) );
-    		
-    		//MessageDigest md = MessageDigest.getInstance("SHA-256");
-    		//md.update( DNUtil.getUserDN(serviceTransaction).getBytes("UTF-8") );
-    		//byte[] dnHash = md.digest();
-    		
-    		System.out.println( "DIGESTING: " + DNUtil.getUserDN(serviceTransaction));
-    		//System.out.println("GOT: " + String.format("%x", new BigInteger(1, dnHash)) );
-    		System.out.println("GOT: " + dnHash);
-    		
-    		dnRecord.setDnHash( dnHash );
-    		
-    		/* ATTRIBUTE HASHING */
-        	
-        	HttpServletRequest request = authorizedState.getRequest();
-        	UserAttributeTrace attrTrace = new  UserAttributeTrace( getHeaderMap(request) );
-    		
-    		String attributeValueString = null;
-			for (String s : attrTrace.getAttributeValues()) {
-				if (attributeValueString == null) {
-					attributeValueString = s;
-				} else {
-					attributeValueString += "," + s; 
-				}
-			}
-			
-			//byte[] salt = new byte[32];
-    		//SecureRandom.getInstance("SHA1PRNG").nextBytes(salt);
-    		//String attrSalt =  Hex.encodeHexString(salt);
-    		
-    		String attrHash = DigestUtils.sha256Hex( attributeValueString + dnHash );
-    		
-    		System.out.println("DIGESTING: " + attributeValueString + dnHash );
-    		System.out.println("GOT: " + attrHash);
-    		
-    		dnRecord.setAttrHash(attrHash);
-    		//dnRecord.setAttrSalt(attrSalt);
-    		
-    		/* ATTRIBUTE NAMES */
-    		
-    		String attributeNamesString = null;
-			for (String s : attrTrace.getAttributeNames()) {
-				if (attributeNamesString == null) {
-					attributeNamesString = s;
-				} else {
-					attributeNamesString += "," + s; 
-				}
-			}    		
-			
-			dnRecord.setAttributeList(attributeNamesString);
-    		
-    		dnRecordStore.save(dnRecord);
-    		
-    		
-    		//String username = serviceTransaction.getUsername();
-    		//String escapedUsername = username.replaceAll("\\/", "\\\\/");
-    		//escapedUsername = escapedUsername.replaceAll("=", "\\\\=");
-    		//System.out.println("ESCAPED USERNAME: " + escapedUsername);
-    		//serviceTransaction.setUsername(escapedUsername);
-    		//((DSOA2ServiceEnvironment) getServiceEnvironment()).getTransactionStore().save(serviceTransaction);
+        	printAllParameters( authorizedState.getRequest() );
         }
 	}
 	
