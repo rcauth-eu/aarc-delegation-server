@@ -32,7 +32,8 @@
 
     <servlet>
         <servlet-name>initiate</servlet-name>
-        <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet</servlet-class>
+        <!-- <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet</servlet-class> -->
+        <servlet-class>org.delegserver.oauth2.servlet.DSOA2AuthorizedServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>initiate</servlet-name>

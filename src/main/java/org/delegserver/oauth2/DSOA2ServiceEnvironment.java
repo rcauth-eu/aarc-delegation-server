@@ -3,6 +3,7 @@ package org.delegserver.oauth2;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Provider;
 
@@ -30,14 +31,16 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 			List<MyProxyFacadeProvider> mfp, MailUtilProvider mup, MessagesProvider messagesProvider,
 			Provider<AGIssuer> agip, Provider<ATIssuer> atip, Provider<PAIssuer> paip, Provider<TokenForge> tfp,
 			HashMap<String, String> constants, AuthorizationServletConfig ac, UsernameTransformer usernameTransformer,
-			boolean isPingable, int clientSecretLength, Collection<String> scopes, ScopeHandler scopeHandler,
+			boolean isPingable, int clientSecretLength, Map<String,Map<String,String>> scopesMap, ScopeHandler scopeHandler,
 			boolean isRefreshTokenEnabled) {
 		
 		super(logger, tsp, csp, maxAllowedNewClientRequests, rtLifetime, casp, mfp, mup, messagesProvider, agip, atip, paip,
-				tfp, constants, ac, usernameTransformer, isPingable, clientSecretLength, scopes, scopeHandler,
+				tfp, constants, ac, usernameTransformer, isPingable, clientSecretLength, scopesMap.keySet(), scopeHandler,
 				isRefreshTokenEnabled);
 		
 		this.dnsp = dnsp;
+		this.scopesMap = scopesMap;
+		
 	}
 
 	protected Provider<DNRecordStore> dnsp;
@@ -49,4 +52,16 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 		}
 		return dnRecordStore;
 	}
+	
+	protected Map<String,Map<String,String>> scopesMap;
+	
+	public Map<String,Map<String,String>> getScopesMap() {
+		return scopesMap;
+	}
+	
+	public Map<String,String> getClaimsMap(String scope) {
+		return scopesMap.get(scope);
+	}
+	
+	
 }

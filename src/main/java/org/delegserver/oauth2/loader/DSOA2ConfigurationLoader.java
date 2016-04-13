@@ -1,25 +1,38 @@
 package org.delegserver.oauth2.loader;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
+import org.delegserver.oauth2.DSOA2ConfigurationLoaderUtils;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
+import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.util.DNRecordConverter;
 import org.delegserver.storage.DNRecordKeys;
 import org.delegserver.storage.DNRecordStore;
+import org.delegserver.storage.DSOA2TransactionKeys;
 import org.delegserver.storage.impl.DNRecordProvider;
 import org.delegserver.storage.impl.MultiDNRecordStoreProvider;
 import org.delegserver.storage.sql.DSSQLDNRecordStoreProvider;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2TConverter;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.DSTransactionProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider;
+import edu.uiuc.ncsa.security.core.IdentifiableProvider;
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+import edu.uiuc.ncsa.security.core.util.IdentifierProvider;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
+import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
 
 import javax.inject.Provider;
 
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME;
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME_SPECIFIC_PART;
+import static edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider.TRANSACTION_ID;
+
+import java.util.Map;
 
 public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends OA2ConfigurationLoader<T> {
 
@@ -53,7 +66,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getUsernameTransformer(),
                     getPingable(),
                     getClientSecretLength(),
-                    getScopes(),
+                    getScopesMap(),
                     getScopeHandler(),
                     isRefreshTokenEnabled());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
@@ -94,5 +107,36 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     	}
     	return dnsp;
     }
+    
+    protected Map<String,Map<String,String>> scopes = null;
+    
+    public Map<String,Map<String,String>> getScopesMap() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if (scopes == null) {
+            scopes = DSOA2ConfigurationLoaderUtils.getScopesMap(cn);
+        }
+        return scopes;    
+    }
+    
+    public static class MPST2Provider extends DSTransactionProvider<OA2ServiceTransaction> {
+
+        public MPST2Provider(IdentifierProvider<Identifier> idProvider) {
+            super(idProvider);
+        }
+
+        @Override
+        public OA2ServiceTransaction get(boolean createNewIdentifier) {
+        	return new DSOA2ServiceTransaction(createNewId(createNewIdentifier));
+        }
+        
+    }
+
+    
+    @Override
+    protected Provider<TransactionStore> getTSP() {
+        IdentifiableProvider tp = new MPST2Provider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, TRANSACTION_ID, false));
+        DSOA2TransactionKeys keys = new DSOA2TransactionKeys();
+        OA2TConverter<DSOA2ServiceTransaction> tc = new OA2TConverter<DSOA2ServiceTransaction>(keys, tp, getTokenForgeProvider().get(), getClientStoreProvider().get());
+        return getTSP(tp,  tc);
+    }    
     
 }

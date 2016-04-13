@@ -16,6 +16,7 @@ import org.delegserver.storage.UserAttributeTrace;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
+import edu.uiuc.ncsa.security.delegation.services.Request;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
 
 public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
@@ -50,6 +51,27 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         }
 		
 		return map;
+	}
+	
+	
+	@Override
+	protected void printAllParameters(HttpServletRequest request) {
+		super.printAllParameters(request);
+		
+		System.out.println("Attributes:");
+        Enumeration e = request.getAttributeNames();
+        if (!e.hasMoreElements()) {
+            System.out.println(" (none)");
+        } else {
+            while (e.hasMoreElements()) {
+                String name = e.nextElement().toString();
+                System.out.println(" " + name);
+                System.out.println("   " + request.getAttribute(name));
+            }
+        }
+        
+        System.out.println(" " + "AJP_sn");
+        System.out.println("   " + request.getAttribute("AJP_sn"));
 	}
 	
 }
