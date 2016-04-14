@@ -81,6 +81,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
         }
     }	
 	
+    /* Configure backend provider for DNRecords */
+    
     protected MultiDNRecordStoreProvider dnsp;
     
     public final static String DNRECORD_ID = "dnRecord";
@@ -115,28 +117,9 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     	return dnsp;
     }
 
-    
-    @Override
-    protected OA2SQLTransactionStoreProvider createSQLTSP(ConfigurationNode config,
-													      ConnectionPoolProvider<? extends ConnectionPool> cpp,
-													      String type,
-													      MultiDSClientStoreProvider clientStoreProvider,
-													      Provider<? extends OA2ServiceTransaction> tp,
-													      Provider<TokenForge> tfp,
-													      MapConverter converter){
-    	return new DSOA2SQLTransactionStoreProvider(config,cpp,type,clientStoreProvider,tp,tfp,converter);
-    }
-    
-    
-    
-    protected Map<String,Map<String,String>> scopes = null;
-    
-    public Map<String,Map<String,String>> getScopesMap() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        if (scopes == null) {
-            scopes = DSOA2ConfigurationLoaderUtils.getScopesMap(cn);
-        }
-        return scopes;    
-    }
+   
+    /* Configure custom ServiceTransaction to support added claims */
+
     
     public static class MPST2Provider extends DSTransactionProvider<OA2ServiceTransaction> {
 
@@ -157,6 +140,30 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
         DSOA2TransactionKeys keys = new DSOA2TransactionKeys();
         DSOA2TConverter<DSOA2ServiceTransaction> tc = new DSOA2TConverter<DSOA2ServiceTransaction>(keys, tp, getTokenForgeProvider().get(), getClientStoreProvider().get());
         return getTSP(tp,  tc);
-    }    
+    }        
+    
+    @Override
+    protected OA2SQLTransactionStoreProvider createSQLTSP(ConfigurationNode config,
+													      ConnectionPoolProvider<? extends ConnectionPool> cpp,
+													      String type,
+													      MultiDSClientStoreProvider clientStoreProvider,
+													      Provider<? extends OA2ServiceTransaction> tp,
+													      Provider<TokenForge> tfp,
+													      MapConverter converter){
+    	return new DSOA2SQLTransactionStoreProvider(config,cpp,type,clientStoreProvider,tp,tfp,converter);
+    }
+    
+    
+    /* Load scope configuration with claim mapping */
+    
+    protected Map<String,Map<String,String>> scopes = null;
+    
+    public Map<String,Map<String,String>> getScopesMap() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if (scopes == null) {
+            scopes = DSOA2ConfigurationLoaderUtils.getScopesMap(cn);
+        }
+        return scopes;    
+    }
+
     
 }

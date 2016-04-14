@@ -16,6 +16,8 @@ public class DSOA2ServiceTransaction extends OA2ServiceTransaction {
         super(identifier);
     }	
 
+    /* Support for saving claims into the service transaction */
+    
     protected Map<String,Object> claims;
     
     public Map<String,Object> getClaims() {

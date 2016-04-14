@@ -1,9 +1,7 @@
 package org.delegserver.oauth2.servlet;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -19,8 +17,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet;
 import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
+
 
 public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 
@@ -37,9 +34,12 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 	 * - ATTRIBUTES
 	 * - HEADERS
 	 * 
+	 * It either returns a single value found, or a List<String> of values in case of multi-valued 
+	 * attributes. 
+	 * 
 	 * @param request
 	 * @param key
-	 * @return the value of the requested key parameter 
+	 * @return the value[s] of the requested key parameter 
 	 */
     protected Object getParam(HttpServletRequest request, String key) {
              
@@ -67,7 +67,16 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
     }
     
     
-    
+    /**
+     * Parse a potentially multi valued attribute. It either returns a single value found,  or a List<String>
+     * of values in case of multi-valued attributes.
+     *  
+	 * Note! Split single values containing the MULTI_VAL_DELIMITED. Since shibboleth handles multi-valued 
+	 * attributes by bundling them into a single attributes and separated with ";" we account for these here.   
+     *  
+     * @param value
+     * @return
+     */
     protected Object parseMultiValue(List<String> value) {
     
 		if ( value.size() == 1 && ! value.get(0).contains(MULTI_VAL_DELIMITED) ) {
@@ -87,17 +96,24 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 	public void preprocess(TransactionState state) throws Throwable {
 		super.preprocess(state);
 		
+		/* DEBUG (remove me later) */ 
 		printAllParameters(state.getRequest());
 		
 		DSOA2ServiceTransaction st = (DSOA2ServiceTransaction) state.getTransaction();
 		
+		//build a claim map based in the incoming scope set in the transaction and the attributes given in the request
 		Map<String,Object> claims = new HashMap<String,Object>();
+		//iterate through the list of accepted scopes sent by the client
 		for (String scope : st.getScopes()) {
 			
+			//get the configuration claimMap in order to decide which claims to extract for this specific scope
 			Map <String,String> claimMap = ((DSOA2ServiceEnvironment)getServiceEnvironment()).getClaimsMap(scope);
+			
 			if ( claimMap != null ) {
+				// we need to add some claims
 				for ( String claim : claimMap.keySet() ) {
 					
+					// extract mapped attribute from the request object
 					String attribute = claimMap.get(claim);
 					Object value = getParam(state.getRequest(), attribute);
 					
@@ -110,6 +126,7 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 			
 		}
 		
+		// set claims and save transaction
 		st.setClaims(claims);
 		getTransactionStore().save(st);
 		

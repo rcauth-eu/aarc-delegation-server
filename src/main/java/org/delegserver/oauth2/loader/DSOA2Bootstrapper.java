@@ -1,7 +1,5 @@
 package org.delegserver.oauth2.loader;
 
-import javax.servlet.ServletContext;
-
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2Bootstrapper;

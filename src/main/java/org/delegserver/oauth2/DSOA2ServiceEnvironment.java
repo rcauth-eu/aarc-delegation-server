@@ -1,6 +1,5 @@
 package org.delegserver.oauth2;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,15 +42,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 		
 	}
 
-	protected Provider<DNRecordStore> dnsp;
-	protected DNRecordStore dnRecordStore;
-	
-	public DNRecordStore getDNRecordStore() {
-		if ( dnRecordStore == null ) {
-			dnRecordStore = dnsp.get();
-		}
-		return dnRecordStore;
-	}
+	/* Environment provides a scopeMap extracted from configuration */
 	
 	protected Map<String,Map<String,String>> scopesMap;
 	
@@ -62,6 +53,19 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 	public Map<String,String> getClaimsMap(String scope) {
 		return scopesMap.get(scope);
 	}
+	
+	/* TODO: DNRecords */
+	
+	protected Provider<DNRecordStore> dnsp;
+	protected DNRecordStore dnRecordStore;
+	
+	public DNRecordStore getDNRecordStore() {
+		if ( dnRecordStore == null ) {
+			dnRecordStore = dnsp.get();
+		}
+		return dnRecordStore;
+	}
+
 	
 	
 }
