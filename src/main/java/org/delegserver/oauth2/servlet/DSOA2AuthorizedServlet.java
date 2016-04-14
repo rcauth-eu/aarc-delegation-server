@@ -1,11 +1,17 @@
 package org.delegserver.oauth2.servlet;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
 
@@ -23,6 +29,8 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 		return new DSOA2ServiceTransaction(grant);
 	}
 
+	public static String MULTI_VAL_DELIMITED = ";";
+	
 	/**
 	 * It searches the request object for the requested key. It uses the following order of preference:
 	 * - PARAMETERS 
@@ -33,29 +41,57 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 	 * @param key
 	 * @return the value of the requested key parameter 
 	 */
-    protected String getParam(HttpServletRequest request, String key) {
-        String x = null;
+    protected Object getParam(HttpServletRequest request, String key) {
+             
+        // account for multi-valued PARAMETER
+        String[] param = request.getParameterValues(key);
+        if ( param != null && param.length != 0 ) {
+        	return parseMultiValue( Arrays.asList(param) );
+        }
         
-        // Check key between request PARAMETERS
-        x = request.getParameter(key);
-        if (x != null) return x;
-        
-        // Check key between request ATTRIBUTES
+        // check key between request ATTRIBUTES
+        // multi-values ATTRIBUTES, not sure.....
         Object o = request.getAttribute(key);
-        if (o != null) return o.toString();
+        if (o != null) {
+        	return o.toString();
+        }
     
-        // Check key between request HEADERS
-        x = request.getHeader(key);
-        return x;
+        
+        // account for multi-values HEADER
+        Enumeration<String> header = request.getHeaders(key);
+        if ( header != null && header.hasMoreElements() ) {
+        	return parseMultiValue( Collections.list(header) );	
+        }
+        
+        return null;
+    }
+    
+    
+    
+    protected Object parseMultiValue(List<String> value) {
+    
+		if ( value.size() == 1 && ! value.get(0).contains(MULTI_VAL_DELIMITED) ) {
+        	//single value
+    		return value.get(0);
+    	} else {
+    		//multi value
+    		List<String> multiValue = new ArrayList<String>();
+        	for (String v : value) {
+        		multiValue.addAll(  Arrays.asList( v.split(MULTI_VAL_DELIMITED)) );
+        	}
+        	return multiValue;
+    	}
     }
 	
 	@Override
 	public void preprocess(TransactionState state) throws Throwable {
 		super.preprocess(state);
 		
+		printAllParameters(state.getRequest());
+		
 		DSOA2ServiceTransaction st = (DSOA2ServiceTransaction) state.getTransaction();
 		
-		Map<String,String> claims = new HashMap<String,String>();
+		Map<String,Object> claims = new HashMap<String,Object>();
 		for (String scope : st.getScopes()) {
 			
 			Map <String,String> claimMap = ((DSOA2ServiceEnvironment)getServiceEnvironment()).getClaimsMap(scope);
@@ -63,7 +99,7 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 				for ( String claim : claimMap.keySet() ) {
 					
 					String attribute = claimMap.get(claim);
-					String value = getParam(state.getRequest(), attribute);
+					Object value = getParam(state.getRequest(), attribute);
 					
 					if (value != null) {
 						claims.put(claim, value);
@@ -76,44 +112,6 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 		
 		st.setClaims(claims);
 		getTransactionStore().save(st);
-		
-		JSONObject jsonClaims = new JSONObject(claims);
-		System.out.println(" -------------------- I CLAIM ------------------- ");
-		System.out.println(jsonClaims.toJSONString());
-		System.out.println(" ------------------- I CLAIMED ------------------- ");	
-		
-		String claimString = jsonClaims.toString();
-		byte[] blob = Base64.encodeBase64(claimString.getBytes());
-		
-		System.out.println(" -------------------- I CLAIM BLOB ------------------- ");
-		System.out.println(new String(blob));
-		System.out.println(" ------------------- I CLAIMED BLOB ------------------- ");			
-
-		System.out.println(" -------------------- CLAIM BLOB - TEST ------------------- ");
-		
-		JSONParser parserBlob = new JSONParser(0);
-		Object objBlob = parserBlob.parse( Base64.decodeBase64(blob) );
-		if ( objBlob instanceof JSONObject ) {
-			System.out.println(" JSONOBJECT ");
-			System.out.println(((JSONObject)objBlob).toJSONString());
-		} else {
-			System.out.println(" I am a " + objBlob.getClass().getCanonicalName());
-		}
-		
-		System.out.println(" -------------------- CLAIM BLOB - TEST ------------------- ");		
-		
-		System.out.println(" -------------------- CLAIM - TEST ------------------- ");
-		
-		JSONParser parser = new JSONParser(0);
-		Object obj = parser.parse(claimString);
-		if ( obj instanceof JSONObject ) {
-			System.out.println(" JSONOBJECT ");
-			System.out.println(((JSONObject)obj).toJSONString());
-		} else {
-			System.out.println(" I am a " + obj.getClass().getCanonicalName());
-		}
-		
-		System.out.println(" -------------------- CLAIM - TEST ------------------- ");
 		
 	}
 	
