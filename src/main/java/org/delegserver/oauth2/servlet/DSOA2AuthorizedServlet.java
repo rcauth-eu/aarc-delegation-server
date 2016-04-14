@@ -1,9 +1,11 @@
 package org.delegserver.oauth2.servlet;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
 
@@ -12,6 +14,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet;
 import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 
@@ -52,7 +55,7 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 		
 		DSOA2ServiceTransaction st = (DSOA2ServiceTransaction) state.getTransaction();
 		
-		JSONObject claims = new JSONObject();
+		Map<String,String> claims = new HashMap<String,String>();
 		for (String scope : st.getScopes()) {
 			
 			Map <String,String> claimMap = ((DSOA2ServiceEnvironment)getServiceEnvironment()).getClaimsMap(scope);
@@ -70,11 +73,47 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 			}
 			
 		}
+		
+		st.setClaims(claims);
+		getTransactionStore().save(st);
+		
+		JSONObject jsonClaims = new JSONObject(claims);
 		System.out.println(" -------------------- I CLAIM ------------------- ");
-		System.out.println(claims.toJSONString());
+		System.out.println(jsonClaims.toJSONString());
 		System.out.println(" ------------------- I CLAIMED ------------------- ");	
 		
-		getTransactionStore().save(st);
+		String claimString = jsonClaims.toString();
+		byte[] blob = Base64.encodeBase64(claimString.getBytes());
+		
+		System.out.println(" -------------------- I CLAIM BLOB ------------------- ");
+		System.out.println(new String(blob));
+		System.out.println(" ------------------- I CLAIMED BLOB ------------------- ");			
+
+		System.out.println(" -------------------- CLAIM BLOB - TEST ------------------- ");
+		
+		JSONParser parserBlob = new JSONParser(0);
+		Object objBlob = parserBlob.parse( Base64.decodeBase64(blob) );
+		if ( objBlob instanceof JSONObject ) {
+			System.out.println(" JSONOBJECT ");
+			System.out.println(((JSONObject)objBlob).toJSONString());
+		} else {
+			System.out.println(" I am a " + objBlob.getClass().getCanonicalName());
+		}
+		
+		System.out.println(" -------------------- CLAIM BLOB - TEST ------------------- ");		
+		
+		System.out.println(" -------------------- CLAIM - TEST ------------------- ");
+		
+		JSONParser parser = new JSONParser(0);
+		Object obj = parser.parse(claimString);
+		if ( obj instanceof JSONObject ) {
+			System.out.println(" JSONOBJECT ");
+			System.out.println(((JSONObject)obj).toJSONString());
+		} else {
+			System.out.println(" I am a " + obj.getClass().getCanonicalName());
+		}
+		
+		System.out.println(" -------------------- CLAIM - TEST ------------------- ");
 		
 	}
 	

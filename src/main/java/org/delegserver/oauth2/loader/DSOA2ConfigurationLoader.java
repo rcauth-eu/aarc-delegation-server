@@ -7,17 +7,20 @@ import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.util.DNRecordConverter;
 import org.delegserver.storage.DNRecordKeys;
 import org.delegserver.storage.DNRecordStore;
+import org.delegserver.storage.DSOA2TConverter;
 import org.delegserver.storage.DSOA2TransactionKeys;
 import org.delegserver.storage.impl.DNRecordProvider;
 import org.delegserver.storage.impl.MultiDNRecordStoreProvider;
+import org.delegserver.storage.sql.DSOA2SQLTransactionStoreProvider;
 import org.delegserver.storage.sql.DSSQLDNRecordStoreProvider;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
-import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2TConverter;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2SQLTransactionStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.DSTransactionProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider;
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.core.Identifier;
@@ -25,6 +28,10 @@ import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.IdentifierProvider;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
+import edu.uiuc.ncsa.security.delegation.token.TokenForge;
+import edu.uiuc.ncsa.security.storage.data.MapConverter;
+import edu.uiuc.ncsa.security.storage.sql.ConnectionPool;
+import edu.uiuc.ncsa.security.storage.sql.ConnectionPoolProvider;
 
 import javax.inject.Provider;
 
@@ -107,6 +114,20 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     	}
     	return dnsp;
     }
+
+    
+    @Override
+    protected OA2SQLTransactionStoreProvider createSQLTSP(ConfigurationNode config,
+													      ConnectionPoolProvider<? extends ConnectionPool> cpp,
+													      String type,
+													      MultiDSClientStoreProvider clientStoreProvider,
+													      Provider<? extends OA2ServiceTransaction> tp,
+													      Provider<TokenForge> tfp,
+													      MapConverter converter){
+    	return new DSOA2SQLTransactionStoreProvider(config,cpp,type,clientStoreProvider,tp,tfp,converter);
+    }
+    
+    
     
     protected Map<String,Map<String,String>> scopes = null;
     
@@ -130,12 +151,11 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
         
     }
 
-    
     @Override
     protected Provider<TransactionStore> getTSP() {
         IdentifiableProvider tp = new MPST2Provider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, TRANSACTION_ID, false));
         DSOA2TransactionKeys keys = new DSOA2TransactionKeys();
-        OA2TConverter<DSOA2ServiceTransaction> tc = new OA2TConverter<DSOA2ServiceTransaction>(keys, tp, getTokenForgeProvider().get(), getClientStoreProvider().get());
+        DSOA2TConverter<DSOA2ServiceTransaction> tc = new DSOA2TConverter<DSOA2ServiceTransaction>(keys, tp, getTokenForgeProvider().get(), getClientStoreProvider().get());
         return getTSP(tp,  tc);
     }    
     
