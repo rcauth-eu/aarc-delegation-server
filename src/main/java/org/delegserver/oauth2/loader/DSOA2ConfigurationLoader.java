@@ -1,6 +1,7 @@
 package org.delegserver.oauth2.loader;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
+import org.delegserver.oauth2.DNGenerator;
 import org.delegserver.oauth2.DSOA2ConfigurationLoaderUtils;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
@@ -75,7 +76,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getClientSecretLength(),
                     getScopesMap(),
                     getScopeHandler(),
-                    isRefreshTokenEnabled());
+                    isRefreshTokenEnabled(),
+                    getDNGenerator());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new GeneralException("Error: Could not create the runtime environment", e);
         }
@@ -165,5 +167,28 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
         return scopes;    
     }
 
+    /* Load DN generator configuration with DN sources */
     
+    DNGenerator dnGenerator = null;
+    
+    public DNGenerator getDNGenerator() {
+    	
+    	if ( dnGenerator == null ) {
+    		dnGenerator = new DNGenerator(getCNNameSources(), getCNUniqueIDSources(), getOrgSources());
+    	}
+    	
+    	return dnGenerator;
+    }
+    
+    public Object[] getCNNameSources() {
+    	return DSOA2ConfigurationLoaderUtils.getCnNameSources(cn);
+    }
+    
+    public Object[] getCNUniqueIDSources() {
+    	return DSOA2ConfigurationLoaderUtils.getCnUniqueIDSources(cn);
+    }
+
+    public Object[] getOrgSources() {
+    	return DSOA2ConfigurationLoaderUtils.getOrgSources(cn);
+    }    
 }

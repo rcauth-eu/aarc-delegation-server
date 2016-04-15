@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.util.DNUtil;
-import org.delegserver.storage.DNRecord;
+import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.DNRecordStore;
 import org.delegserver.storage.UserAttributeTrace;
 
@@ -34,8 +34,8 @@ public class DSOA2AuthorizationServerOrig extends OA2AuthorizationServer {
         	AuthorizedState authorizedState = (AuthorizedState) state;
         	OA2ServiceTransaction serviceTransaction = ((OA2ServiceTransaction) authorizedState.getTransaction());
         	
-    		DNRecordStore<DNRecord> dnRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
-    		DNRecord dnRecord = dnRecordStore.create();
+    		DNRecordStore<TraceRecord> dnRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
+    		TraceRecord dnRecord = dnRecordStore.create();
     		
     		/* DN HASHING */
     		
@@ -88,7 +88,7 @@ public class DSOA2AuthorizationServerOrig extends OA2AuthorizationServer {
 				}
 			}    		
 			
-			dnRecord.setAttributeList(attributeNamesString);
+			dnRecord.setAttrNames(attributeNamesString);
     		
     		dnRecordStore.save(dnRecord);
     		

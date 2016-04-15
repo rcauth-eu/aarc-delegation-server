@@ -2,6 +2,6 @@ package org.delegserver.storage;
 
 import edu.uiuc.ncsa.security.core.Store;
 
-public interface DNRecordStore<V extends DNRecord> extends Store<V> {
+public interface DNRecordStore<V extends TraceRecord> extends Store<V> {
 
 }

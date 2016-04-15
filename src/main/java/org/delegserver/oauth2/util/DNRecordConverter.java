@@ -1,6 +1,6 @@
 package org.delegserver.oauth2.util;
 
-import org.delegserver.storage.DNRecord;
+import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.DNRecordKeys;
 
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
@@ -8,7 +8,7 @@ import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
 
-public class DNRecordConverter<V extends DNRecord> extends MapConverter<V> {
+public class DNRecordConverter<V extends TraceRecord> extends MapConverter<V> {
 
     public DNRecordConverter(IdentifiableProvider<V> identifiableProvider) {
         super(new DNRecordKeys(), identifiableProvider);
@@ -27,7 +27,7 @@ public class DNRecordConverter<V extends DNRecord> extends MapConverter<V> {
 		v = super.fromMap(map, v);
 		v.setDnHash( map.getString( getKeys().dn_hash()) );
 		v.setAttrHash( map.getString( getKeys().attribute_hash()) );
-		v.setAttributeList( map.getString( getKeys().attribute_list()) );
+		v.setAttrNames( map.getString( getKeys().attribute_list()) );
 		return v;
 	}
 	
@@ -36,7 +36,7 @@ public class DNRecordConverter<V extends DNRecord> extends MapConverter<V> {
 		super.toMap(v, map);
 		map.put( getKeys().dn_hash() , v.getDnHash());
 		map.put( getKeys().attribute_hash() , v.getAttrHash());
-		map.put( getKeys().attribute_list() , v.getAttributeList());
+		map.put( getKeys().attribute_list() , v.getAttrNames());
 	}
 
 }

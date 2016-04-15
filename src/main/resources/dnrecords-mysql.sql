@@ -3,18 +3,20 @@
   which creates the necessary user and database for you. 
 */
 
-USE oauth2;
+USE oa2server;
 
-CREATE TABLE oauth2.dn_records (
-  dn_hash             CHAR(64) PRIMARY KEY,
+CREATE TABLE oa2server.trace_records (
+  cn_hash             CHAR(64) PRIMARY KEY,
+  sequence_nr         INTEGER,
   attribute_hash      CHAR(64),
-  attribute_list      VARCHAR(255),
+  attribute_salt      CHAR(64),
+  attribute_names     VARCHAR(255),
   first_seen          TIMESTAMP,
-  last_seen			  TIMESTAMP
+  last_seen	      TIMESTAMP
 );
 
 COMMIT;
 
-GRANT ALL ON oauth2.dn_records TO 'oa4mp-server'@'localhost';
+GRANT ALL ON oa2server.trace_records TO 'oa4mp-server'@'localhost';
 
 COMMIT;

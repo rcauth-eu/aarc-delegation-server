@@ -4,7 +4,7 @@ import javax.inject.Provider;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.delegserver.oauth2.DSConfigTags;
-import org.delegserver.storage.DNRecord;
+import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.DNRecordKeys;
 import org.delegserver.storage.sql.table.DNRecordTable;
 
@@ -16,7 +16,7 @@ import edu.uiuc.ncsa.security.storage.sql.internals.Table;
 
 public class DSSQLDNRecordStoreProvider<V extends SQLDNRecordStore> extends SQLStoreProvider<V> implements DSConfigTags {
 
-	protected Provider<DNRecord> dnRecordProvider;
+	protected Provider<TraceRecord> dnRecordProvider;
 	
     public DSSQLDNRecordStoreProvider(
             ConfigurationNode config,
@@ -25,7 +25,7 @@ public class DSSQLDNRecordStoreProvider<V extends SQLDNRecordStore> extends SQLS
             String target,
             String tablename,
             MapConverter converter,
-            Provider<DNRecord> dnrp) {
+            Provider<TraceRecord> dnrp) {
         super(config, cpp, type, target, tablename, converter);
         this.dnRecordProvider = dnrp;
     }
@@ -35,7 +35,7 @@ public class DSSQLDNRecordStoreProvider<V extends SQLDNRecordStore> extends SQLS
             ConnectionPoolProvider<? extends ConnectionPool> cpp,
             String type,
             MapConverter converter,
-            Provider<DNRecord> dnrp) {
+            Provider<TraceRecord> dnrp) {
         super(config, cpp, type, DSConfigTags.DN_RECORD_STORE, SQLDNRecordStore.DEFAULT_TABLENAME, converter);
         this.dnRecordProvider = dnrp;
     }
