@@ -1,6 +1,8 @@
 package org.delegserver.oauth2;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -47,8 +49,8 @@ public class DNGenerator {
 			
 			if (obj instanceof String) {
 				// single attribute 
-				if ( attributeMap.containsKey((String)obj)) {
-					// single attribute is present in attribute map
+				if ( attributeMap.containsKey((String)obj) && ! attributeMap.get((String)obj).isEmpty() ) {
+					// single attribute is present in attribute map and it's not empty
 					orgSourceAttrs = new String[] { (String)obj };
 					// attribute present! use it!
 					break;
@@ -58,7 +60,8 @@ public class DNGenerator {
     			String[] sources = (String[])obj;
     			boolean sourcesPresent = true;
     			for (String s : sources) {
-    				if ( ! attributeMap.containsKey(s) ) {
+    				if ( ! attributeMap.containsKey(s) || attributeMap.get(s).isEmpty() ) {
+    					//one of the keys are not present, or it's empty, therefore ignore it
     					sourcesPresent = false;
     				}
     			}
@@ -74,16 +77,15 @@ public class DNGenerator {
 			throw new GeneralException("No suitable attribute found for building 'Organization' attribute!");
 		}
 		
-		//TODO: custom rule for entityID
-		
 		String organisation = null;
 		for (String source : orgSourceAttrs) {
 			if ( organisation == null ) {
-				organisation = attributeMap.get(source);
+				organisation = getProcessedAttr(attributeMap, source);
 			} else {
-				organisation += O_DELIMITER + attributeMap.get(source);
+				organisation += O_DELIMITER + getProcessedAttr(attributeMap, source);
 			}
 		}
+		
 		
 		if ( organisation.getBytes("UTF-8").length > RDN_MAX_SIZE ) {
 			organisation = truncate(organisation);
@@ -92,8 +94,37 @@ public class DNGenerator {
 		return organisation;
 	}
 	
+	protected String getProcessedAttr(Map<String,String> attributeMap, String attributeKey) {
+		
+		if ( attributeMap == null || attributeKey == null || ! attributeMap.containsKey(attributeKey) ) {
+			return null;
+		}
+		
+		String attribute = attributeMap.get(attributeKey);
+		
+		/* SPECIAL RULES FOR CERTAIN ATTRIBUTES SHOULD GO HERE */
+		
+		// TODO: maybe don't hardcode things like "entityID" or "Shib-Identity-Provider" and just
+		// simply try to parse a URL in any case for its domain name.
+		
+		// special case for entityIDs that are URLs 
+		if ( attributeKey.equals("entityID") || attributeKey.equals("Shib-Identity-Provider") ) {
+			try {
+				// try converting to a URL
+				URL url = new URL(attribute);
+				return url.getHost();
+			} catch (MalformedURLException e) {
+				// if the conversion fails the take the value as it is (is it a URN?)
+				return attribute;
+			}
+		}
+		
+		/* END OF SPECIAL RULES */
+		
+		return attribute;
+	}
 	
-	private String truncate(String rdn) throws UnsupportedEncodingException {
+	protected String truncate(String rdn) throws UnsupportedEncodingException {
 		
 		int truncatedSize = RDN_MAX_SIZE - RDN_TRUNCATE_SIGN.getBytes("UTF-8").length;
 		
@@ -116,7 +147,7 @@ public class DNGenerator {
 		return rdn;
 	}
 
-	private void printDNSources() {
+	protected void printDNSources() {
     	
     	System.out.println("CN NAME SOURCES :");
     	System.out.println("---------------------------------------------------------------------");
