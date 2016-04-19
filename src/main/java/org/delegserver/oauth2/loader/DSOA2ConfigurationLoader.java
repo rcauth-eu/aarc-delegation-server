@@ -174,7 +174,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     public DNGenerator getDNGenerator() {
     	
     	if ( dnGenerator == null ) {
-    		dnGenerator = new DNGenerator(getCNNameSources(), getCNUniqueIDSources(), getOrgSources());
+    		dnGenerator = new DNGenerator(getCNNameSources(), getCNUniqueIDSources(), getOrgSources(), loggerProvider.get());
     	}
     	
     	return dnGenerator;

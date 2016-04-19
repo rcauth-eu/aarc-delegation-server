@@ -8,7 +8,7 @@ import org.junit.Test;
 public class DNGeneratorTest extends DNGenerator {
 
 	public DNGeneratorTest() {
-		super(null, null, null);
+		super(null, null, null,null);
 	}
 	
 	@Test

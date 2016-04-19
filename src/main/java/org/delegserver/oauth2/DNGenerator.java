@@ -18,9 +18,12 @@ import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.util.Arrays;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 
 public class DNGenerator {
 
+	/* DEFAULTS AND CONSTANTS */
+	
 	public static String O_DELIMITER = " ";
 	public static String CN_DELIMITER = " ";
 	
@@ -33,26 +36,38 @@ public class DNGenerator {
 	
 	public static String DN_FORMAT = "/O=%s/CN=%s"; 
 
+	/* ATTRIBUTE SOURCES */
+	
 	protected Object[] cnNameSources = null; 
 	protected Object[] cnUniqueIDSources = null;
 	protected Object[] orgSources = null;
 	
+	/* OTHER */
+	
 	protected Charset defaultCharset = null;
 	protected MessageDigest defaultMessageDigest = null;
+	protected MyLoggingFacade logger = null;;
 	
-	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources) {
+	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, MyLoggingFacade logger) {
 		this.cnNameSources = cnNameSources;
 		this.cnUniqueIDSources = cnUniqueIDSources;
 		this.orgSources = orgSources;
 		
 		this.defaultCharset = Charset.forName("UTF-8");
-		
 		try {
 			this.defaultMessageDigest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
 			throw new GeneralException("Unable to create default message digest SHA-256",e);
 		}
+		
+		if ( logger != null ) {
+			this.logger = logger;
+		} else {
+			this.logger = new MyLoggingFacade(this.getClass().getCanonicalName());
+		}
 	}
+	
+	/* SIMPLE GETTERS AND SETTERS */
 	
 	public Object[] getCnNameSources() {
 		return cnNameSources;
@@ -82,6 +97,8 @@ public class DNGenerator {
 	 */
 	public String getOrganisation(Map<String,String> attributeMap) {
 		
+		logger.info("CREATING ORGANISATION (O) ATTRIBUTE");
+		
 		// Pick out the attribute source from the predefined configuration which is present in the 
 		// provided attributeMap. Throw and exception if no suitable source is found.
 		
@@ -90,6 +107,8 @@ public class DNGenerator {
 		if ( orgSourceAttrs == null ) {
 			throw new GeneralException("No suitable attribute found for building 'Organization' attribute!");
 		}
+
+		logger.info("	- Attribute Sources: '" + getConcatenatedStrings(orgSourceAttrs) + "'");
 		
 		// Build the O RDN from the selected source attribute. Use the getProcessedAttr to 
 		// process the attribute value before setting it in the RDN
@@ -102,18 +121,29 @@ public class DNGenerator {
 				organisation += O_DELIMITER + getProcessedAttr(attributeMap, source);
 			}
 		}
+
+		logger.info("	- Attribute Value: '" + organisation + "'");		
 		
 		// Do some post-processing on the created RDN: 
 		// 		- convert to IDN (ASCII)
 		//		- truncate to appropriate length
 		
 		organisation = getIDNString(organisation);
+
+		logger.info("	- Attribute Value (after printable string conversion): '" + organisation + "'");		
+		
 		organisation = truncate(organisation, RDN_MAX_SIZE);
+		
+		logger.info("	- Attribute Value (after truncating): '" + organisation + "'");		
+
+		logger.info("	- Generated Organisation (O): '" + organisation + "'");
 		
 		return organisation;
 	}
 
 	public String getCommonName(Map<String,String> attributeMap) {
+		
+		logger.info("COMMON NAME (CN) ATTRIBUTE");
 		
 		// First deal with the display name part of the common name
 		
@@ -121,6 +151,8 @@ public class DNGenerator {
 		if ( cnNameSourceAttr == null ) {
 			throw new GeneralException("No suitable attribute found for building the Display Name part of the 'CommonName' attribute!");
 		}		
+		
+		logger.info("	- Display Name Attribute Sources: '" + getConcatenatedStrings(cnNameSourceAttr) + "'");
 		
 		String diplayName = null;
 		for (String source : cnNameSourceAttr) {
@@ -131,8 +163,15 @@ public class DNGenerator {
 			}
 		}
 		
+		logger.info("	- Display Name Attribute Value: '" + diplayName + "'");
+		
 		diplayName = getPrintableString(diplayName);
+		
+		logger.info("	- Display Name Attribute Value (after printable string conversion): '" + diplayName + "'");		
+		
 		diplayName = truncate(diplayName,CN_DISPAY_NAME_MAX_SIZE);
+		
+		logger.info("	- Display Name Attribute Value (after truncating): '" + diplayName + "'");
 		
 		// Now deal with the uniqueness part of the CN
 		
@@ -140,6 +179,8 @@ public class DNGenerator {
 		if ( uniqueIDSourceAttr == null ) {
 			throw new GeneralException("No suitable attribute found for building the Unique ID part of the 'CommonName' attribute!");			
 		}
+		
+		logger.info("	- Unique ID Attribute Sources: '" + getConcatenatedStrings(uniqueIDSourceAttr) + "'");
 		
 		String uniqueID = null;
 		for (String source : uniqueIDSourceAttr) {
@@ -149,13 +190,18 @@ public class DNGenerator {
 				uniqueID += CN_DELIMITER + getProcessedAttr(attributeMap, source);
 			}
 		}
-		System.out.println("Attribute used to create the unique ID of the CN = " + uniqueID);
+		logger.info("	- Unique ID Attribute Value: '" + uniqueID + "'");
 		
 		String uniqueIdUSR = getUSR(uniqueID);
 		
-		// the combination returned here should always be <= 64 
+		logger.info("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");
 		
-		return diplayName + CN_DELIMITER + uniqueIdUSR;
+		// the combination returned here should always be <= 64 
+		String cn = diplayName + CN_DELIMITER + uniqueIdUSR;
+		
+		logger.info("	- Generated Common Name (CN): '" + cn + "'");
+		
+		return cn;
 	}
 	
 	public String getCommonName(Map<String,String> attributeMap, int index) {
@@ -179,7 +225,11 @@ public class DNGenerator {
 		String org = getOrganisation(attributeMap);
 		String cn = getCommonName(attributeMap);
 		
-		return String.format(DN_FORMAT, org, cn);
+		String dn =  String.format(DN_FORMAT, org, cn);
+		
+		logger.info("	- Generated Distingueshed Name (DN): '" + dn + "'");
+		
+		return dn;
 	}
 	
 	/* HELPER METHODS */
@@ -381,6 +431,17 @@ public class DNGenerator {
 		return rdn;
 	}
 
+	protected String getConcatenatedStrings(String[] collection) {
+		String bundle = null;
+		for ( String s : collection ) {
+			if ( bundle == null ) {
+				bundle = s;
+			} else {
+				bundle += " " + s;
+			}
+		}
+		return bundle;
+	}
 	
 	/*
 	protected void printDNSources() {
