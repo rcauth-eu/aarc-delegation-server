@@ -1,5 +1,6 @@
 package org.delegserver.oauth2.servlet;
 
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	OA2ServiceTransaction serviceTransaction = ((OA2ServiceTransaction) authorizedState.getTransaction());
         	
         	printAllParameters( authorizedState.getRequest() );
-
+        	
         	DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
         	// TODO: write a more generic attribute mapper 
         	System.out.println("-------------- GENERATED RDNS --------------");
@@ -42,6 +43,12 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	System.out.println("/CN=" + cn);
         	System.out.println("length = " + cn.getBytes("UTF-8").length);
 
+        	System.out.println("-------------- GENERATED DN --------------");
+        	String dn = se.getDnGenerator().getUserDNSufix(getHeaderMap(state.getRequest()));
+        	System.out.println("DN : " + dn);
+        	System.out.println("-------------- END GENERATED DN 1 --------------");
+        	System.out.println("-------------- END GENERATED DN 2 --------------");
+        	System.out.println("-------------- END GENERATED DN 3 --------------");
         }
 	}
 	
@@ -49,10 +56,19 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 		
 		Map<String,String> map = new HashMap<String,String>();
 		
+		// IMPORTANT !!! Map the header parameters wih the right encoding 
+		
+		Charset isoCharset = Charset.forName("ISO-8859-1");
+		Charset utf8Charset = Charset.forName("UTF-8");
+		
         Enumeration e = request.getHeaderNames();
         while (e.hasMoreElements()) {
             String name = e.nextElement().toString();
-            map.put(name , request.getHeader(name));
+            
+            byte[] v = request.getHeader(name).getBytes(isoCharset);
+            String value = new String(v,utf8Charset);
+            
+            map.put(name , value );
         }
 		
 		return map;

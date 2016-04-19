@@ -1,6 +1,7 @@
 package org.delegserver.oauth2;
 
 import java.io.UnsupportedEncodingException;
+import java.net.IDN;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -8,7 +9,13 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.Normalizer;
 import java.util.Map;
+
+import org.apache.commons.codec.binary.Base64;
+import org.bouncycastle.util.Arrays;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 
@@ -16,18 +23,35 @@ public class DNGenerator {
 
 	public static String O_DELIMITER = " ";
 	public static String CN_DELIMITER = " ";
+	
 	public static String RDN_TRUNCATE_SIGN = "...";
+	
 	public static int RDN_MAX_SIZE = 64;
 	public static int CN_DISPAY_NAME_MAX_SIZE = 43;	
+	public static int CN_UNIQUE_ID_MAX_SIZE = 16;
+	public static int CN_MAX_SEQUENCE_NR = 999;
 	
+	public static String DN_FORMAT = "/O=%s/CN=%s"; 
+
 	protected Object[] cnNameSources = null; 
 	protected Object[] cnUniqueIDSources = null;
 	protected Object[] orgSources = null;
+	
+	protected Charset defaultCharset = null;
+	protected MessageDigest defaultMessageDigest = null;
 	
 	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources) {
 		this.cnNameSources = cnNameSources;
 		this.cnUniqueIDSources = cnUniqueIDSources;
 		this.orgSources = orgSources;
+		
+		this.defaultCharset = Charset.forName("UTF-8");
+		
+		try {
+			this.defaultMessageDigest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			throw new GeneralException("Unable to create default message digest SHA-256",e);
+		}
 	}
 	
 	public Object[] getCnNameSources() {
@@ -56,7 +80,7 @@ public class DNGenerator {
 	 * @return The constructed O RDN (without the '/O=' prefix!)
 	 * @throws UnsupportedEncodingException
 	 */
-	public String getOrganisation(Map<String,String> attributeMap) throws UnsupportedEncodingException {
+	public String getOrganisation(Map<String,String> attributeMap) {
 		
 		// Pick out the attribute source from the predefined configuration which is present in the 
 		// provided attributeMap. Throw and exception if no suitable source is found.
@@ -79,13 +103,17 @@ public class DNGenerator {
 			}
 		}
 		
-		// Do some post-processing on the created RDN, like length check. 
+		// Do some post-processing on the created RDN: 
+		// 		- convert to IDN (ASCII)
+		//		- truncate to appropriate length
+		
+		organisation = getIDNString(organisation);
 		organisation = truncate(organisation, RDN_MAX_SIZE);
 		
 		return organisation;
 	}
 
-	public String getCommonName(Map<String,String> attributeMap) throws UnsupportedEncodingException {
+	public String getCommonName(Map<String,String> attributeMap) {
 		
 		// First deal with the display name part of the common name
 		
@@ -103,12 +131,146 @@ public class DNGenerator {
 			}
 		}
 		
+		diplayName = getPrintableString(diplayName);
 		diplayName = truncate(diplayName,CN_DISPAY_NAME_MAX_SIZE);
 		
-		return diplayName;
+		// Now deal with the uniqueness part of the CN
+		
+		String[] uniqueIDSourceAttr = chooseAttrSource(cnUniqueIDSources,attributeMap);
+		if ( uniqueIDSourceAttr == null ) {
+			throw new GeneralException("No suitable attribute found for building the Unique ID part of the 'CommonName' attribute!");			
+		}
+		
+		String uniqueID = null;
+		for (String source : uniqueIDSourceAttr) {
+			if ( uniqueID == null ) {
+				uniqueID = getProcessedAttr(attributeMap, source);
+			} else {
+				uniqueID += CN_DELIMITER + getProcessedAttr(attributeMap, source);
+			}
+		}
+		System.out.println("Attribute used to create the unique ID of the CN = " + uniqueID);
+		
+		String uniqueIdUSR = getUSR(uniqueID);
+		
+		// the combination returned here should always be <= 64 
+		
+		return diplayName + CN_DELIMITER + uniqueIdUSR;
+	}
+	
+	public String getCommonName(Map<String,String> attributeMap, int index) {
+		
+		if ( index <= 0 || index > CN_MAX_SEQUENCE_NR ) {
+			throw new GeneralException("The index " + index + " is not an acceptable value! Sequence number"
+					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
+		}
+		
+		String rdn = getCommonName(attributeMap) + CN_DELIMITER + index;
+		
+		if ( rdn.getBytes().length > RDN_MAX_SIZE ) {
+			throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE(64)!");
+		}
+		
+		return rdn;
+	}
+	
+	public String getUserDNSufix(Map<String,String> attributeMap) {
+		
+		String org = getOrganisation(attributeMap);
+		String cn = getCommonName(attributeMap);
+		
+		return String.format(DN_FORMAT, org, cn);
 	}
 	
 	/* HELPER METHODS */
+	
+	/**
+	 * Convert the provided input into a Printable String version. A 'normalization' will
+	 * be attempted first on every character (remove accents). In case a character cannot 
+	 * be 'normalized' it will be completely replaces by 'X', according to the RCAuth 
+	 * Policy Document ( https://rcauth.eu/policy ) in section 3.1.2. 
+	 * 
+	 * @param input The name to be converted to printable string
+	 * @return Printable string representation of the provided input
+	 */
+	protected String getPrintableString(String input) {
+		
+		String normalizedOutput = "";
+		
+		// take unicode characters one by one and normalize them
+		for ( int i=0; i<input.length(); i++ ) {
+			char c = input.charAt(i);
+			// normalize a single unicode character, then remove every non-ascii symbol (like
+			// accents) 
+			String normalizedChar = Normalizer.normalize(String.valueOf(c) , Normalizer.Form.NFD)
+					                          .replaceAll("[^\\p{ASCII}]", "");
+			
+			if ( ! normalizedChar.isEmpty() ) {
+				// if there is a valid ascii representation, use it
+				normalizedOutput += normalizedChar;
+			} else {
+				// otherwise replace character with an "X"
+				normalizedOutput += "X";
+			}
+		}
+		
+		return normalizedOutput;
+	}
+	
+	/**
+	 * Get an IDN printable string equivalent of the input. This method should be used to convert 
+	 * hostnames (like the ones set in schacHomeOrganisation) into printable strings
+	 * 
+	 * @param input The hostname to convert
+	 * @return Converted printable ascii string   
+	 */
+	protected String getIDNString(String input) {
+		return IDN.toASCII(input);
+	}
+	
+	/**
+	 * Create a Unique Shortened Representation (USR) from a source attribute string. The way
+	 * a USR is constructed is outlined in the RCauth Policy Document ( https://rcauth.eu/policy ) 
+	 * in section 3.1.2. 
+	 * 
+	 * The USR is the first 16 bytes of base64(sha256(attr)), with any SOLIDUS (“/”) characters 
+	 * replaced by HYPHEN-MINUS (“-“) characters.
+	 * 
+	 * @param attr Input for the USR creation
+	 * @return USR of the input attribute 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws UnsupportedEncodingException 
+	 */
+	protected String getUSR(String attr) {
+		
+		// get the SHA-256 hash of the input string 
+		byte[] hash = defaultMessageDigest.digest( attr.getBytes(defaultCharset) );
+		
+		// get the base64 encoding of the hash from the previous step
+		byte[] encodedHash =  Base64.encodeBase64(hash);
+		String encodedHashString = new String(encodedHash);
+
+		// replace "/" with "-" 
+		String finalEncodedHashString = encodedHashString.replaceAll("/", "-");
+		
+		// truncate the resulting base64 string to the required maximum size
+		byte [] shortEncodedHash = Arrays.copyOf(encodedHash, CN_UNIQUE_ID_MAX_SIZE);
+		String shortEncodedHashString = new String(shortEncodedHash).replaceAll("/", "-");
+		
+		// alternatively we can also use substring since we cannot break any character encoding
+		// within the base64 string cuz every character is one byte (right? (right?))
+		String shortEncodedHashString2 = finalEncodedHashString.substring(0, CN_UNIQUE_ID_MAX_SIZE);
+		
+		//TODO: log mapping of full encoded hash and the first 16 bytes of the encoded hash
+		System.out.println(" ===================================================== ");
+		System.out.println(" ORIGINAL attribute = " + attr);
+		System.out.println(" FULL encoded hash = " + encodedHashString);
+		System.out.println(" FULL encoded hash (after replace) = " + finalEncodedHashString);
+		System.out.println(" SHORTENED encoded hash = " + shortEncodedHashString);
+		System.out.println(" ===================================================== ");
+		
+		return shortEncodedHashString;
+	}
 	
 	protected String[] chooseAttrSource(Object[] attrSources, Map<String,String> attributeMap) {
 		
@@ -189,21 +351,19 @@ public class DNGenerator {
 	 * @return Truncated RDN 
 	 * @throws UnsupportedEncodingException
 	 */
-	protected String truncate(String rdn,int size) throws UnsupportedEncodingException {
+	protected String truncate(String rdn,int size) {
 		
 		if ( size <= 0 ) {
 			size = RDN_MAX_SIZE;
 		}
 		
 		// only truncate if the RDN exceeds the maximum allowed size
-		if ( rdn.getBytes("UTF-8").length > size ) {
+		if ( rdn.getBytes(defaultCharset).length > size ) {
 		
-			int truncatedSize = size - RDN_TRUNCATE_SIGN.getBytes("UTF-8").length;
+			int truncatedSize = size - RDN_TRUNCATE_SIGN.getBytes(defaultCharset).length;
 			
-			Charset utf8Charset = Charset.forName("UTF-8");
-			CharsetDecoder cd = utf8Charset.newDecoder();
-			
-			byte[] sba = rdn.getBytes("UTF-8");
+			CharsetDecoder cd = defaultCharset.newDecoder();
+			byte[] sba = rdn.getBytes(defaultCharset);
 			
 			// Ensure truncating by having byte buffer = DB_FIELD_LENGTH
 			ByteBuffer bb = ByteBuffer.wrap(sba, 0, truncatedSize); // len in [B]
