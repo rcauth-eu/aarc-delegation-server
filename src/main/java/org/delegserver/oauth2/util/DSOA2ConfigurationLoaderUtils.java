@@ -1,10 +1,11 @@
-package org.delegserver.oauth2;
+package org.delegserver.oauth2.util;
 
 import edu.uiuc.ncsa.security.oauth_2_0.OA2ConfigurationLoaderUtils;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
+import org.delegserver.oauth2.DSTraceRecordConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;

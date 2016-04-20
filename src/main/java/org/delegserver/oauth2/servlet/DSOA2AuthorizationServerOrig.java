@@ -11,7 +11,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.util.DNUtil;
 import org.delegserver.storage.TraceRecord;
-import org.delegserver.storage.DNRecordStore;
+import org.delegserver.storage.TraceRecordStore;
 import org.delegserver.storage.UserAttributeTrace;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
@@ -34,7 +34,7 @@ public class DSOA2AuthorizationServerOrig extends OA2AuthorizationServer {
         	AuthorizedState authorizedState = (AuthorizedState) state;
         	OA2ServiceTransaction serviceTransaction = ((OA2ServiceTransaction) authorizedState.getTransaction());
         	
-    		DNRecordStore<TraceRecord> dnRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
+    		TraceRecordStore<TraceRecord> dnRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
     		TraceRecord dnRecord = dnRecordStore.create();
     		
     		/* DN HASHING */
@@ -49,7 +49,7 @@ public class DSOA2AuthorizationServerOrig extends OA2AuthorizationServer {
     		//System.out.println("GOT: " + String.format("%x", new BigInteger(1, dnHash)) );
     		System.out.println("GOT: " + dnHash);
     		
-    		dnRecord.setDnHash( dnHash );
+    		dnRecord.setCnHash( dnHash );
     		
     		/* ATTRIBUTE HASHING */
         	
@@ -88,7 +88,7 @@ public class DSOA2AuthorizationServerOrig extends OA2AuthorizationServer {
 				}
 			}    		
 			
-			dnRecord.setAttrNames(attributeNamesString);
+			//dnRecord.setAttrNames(attributeNamesString);
     		
     		dnRecordStore.save(dnRecord);
     		

@@ -4,21 +4,21 @@ import java.util.List;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.delegserver.storage.TraceRecord;
-import org.delegserver.storage.DNRecordStore;
+import org.delegserver.storage.TraceRecordStore;
 
 import edu.uiuc.ncsa.security.core.configuration.provider.CfgEvent;
 import edu.uiuc.ncsa.security.core.exceptions.NotImplementedException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 
-public class MultiDNRecordStoreProvider<T extends TraceRecord> extends DNRecordStoreProvider<DNRecordStore<T>> {
+public class MultiTraceRecordStoreProvider<T extends TraceRecord> extends TraceRecordStoreProvider<TraceRecordStore<T>> {
 
-    public MultiDNRecordStoreProvider(ConfigurationNode config, boolean disableDefaultStore, MyLoggingFacade logger, String type, String target) {
+    public MultiTraceRecordStoreProvider(ConfigurationNode config, boolean disableDefaultStore, MyLoggingFacade logger, String type, String target) {
     	super(config, disableDefaultStore, logger, type, target);
     }
 
 	@Override
-	public DNRecordStore<T> getDefaultStore() {
-		throw new NotImplementedException("DNStoreProvider does not have a default store. Yet.");
+	public TraceRecordStore<T> getDefaultStore() {
+		throw new NotImplementedException("TraceRecordStoreProvider does not have a default store. Yet.");
 	}
 	
 	/*

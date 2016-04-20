@@ -7,9 +7,9 @@ import org.delegserver.storage.TraceRecord;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.util.IdentifiableProviderImpl;
 
-public class DNRecordProvider extends IdentifiableProviderImpl<TraceRecord> {
+public class TraceRecordProvider extends IdentifiableProviderImpl<TraceRecord> {
 
-	public DNRecordProvider(Provider<Identifier> idProvider) {
+	public TraceRecordProvider(Provider<Identifier> idProvider) {
 		super(idProvider);
 	}
 

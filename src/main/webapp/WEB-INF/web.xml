@@ -53,7 +53,8 @@
 
     <servlet>
         <servlet-name>getCert</servlet-name>
-        <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2CertServlet</servlet-class>
+        <!-- <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2CertServlet</servlet-class> -->
+        <servlet-class>org.delegserver.oauth2.servlet.DSOA2CertServlet</servlet-class>
 
     </servlet>
     <servlet-mapping>

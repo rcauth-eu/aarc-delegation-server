@@ -5,21 +5,27 @@ import edu.uiuc.ncsa.security.core.util.IdentifiableImpl;
 
 import static edu.uiuc.ncsa.security.core.util.BeanUtils.checkEquals;
 
+import java.util.List;
+
+import org.delegserver.oauth2.util.HashingUtils;
+
 public class TraceRecord extends IdentifiableImpl {
 
 	private static final long serialVersionUID = -7707448168067694856L;
 
+	protected String cnHash;
+	protected int sequenceNr = 0;	
+	protected String attrHash;
+	protected String attrSalt;	
+	protected List<String> attrNames;
+	
 	public TraceRecord(Identifier identifier) {
 		super(identifier);
 	}
-
-	protected String cnHash;
-	protected int sequenceNr;	
-	protected String attrHash;
-	protected String attrSalt;	
-	protected String attrNames;
 	
-	public String getDnHash() {
+	/* GETTERS AND SETTERS */
+	
+	public String getCnHash() {
 		return cnHash;
 	}
 	
@@ -27,11 +33,11 @@ public class TraceRecord extends IdentifiableImpl {
 		return attrHash;
 	}
 	
-	public String getAttrNames() {
+	public List<String> getAttrNames() {
 		return attrNames;
 	}
 	
-	public void setDnHash(String dnHash) {
+	public void setCnHash(String dnHash) {
 		this.cnHash = dnHash;
 	}
 	
@@ -39,7 +45,7 @@ public class TraceRecord extends IdentifiableImpl {
 		this.attrHash = attrHash;
 	}
 	
-	public void setAttrNames(String attrNames) {
+	public void setAttrNames(List<String> attrNames) {
 		this.attrNames = attrNames;
 	}
 	
@@ -66,11 +72,11 @@ public class TraceRecord extends IdentifiableImpl {
 		} else {
 			if ( obj instanceof TraceRecord) {
 				TraceRecord rec = (TraceRecord) obj;
-				if ( ! checkEquals(getDnHash(), rec.getDnHash()) ) return false;
+				if ( ! checkEquals(getCnHash(), rec.getCnHash()) ) return false;
 				if ( this.getSequenceNr() != rec.getSequenceNr() ) return false;
 				if ( ! checkEquals(getAttrHash(), rec.getAttrHash()) ) return false;
 				if ( ! checkEquals(getAttrSalt(), rec.getAttrSalt()) ) return false;
-				if ( ! checkEquals(getAttrNames(), rec.getAttrNames()) ) return false;
+				//if ( ! checkEquals(getAttrNames(), rec.getAttrNames()) ) return false;
 				return true;				
 			} else {
 				return false;
@@ -81,7 +87,7 @@ public class TraceRecord extends IdentifiableImpl {
 	@Override
 	public String toString() {
 		return "TraceRecord: \n" + 
-			   "	dnHash=" + cnHash + "\n" +
+			   "	cnHash=" + cnHash + "\n" +
 			   "	sequnceNr=" + sequenceNr + "\n" +
 	           "	attrHash=" + attrHash + "\n" + 
 	           "	attrSalt=" + attrSalt + "\n" +   

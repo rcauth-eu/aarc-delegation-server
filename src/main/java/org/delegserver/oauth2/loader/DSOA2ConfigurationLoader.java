@@ -2,18 +2,18 @@ package org.delegserver.oauth2.loader;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.delegserver.oauth2.DNGenerator;
-import org.delegserver.oauth2.DSOA2ConfigurationLoaderUtils;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
-import org.delegserver.oauth2.util.DNRecordConverter;
-import org.delegserver.storage.DNRecordKeys;
-import org.delegserver.storage.DNRecordStore;
+import org.delegserver.oauth2.util.DSOA2ConfigurationLoaderUtils;
+import org.delegserver.storage.TraceRecordKeys;
+import org.delegserver.storage.TraceRecordStore;
 import org.delegserver.storage.DSOA2TConverter;
 import org.delegserver.storage.DSOA2TransactionKeys;
-import org.delegserver.storage.impl.DNRecordProvider;
-import org.delegserver.storage.impl.MultiDNRecordStoreProvider;
+import org.delegserver.storage.TraceRecordConverter;
+import org.delegserver.storage.impl.TraceRecordProvider;
+import org.delegserver.storage.impl.MultiTraceRecordStoreProvider;
 import org.delegserver.storage.sql.DSOA2SQLTransactionStoreProvider;
-import org.delegserver.storage.sql.DSSQLDNRecordStoreProvider;
+import org.delegserver.storage.sql.SQLTraceRecordStoreProvider;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
@@ -85,30 +85,30 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 	
     /* Configure backend provider for DNRecords */
     
-    protected MultiDNRecordStoreProvider dnsp;
+    protected MultiTraceRecordStoreProvider dnsp;
     
     public final static String DNRECORD_ID = "dnRecord";
     
-    public Provider<DNRecordStore> getDNStoreProvider() {
+    public Provider<TraceRecordStore> getDNStoreProvider() {
     	if ( dnsp == null ) {
-    		 dnsp = new MultiDNRecordStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null);
+    		 dnsp = new MultiTraceRecordStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null);
     		 
-    		 DNRecordProvider provider = new DNRecordProvider( new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, DNRECORD_ID, false ));
-    		 DNRecordConverter converter = new DNRecordConverter( new DNRecordKeys(), provider);
+    		 TraceRecordProvider provider = new TraceRecordProvider( new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, DNRECORD_ID, false ));
+    		 TraceRecordConverter converter = new TraceRecordConverter( new TraceRecordKeys(), provider);
 
-    		 dnsp.addListener( new DSSQLDNRecordStoreProvider(cn,
+    		 dnsp.addListener( new SQLTraceRecordStoreProvider(cn,
     				  getMySQLConnectionPoolProvider(),
 					  OA4MPConfigTags.MYSQL_STORE, 
 					  converter, 
 					  provider) );    	
     		 
-    		 dnsp.addListener( new DSSQLDNRecordStoreProvider(cn,
+    		 dnsp.addListener( new SQLTraceRecordStoreProvider(cn,
    				  getMariaDBConnectionPoolProvider(),
 					  OA4MPConfigTags.MARIADB_STORE, 
 					  converter, 
 					  provider) );      		 
     		 
-    		 dnsp.addListener( new DSSQLDNRecordStoreProvider(cn,
+    		 dnsp.addListener( new SQLTraceRecordStoreProvider(cn,
     				  getPgConnectionPoolProvider(),
     				  OA4MPConfigTags.POSTGRESQL_STORE, 
     				  converter, 
