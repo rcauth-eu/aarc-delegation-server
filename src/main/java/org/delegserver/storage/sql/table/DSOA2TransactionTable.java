@@ -19,5 +19,7 @@ public class DSOA2TransactionTable extends OA2TransactionTable {
     	super.createColumnDescriptors();
     	getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).claims(), 
     														 Types.LONGVARCHAR));
+    	getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).user_attributes(), 
+				 											 Types.LONGVARCHAR));
     }
 }

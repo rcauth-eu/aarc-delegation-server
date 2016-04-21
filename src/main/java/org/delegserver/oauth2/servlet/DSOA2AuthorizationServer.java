@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
+import org.delegserver.oauth2.DSOA2ServiceTransaction;
+
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
@@ -27,9 +29,12 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         if (state.getState() == AUTHORIZATION_ACTION_OK) {
         	
         	AuthorizedState authorizedState = (AuthorizedState) state;
-        	OA2ServiceTransaction serviceTransaction = ((OA2ServiceTransaction) authorizedState.getTransaction());
+        	DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) authorizedState.getTransaction());
         	
         	printAllParameters( authorizedState.getRequest() );
+        	
+        	serviceTransaction.setUserAttributes( getHeaderMap(state.getRequest()) );
+        	getTransactionStore().save(serviceTransaction);
         	
         	DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
         	// TODO: write a more generic attribute mapper 

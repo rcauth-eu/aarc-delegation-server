@@ -1,15 +1,11 @@
 package org.delegserver.storage;
 
-import java.util.List;
+import org.delegserver.oauth2.util.JSONConverter;
 
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
-import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
-import net.minidev.json.JSONArray;
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
 
 public class TraceRecordConverter<V extends TraceRecord> extends MapConverter<V> {
 
@@ -33,7 +29,7 @@ public class TraceRecordConverter<V extends TraceRecord> extends MapConverter<V>
 		v.setSequenceNr( parseInt(map, getKeys().sequence_nr()) );
 		
 		v.setAttrHash( map.getString( getKeys().attribute_hash()) );
-		v.setAttrNames( parseJSONArray(map, getKeys().attribute_names()) );
+		v.setAttrNames( JSONConverter.fromJSONArray( map.getString(getKeys().attribute_names()) ) );
 		return v;
 	}
 	
@@ -46,11 +42,7 @@ public class TraceRecordConverter<V extends TraceRecord> extends MapConverter<V>
 		map.put( getKeys().attribute_hash() , v.getAttrHash());
 		map.put( getKeys().attribute_salt() , v.getAttrSalt());
 		
-		JSONArray json = new JSONArray();
-		for (String s : v.getAttrNames()) {
-			json.add(s);
-		}
-		map.put( getKeys().attribute_names() , json.toJSONString());
+		map.put( getKeys().attribute_names() , JSONConverter.toJSONArray( v.getAttrNames() ).toJSONString() );
 	}
 
 	
@@ -62,20 +54,4 @@ public class TraceRecordConverter<V extends TraceRecord> extends MapConverter<V>
         return Integer.parseUnsignedInt(obj.toString());		
 	}
 	
-	private List<String> parseJSONArray(ConversionMap<String, Object> map, String key) {
-		Object obj = map.get(key);
-		JSONParser parser = new JSONParser(0);
-		
-		try {
-			Object parsedObj = parser.parse(obj.toString());
-			if (parsedObj instanceof JSONArray) {
-				return (List<String>) parsedObj;
-			} else {
-				return null;
-			}
-		} catch (ParseException e) {
-			throw new GeneralException("Cannot parse JSONArray from map with key : " + key);
-		}
-		
-	}
 }

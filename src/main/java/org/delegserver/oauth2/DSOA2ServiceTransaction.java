@@ -28,4 +28,18 @@ public class DSOA2ServiceTransaction extends OA2ServiceTransaction {
 		this.claims = claims;
 	}
     
+    /* Support for saving user attributes released by the idp 
+     * into the transaction store 
+     */
+
+    protected Map<String,String> userAttributes;
+    
+    public Map<String, String> getUserAttributes() {
+		return userAttributes;
+	}
+    
+    public void setUserAttributes(Map<String, String> userAttributes) {
+		this.userAttributes = userAttributes;
+	}
+    
 }

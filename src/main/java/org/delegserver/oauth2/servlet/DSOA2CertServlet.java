@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
+import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.util.HashingUtils;
 import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.TraceRecordStore;
@@ -70,7 +71,9 @@ public class DSOA2CertServlet extends OA2CertServlet {
 			throws Throwable {
 		super.prepare(transaction, request, response);
 		
-		TraceRecord trace = getTraceRecord( getHeaderMap(request) );
+		DSOA2ServiceTransaction trans = (DSOA2ServiceTransaction) transaction;
+		System.out.println(" /getcert PREPARE trans user attrs: " + trans.getUserAttributes());
+		TraceRecord trace = getTraceRecord( trans.getUserAttributes() );
 		
 	}
 	
@@ -83,25 +86,4 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		// 4. CREATE MYPROXY CONNECTION BASED ON DN RECORD
 	}
 	
-	private Map<String,String> getHeaderMap(HttpServletRequest request) {
-		
-		Map<String,String> map = new HashMap<String,String>();
-		
-		// IMPORTANT !!! Map the header parameters wih the right encoding 
-		
-		Charset isoCharset = Charset.forName("ISO-8859-1");
-		Charset utf8Charset = Charset.forName("UTF-8");
-		
-        Enumeration e = request.getHeaderNames();
-        while (e.hasMoreElements()) {
-            String name = e.nextElement().toString();
-            
-            byte[] v = request.getHeader(name).getBytes(isoCharset);
-            String value = new String(v,utf8Charset);
-            
-            map.put(name , value );
-        }
-		
-		return map;
-	}	
 }
