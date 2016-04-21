@@ -18,7 +18,7 @@ public class TraceRecordTable extends Table {
     public void createColumnDescriptors() {
     	super.createColumnDescriptors();
     	TraceRecordKeys x =  (TraceRecordKeys) keys;
-    	getColumnDescriptor().add(new ColumnDescriptorEntry(x.cn_hash(), CHAR));
+    	getColumnDescriptor().add(new ColumnDescriptorEntry(x.cn_hash(), CHAR, false, true));
     	getColumnDescriptor().add(new ColumnDescriptorEntry(x.sequence_nr(), SMALLINT));
     	getColumnDescriptor().add(new ColumnDescriptorEntry(x.attribute_hash(), CHAR));
     	getColumnDescriptor().add(new ColumnDescriptorEntry(x.attribute_salt(), CHAR));

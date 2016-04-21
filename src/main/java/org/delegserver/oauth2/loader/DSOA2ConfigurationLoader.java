@@ -83,7 +83,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
         }
     }	
 	
-    /* Configure backend provider for DNRecords */
+    /* Configure backend provider for TraceRecords */
     
     protected MultiTraceRecordStoreProvider dnsp;
     

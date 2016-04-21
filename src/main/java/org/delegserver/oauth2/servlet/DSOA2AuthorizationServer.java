@@ -38,6 +38,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	
         	DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
         	// TODO: write a more generic attribute mapper 
+        	/*
         	System.out.println("-------------- GENERATED RDNS --------------");
         	
         	String org = se.getDnGenerator().getOrganisation(getHeaderMap(state.getRequest()));
@@ -54,6 +55,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	System.out.println("-------------- END GENERATED DN 1 --------------");
         	System.out.println("-------------- END GENERATED DN 2 --------------");
         	System.out.println("-------------- END GENERATED DN 3 --------------");
+        	*/
         }
 	}
 	

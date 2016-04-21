@@ -18,9 +18,6 @@ public class JSONConverter {
 	}
 	
 	public static Map<String, ?> fromJSONObject(String json) {
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++");
-		System.out.println("PARSING: " + json);
-
 		Map map = null;
 		try {
     		
@@ -34,21 +31,11 @@ public class JSONConverter {
 			throw new GeneralException("Erro while parsing JSONObject! Could not parse JSON: " + json);
 		}
 		
-		System.out.println("RESULT: " + map);
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++");
-		
 		return map;		
 	}
 	
 	public static Map<String,String> fromJSONObjectToStringMap(String json) {
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++");
-		System.out.println("PARSING: " + json);
-
 		Map map = (Map<String, String>) fromJSONArray(json);
-		
-		System.out.println("RESULT: " + map);
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++");
-		
 		return map;
 	}
 	

@@ -91,7 +91,7 @@ public class TraceRecord extends IdentifiableImpl {
 			   "	sequnceNr=" + sequenceNr + "\n" +
 	           "	attrHash=" + attrHash + "\n" + 
 	           "	attrSalt=" + attrSalt + "\n" +   
-			   "	attributeList=" + attrNames + "\n";
+			   "	attributeNames=" + attrNames + "\n";
 	}
 	
 }
