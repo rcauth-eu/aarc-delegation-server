@@ -10,7 +10,7 @@ import edu.uiuc.ncsa.security.storage.sql.ConnectionPool;
 import edu.uiuc.ncsa.security.storage.sql.SQLStore;
 import edu.uiuc.ncsa.security.storage.sql.internals.Table;
 
-public class SQLTraceRecordStore extends SQLStore<TraceRecord> implements TraceRecordStore<TraceRecord> {
+public class SQLTraceRecordStore extends ExtendedSQLStore<TraceRecord> implements TraceRecordStore<TraceRecord> {
 
 	public static final String DEFAULT_TABLENAME = "trace_records";
 	

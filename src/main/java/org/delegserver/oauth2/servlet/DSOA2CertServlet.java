@@ -3,6 +3,7 @@ package org.delegserver.oauth2.servlet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +17,7 @@ import org.delegserver.storage.TraceRecordIdentifier;
 import org.delegserver.storage.TraceRecordStore;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2CertServlet;
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 
@@ -38,17 +40,21 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		String cnHash = hasher.hashToBase64(cn);
 		TraceRecordIdentifier traceRecordIdentifier = new TraceRecordIdentifier(cnHash);
 		
+		List<Identifier> cnHashAlternatives = new ArrayList<Identifier>();
+		cnHashAlternatives.add( traceRecordIdentifier );
+		cnHashAlternatives.add( new TraceRecordIdentifier("blabla") );
+		cnHashAlternatives.add( new TraceRecordIdentifier("blablabla") );
+		
 		System.out.println("Looking for records with PK: " + cnHash);
 		
-		TraceRecord traceRecord = traceRecordStore.get(traceRecordIdentifier);
+		//TraceRecord traceRecord = traceRecordStore.get(traceRecordIdentifier);
+		Set<TraceRecord> traceRedords = traceRecordStore.getAll( cnHashAlternatives );
 		
-		if ( traceRecord == null ) {
+		if ( traceRedords == null ) {
 			System.out.println("No Record Found!");
 			recordFound = false;
 		} else {
-			System.out.println("Record Found!");
-			System.out.println(traceRecord.toString());
-			
+			System.out.println("Record Found! Record count: " + traceRedords.size());
 			recordFound = true;
 		}
 		

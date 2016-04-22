@@ -8,7 +8,7 @@ import edu.uiuc.ncsa.security.storage.sql.internals.Table;
 import static java.sql.Types.CHAR;
 import static java.sql.Types.SMALLINT;
 
-public class TraceRecordTable extends Table {
+public class TraceRecordTable extends ExtendedTable {
 
     public TraceRecordTable(TraceRecordKeys keys, String schema, String tablenamePrefix, String tablename) {
         super(keys, schema, tablenamePrefix, tablename);
@@ -24,5 +24,8 @@ public class TraceRecordTable extends Table {
     	getColumnDescriptor().add(new ColumnDescriptorEntry(x.attribute_salt(), CHAR));
     	getColumnDescriptor().add(new ColumnDescriptorEntry(x.attribute_names(), CHAR));
     }
+    
+
+
     
 }
