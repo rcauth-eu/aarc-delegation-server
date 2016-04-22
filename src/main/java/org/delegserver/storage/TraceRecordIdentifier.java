@@ -1,7 +1,6 @@
 package org.delegserver.storage;
 
 import java.net.URI;
-
 import edu.uiuc.ncsa.security.core.Identifier;
 
 public class TraceRecordIdentifier implements Identifier {

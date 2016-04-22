@@ -16,7 +16,7 @@ import edu.uiuc.ncsa.security.storage.sql.internals.Table;
 
 public class SQLTraceRecordStoreProvider<V extends SQLTraceRecordStore> extends SQLStoreProvider<V> implements DSConfigTags {
 
-	protected Provider<TraceRecord> dnRecordProvider;
+	protected Provider<TraceRecord> traceRecordProvider;
 	
     public SQLTraceRecordStoreProvider(
             ConfigurationNode config,
@@ -27,7 +27,7 @@ public class SQLTraceRecordStoreProvider<V extends SQLTraceRecordStore> extends 
             MapConverter converter,
             Provider<TraceRecord> dnrp) {
         super(config, cpp, type, target, tablename, converter);
-        this.dnRecordProvider = dnrp;
+        this.traceRecordProvider = dnrp;
     }
 
     public SQLTraceRecordStoreProvider(
@@ -36,13 +36,13 @@ public class SQLTraceRecordStoreProvider<V extends SQLTraceRecordStore> extends 
             String type,
             MapConverter converter,
             Provider<TraceRecord> dnrp) {
-        super(config, cpp, type, DSConfigTags.DN_RECORD_STORE, SQLTraceRecordStore.DEFAULT_TABLENAME, converter);
-        this.dnRecordProvider = dnrp;
+        super(config, cpp, type, DSConfigTags.TRACE_RECORD_STORE, SQLTraceRecordStore.DEFAULT_TABLENAME, converter);
+        this.traceRecordProvider = dnrp;
     }
      
     @Override
     public V newInstance(Table table) {
-    	return (V) new SQLTraceRecordStore(getConnectionPool(), table, dnRecordProvider, converter);
+    	return (V) new SQLTraceRecordStore(getConnectionPool(), table, traceRecordProvider, converter);
     }
     
     @Override

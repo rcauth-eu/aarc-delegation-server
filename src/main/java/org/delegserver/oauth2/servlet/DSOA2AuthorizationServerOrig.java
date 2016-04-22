@@ -34,7 +34,7 @@ public class DSOA2AuthorizationServerOrig extends OA2AuthorizationServer {
         	AuthorizedState authorizedState = (AuthorizedState) state;
         	OA2ServiceTransaction serviceTransaction = ((OA2ServiceTransaction) authorizedState.getTransaction());
         	
-    		TraceRecordStore<TraceRecord> dnRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
+    		TraceRecordStore<TraceRecord> dnRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getTraceRecordStore();
     		TraceRecord dnRecord = dnRecordStore.create();
     		
     		/* DN HASHING */

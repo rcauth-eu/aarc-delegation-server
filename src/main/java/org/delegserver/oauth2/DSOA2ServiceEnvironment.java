@@ -28,7 +28,7 @@ import edu.uiuc.ncsa.security.util.mail.MailUtilProvider;
 
 public class DSOA2ServiceEnvironment extends OA2SE {
 
-	public DSOA2ServiceEnvironment(MyLoggingFacade logger, Provider<TraceRecordStore> dnsp, Provider<TransactionStore> tsp, Provider<ClientStore> csp,
+	public DSOA2ServiceEnvironment(MyLoggingFacade logger, Provider<TraceRecordStore> trsp, Provider<TransactionStore> tsp, Provider<ClientStore> csp,
 			int maxAllowedNewClientRequests, long rtLifetime, Provider<ClientApprovalStore> casp,
 			List<MyProxyFacadeProvider> mfp, MailUtilProvider mup, MessagesProvider messagesProvider,
 			Provider<AGIssuer> agip, Provider<ATIssuer> atip, Provider<PAIssuer> paip, Provider<TokenForge> tfp,
@@ -40,7 +40,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 				tfp, constants, ac, usernameTransformer, isPingable, clientSecretLength, scopesMap.keySet(), scopeHandler,
 				isRefreshTokenEnabled);
 		
-		this.dnsp = dnsp;
+		this.traceRecordSP = trsp;
 		this.scopesMap = scopesMap;
 		this.dnGenerator = dnGenerator;
 		
@@ -108,16 +108,16 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 	}
 	
 	
-	/* TODO: DNRecords */
+	/* TODO: TraceRecords */
 	
-	protected Provider<TraceRecordStore> dnsp;
-	protected TraceRecordStore dnRecordStore;
+	protected Provider<TraceRecordStore> traceRecordSP;
+	protected TraceRecordStore traceRecordStore;
 	
-	public TraceRecordStore getDNRecordStore() {
-		if ( dnRecordStore == null ) {
-			dnRecordStore = dnsp.get();
+	public TraceRecordStore getTraceRecordStore() {
+		if ( traceRecordStore == null ) {
+			traceRecordStore = traceRecordSP.get();
 		}
-		return dnRecordStore;
+		return traceRecordStore;
 	}
 
 	

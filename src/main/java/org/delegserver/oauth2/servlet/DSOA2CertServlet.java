@@ -24,7 +24,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 	protected boolean getTraceRecord(Map<String,String> attributeMap) {
 		
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
-		TraceRecordStore<TraceRecord> traceRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
+		TraceRecordStore<TraceRecord> traceRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getTraceRecordStore();
 		HashingUtils hasher = HashingUtils.getInstance();
 		
 		boolean recordFound = false;
@@ -61,7 +61,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		System.out.println("-------------- CREATING NEW TRACE RECORD --------------");
 		
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
-		TraceRecordStore<TraceRecord> traceRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getDNRecordStore();
+		TraceRecordStore<TraceRecord> traceRecordStore = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getTraceRecordStore();
 		HashingUtils hasher = HashingUtils.getInstance();
 		
 		// first let's populate the database with some records so we can experiment with the lookups

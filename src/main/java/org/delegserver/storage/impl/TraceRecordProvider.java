@@ -15,7 +15,7 @@ public class TraceRecordProvider extends IdentifiableProviderImpl<TraceRecord> {
 
 	@Override
 	public TraceRecord get(boolean createNewIdentifier) {
-		return new TraceRecord(createNewId(createNewIdentifier));
+		return new TraceRecord(null);
 	}
 	
 }

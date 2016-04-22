@@ -10,6 +10,7 @@ import org.delegserver.storage.TraceRecordStore;
 import org.delegserver.storage.DSOA2TConverter;
 import org.delegserver.storage.DSOA2TransactionKeys;
 import org.delegserver.storage.TraceRecordConverter;
+import org.delegserver.storage.TraceRecordIdentifierProvider;
 import org.delegserver.storage.impl.TraceRecordProvider;
 import org.delegserver.storage.impl.MultiTraceRecordStoreProvider;
 import org.delegserver.storage.sql.DSOA2SQLTransactionStoreProvider;
@@ -56,7 +57,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     public T createInstance() {
         try {
             return (T) new DSOA2ServiceEnvironment(loggerProvider.get(),
-            		getDNStoreProvider(),
+            		getTraceRecordStoreProvider(),
                     getTransactionStoreProvider(),
                     getClientStoreProvider(),
                     getMaxAllowedNewClientRequests(),
@@ -85,30 +86,29 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 	
     /* Configure backend provider for TraceRecords */
     
-    protected MultiTraceRecordStoreProvider dnsp;
-    
-    public final static String DNRECORD_ID = "dnRecord";
-    
-    public Provider<TraceRecordStore> getDNStoreProvider() {
-    	if ( dnsp == null ) {
-    		 dnsp = new MultiTraceRecordStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null);
+    protected MultiTraceRecordStoreProvider traceRecordSP;
+        
+    public Provider<TraceRecordStore> getTraceRecordStoreProvider() {
+    	if ( traceRecordSP == null ) {
+    		 traceRecordSP = new MultiTraceRecordStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null);
     		 
-    		 TraceRecordProvider provider = new TraceRecordProvider( new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, DNRECORD_ID, false ));
+    		 TraceRecordIdentifierProvider identifier = new TraceRecordIdentifierProvider();
+    		 TraceRecordProvider provider = new TraceRecordProvider( identifier );
     		 TraceRecordConverter converter = new TraceRecordConverter( new TraceRecordKeys(), provider);
 
-    		 dnsp.addListener( new SQLTraceRecordStoreProvider(cn,
+    		 traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
     				  getMySQLConnectionPoolProvider(),
 					  OA4MPConfigTags.MYSQL_STORE, 
 					  converter, 
 					  provider) );    	
     		 
-    		 dnsp.addListener( new SQLTraceRecordStoreProvider(cn,
+    		 traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
    				  getMariaDBConnectionPoolProvider(),
 					  OA4MPConfigTags.MARIADB_STORE, 
 					  converter, 
 					  provider) );      		 
     		 
-    		 dnsp.addListener( new SQLTraceRecordStoreProvider(cn,
+    		 traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
     				  getPgConnectionPoolProvider(),
     				  OA4MPConfigTags.POSTGRESQL_STORE, 
     				  converter, 
@@ -116,7 +116,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     		 
     		 
     	}
-    	return dnsp;
+    	return traceRecordSP;
     }
 
    

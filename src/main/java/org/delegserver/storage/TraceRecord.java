@@ -1,32 +1,31 @@
 package org.delegserver.storage;
 
-import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.util.IdentifiableImpl;
 
 import static edu.uiuc.ncsa.security.core.util.BeanUtils.checkEquals;
 
 import java.util.List;
 
-import org.delegserver.oauth2.util.HashingUtils;
 
 public class TraceRecord extends IdentifiableImpl {
 
 	private static final long serialVersionUID = -7707448168067694856L;
 
-	protected String cnHash;
+	//protected String cnHash;
 	protected int sequenceNr = 0;	
 	protected String attrHash;
 	protected String attrSalt;	
 	protected List<String> attrNames;
 	
-	public TraceRecord(Identifier identifier) {
+	public TraceRecord(TraceRecordIdentifier identifier) {
 		super(identifier);
 	}
 	
 	/* GETTERS AND SETTERS */
 	
 	public String getCnHash() {
-		return cnHash;
+		//return cnHash;
+		return ((TraceRecordIdentifier)this.getIdentifier()).cnHash;
 	}
 	
 	public String getAttrHash() {
@@ -37,8 +36,9 @@ public class TraceRecord extends IdentifiableImpl {
 		return attrNames;
 	}
 	
-	public void setCnHash(String dnHash) {
-		this.cnHash = dnHash;
+	public void setCnHash(String cnHash) {
+		//this.cnHash = dnHash;
+		this.setIdentifier(new TraceRecordIdentifier(cnHash));
 	}
 	
 	public void setAttrHash(String attrHash) {
@@ -87,7 +87,7 @@ public class TraceRecord extends IdentifiableImpl {
 	@Override
 	public String toString() {
 		return "TraceRecord: \n" + 
-			   "	cnHash=" + cnHash + "\n" +
+			   "	cnHash=" + getIdentifierString() + "\n" +
 			   "	sequnceNr=" + sequenceNr + "\n" +
 	           "	attrHash=" + attrHash + "\n" + 
 	           "	attrSalt=" + attrSalt + "\n" +   
