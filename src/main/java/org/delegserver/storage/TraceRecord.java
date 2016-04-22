@@ -1,5 +1,6 @@
 package org.delegserver.storage;
 
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.util.IdentifiableImpl;
 
 import static edu.uiuc.ncsa.security.core.util.BeanUtils.checkEquals;
@@ -22,6 +23,13 @@ public class TraceRecord extends IdentifiableImpl {
 	}
 	
 	/* GETTERS AND SETTERS */
+	
+	@Override
+	public void setIdentifier(Identifier identifier) {
+		super.setIdentifier(identifier);
+		
+		System.out.println("SET IDENTIFIER TO -> " + identifier.getClass().getCanonicalName() + " VALUE: " + identifier.toString());
+	}
 	
 	public String getCnHash() {
 		//return cnHash;

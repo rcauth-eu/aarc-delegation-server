@@ -4,9 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+
 
 import javax.inject.Provider;
 
@@ -29,10 +29,10 @@ public abstract class ExtendedSQLStore<V extends Identifiable> extends SQLStore<
 		super(connectionPool,table,identifiableProvider,converter);
 	}
 
-	public Set<V> getAll(List<Identifier> ids) {
+	public List<V> getAll(List<Identifier> ids) {
 		
         Connection c = getConnection();
-        Set<V> resultSet = new HashSet<V>(); 
+        List<V> resultSet = new ArrayList<V>(); 
         try {
         	
         	if ( !(getTable() instanceof ExtendedTable) ) {

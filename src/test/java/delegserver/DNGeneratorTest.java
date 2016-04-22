@@ -2,7 +2,7 @@ package delegserver;
 
 import java.net.IDN;
 
-import org.delegserver.oauth2.DNGenerator;
+import org.delegserver.oauth2.generator.DNGenerator;
 import org.junit.Test;
 
 public class DNGeneratorTest extends DNGenerator {

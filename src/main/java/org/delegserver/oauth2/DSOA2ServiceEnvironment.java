@@ -8,6 +8,8 @@ import java.util.Map;
 
 import javax.inject.Provider;
 
+import org.delegserver.oauth2.generator.DNGenerator;
+import org.delegserver.oauth2.generator.UniqueAttrGenerator;
 import org.delegserver.storage.TraceRecordStore;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
@@ -61,15 +63,19 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 	/* DN Generation sources */
 	
 	protected DNGenerator dnGenerator = null;
-	protected UniqueAttrListGenerator uniqueAttrListGenerator = null;
+	protected UniqueAttrGenerator uniqueAttrGenerator = null;
 	protected String[] uniqueAttrSources = null;
 
 	public DNGenerator getDnGenerator() {
 		return dnGenerator;
 	}
 	
-	public UniqueAttrListGenerator getUniqueAttrListGenerator() {
-		return uniqueAttrListGenerator;
+	public UniqueAttrGenerator getUniqueAttrGenerator() {
+		if ( uniqueAttrGenerator == null ) {
+			uniqueAttrGenerator = new UniqueAttrGenerator( getUniqueAttrSources() );
+		}
+		
+		return uniqueAttrGenerator;
 	}
 	
 	public String[] getUniqueAttrSources() {

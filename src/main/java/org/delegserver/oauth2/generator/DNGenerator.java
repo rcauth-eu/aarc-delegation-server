@@ -1,4 +1,4 @@
-package org.delegserver.oauth2;
+package org.delegserver.oauth2.generator;
 
 import java.io.UnsupportedEncodingException;
 import java.net.IDN;
@@ -12,9 +12,12 @@ import java.nio.charset.CodingErrorAction;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.MapUtils;
 import org.bouncycastle.util.Arrays;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -146,6 +149,96 @@ public class DNGenerator {
 		logger.info("COMMON NAME (CN) ATTRIBUTE");
 		
 		// First deal with the display name part of the common name
+		String diplayName = getCommonNameDisplayPart(attributeMap);
+
+		// Now deal with the uniqueness part of the CN
+		String uniqueID = getCommonNameUniquePart(attributeMap);
+
+		// the combination returned here should always be <= 64 
+		String cn = diplayName + CN_DELIMITER + uniqueID;
+		
+		logger.info("	- Generated Common Name (CN): '" + cn + "'");
+		
+		return cn;
+	}
+	
+	public String getCommonName(Map<String,String> attributeMap, int index) {
+		
+		if ( index <= 0 || index > CN_MAX_SEQUENCE_NR ) {
+			throw new GeneralException("The index " + index + " is not an acceptable value! Sequence number"
+					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
+		}
+		
+		String rdn = getCommonName(attributeMap) + CN_DELIMITER + index;
+		
+		if ( rdn.getBytes().length > RDN_MAX_SIZE ) {
+			throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE(64)!");
+		}
+		
+		return rdn;
+	}
+	
+	public List<String> getCommonNames(Map<String,String> attributeMap) {
+		
+		List<String> cns = new ArrayList<String>();
+		
+		// First deal with the display name part of the common name
+		String diplayName = getCommonNameDisplayPart(attributeMap);
+		
+		for(Object obj : cnUniqueIDSources) {
+			
+			String[] uniqueIDSourceAttr;
+			if ( obj instanceof String[] ) {
+				uniqueIDSourceAttr = (String[]) obj;
+			} else {
+				uniqueIDSourceAttr = new String[1];
+				uniqueIDSourceAttr[0] = (String) obj;
+			}
+			
+			logger.info("	- Unique ID Attribute Sources: '" + getConcatenatedStrings(uniqueIDSourceAttr) + "'");
+			
+			String uniqueID = null;
+			for (String source : uniqueIDSourceAttr) {
+				
+				if ( ! attributeMap.containsKey(source) ) {
+					logger.info("	- Unique ID Attribute Sources: '" + source + "' not found attribute map. ignoring..." );
+					uniqueID = null;
+					break;
+				}
+				
+				if ( uniqueID == null ) {
+					uniqueID = getProcessedAttr(attributeMap, source);
+				} else {
+					uniqueID += CN_DELIMITER + getProcessedAttr(attributeMap, source);
+				}
+			}
+			
+			if ( uniqueID == null ) {		
+				continue;				
+			}
+			
+			logger.info("	- Unique ID Attribute Value: '" + uniqueID + "'");
+			
+			uniqueID = getUSR(uniqueID);
+			
+			logger.info("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");
+			
+			// the combination returned here should always be <= 64 
+			String cn = diplayName + CN_DELIMITER + uniqueID;
+			
+			logger.info("	- Generated Common Name (CN): '" + cn + "'");			
+			
+			cns.add(cn);
+		}
+		
+		if ( cns.isEmpty() ) {
+			throw new GeneralException("Could not build ANY CN! Chech that you attribute sources are correct!");			
+		}
+		
+		return cns;
+	}
+	
+	public String getCommonNameDisplayPart(Map<String,String> attributeMap) {
 		
 		String[] cnNameSourceAttr = chooseAttrSource(cnNameSources,attributeMap);
 		if ( cnNameSourceAttr == null ) {
@@ -173,7 +266,10 @@ public class DNGenerator {
 		
 		logger.info("	- Display Name Attribute Value (after truncating): '" + diplayName + "'");
 		
-		// Now deal with the uniqueness part of the CN
+		return diplayName;
+	}
+	
+	public String getCommonNameUniquePart(Map<String,String> attributeMap) {
 		
 		String[] uniqueIDSourceAttr = chooseAttrSource(cnUniqueIDSources,attributeMap);
 		if ( uniqueIDSourceAttr == null ) {
@@ -192,33 +288,13 @@ public class DNGenerator {
 		}
 		logger.info("	- Unique ID Attribute Value: '" + uniqueID + "'");
 		
-		String uniqueIdUSR = getUSR(uniqueID);
+		uniqueID = getUSR(uniqueID);
 		
-		logger.info("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");
+		logger.info("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");	
 		
-		// the combination returned here should always be <= 64 
-		String cn = diplayName + CN_DELIMITER + uniqueIdUSR;
-		
-		logger.info("	- Generated Common Name (CN): '" + cn + "'");
-		
-		return cn;
+		return uniqueID;
 	}
 	
-	public String getCommonName(Map<String,String> attributeMap, int index) {
-		
-		if ( index <= 0 || index > CN_MAX_SEQUENCE_NR ) {
-			throw new GeneralException("The index " + index + " is not an acceptable value! Sequence number"
-					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
-		}
-		
-		String rdn = getCommonName(attributeMap) + CN_DELIMITER + index;
-		
-		if ( rdn.getBytes().length > RDN_MAX_SIZE ) {
-			throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE(64)!");
-		}
-		
-		return rdn;
-	}
 	
 	public String getUserDNSufix(Map<String,String> attributeMap) {
 		

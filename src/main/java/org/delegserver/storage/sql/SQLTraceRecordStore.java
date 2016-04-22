@@ -1,10 +1,14 @@
 package org.delegserver.storage.sql;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Provider;
 
 import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.TraceRecordStore;
 
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPool;
 import edu.uiuc.ncsa.security.storage.sql.SQLStore;
@@ -21,4 +25,18 @@ public class SQLTraceRecordStore extends ExtendedSQLStore<TraceRecord> implement
     	super(connectionPool, table, identifiableProvider, converter);
     }
 	
+	public int getNextSequenceNumber(Identifier identifier) {
+		
+		List<Identifier> ids = new ArrayList<Identifier>();
+		ids.add(identifier);
+		
+		List<TraceRecord> traceRecords = getAll(ids);
+		
+		if ( traceRecords != null ) {
+			return traceRecords.size();
+		} else {
+			return 0;
+		}
+	}
+    
 }

@@ -1,9 +1,9 @@
 package org.delegserver.oauth2.loader;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
-import org.delegserver.oauth2.DNGenerator;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
+import org.delegserver.oauth2.generator.DNGenerator;
 import org.delegserver.oauth2.util.DSOA2ConfigurationLoaderUtils;
 import org.delegserver.storage.TraceRecordKeys;
 import org.delegserver.storage.TraceRecordStore;
