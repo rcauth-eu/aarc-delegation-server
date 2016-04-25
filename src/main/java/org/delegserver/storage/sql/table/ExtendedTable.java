@@ -22,6 +22,6 @@ public class ExtendedTable extends Table {
         }
         
         return select;
-    }	
-
+    }
+    
 }
