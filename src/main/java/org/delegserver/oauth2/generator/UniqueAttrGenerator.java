@@ -51,6 +51,10 @@ public class UniqueAttrGenerator {
 		// hash and salt attribute list with the same salt used in the trace records
 		
 		byte[] salt = Base64.decodeBase64( traceRecord.getAttrSalt() );
+		
+		System.out.println( "Salt (RAW) Extracted for Attribute List Hash : '" + traceRecord.getAttrSalt()  + "'");
+		System.out.println( "Salt Extracted for Attribute List Hash : '" + salt + "'");
+		
 		String attrHash = HashingUtils.getInstance().saltedHashToBase64( attrList , salt );
 
 		System.out.println( "Attribute Hash Computed : '" + attrHash + "'");		

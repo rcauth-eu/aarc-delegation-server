@@ -29,6 +29,7 @@ public class TraceRecordConverter<V extends TraceRecord> extends MapConverter<V>
 		v.setSequenceNr( parseInt(map, getKeys().sequence_nr()) );
 		
 		v.setAttrHash( map.getString( getKeys().attribute_hash()) );
+		v.setAttrSalt( map.getString( getKeys().attribute_salt() ) );
 		v.setAttrNames( JSONConverter.fromJSONArray( map.getString(getKeys().attribute_names()) ) );
 		return v;
 	}

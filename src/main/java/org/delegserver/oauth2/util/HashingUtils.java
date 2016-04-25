@@ -4,9 +4,14 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.commons.beanutils.converters.ByteArrayConverter;
 import org.apache.commons.codec.binary.Base64;
+import org.bouncycastle.util.encoders.Base64Encoder;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 
@@ -61,30 +66,38 @@ public class HashingUtils {
 	
 	public String saltedHashToBase64(String input, byte[] salt) {
 	
-		System.out.println(" (((((((((((((( HASHING WITH SALT )))))))))))))) ");
-
-		System.out.println("String to hash: " + input);
-		System.out.println("Salt to use: " + Base64.encodeBase64String(salt));
+		if ( input == null || input.isEmpty() ) {
+			throw new GeneralException("No input found for hashing!");
+		}
+		if ( salt == null || salt.length == 0 ) {
+			throw new GeneralException("No salt found for hashing!");
+		}		
 		
-		// combine input with salt
-		//byte[] inputBytes = input.getBytes(defaultCharset);
-		//byte[] saltedInput = new byte[salt.length + inputBytes.length];
+		//System.out.println(" (((((((((((((( HASHING WITH SALT )))))))))))))) ");
+		//System.out.println("String to hash: " + input);
+		//System.out.println("Salt to use: " + saltString);
+		//System.out.println("Final thing to hash " + new String(Base64.encodeBase64(saltedInput)) );
+		//System.out.println("Hash created: " + new String(encodedHash));
+		//System.out.println("Hash created (String): " + Base64.encodeBase64String(saltedHash));		
 		
-		//System.arraycopy(salt, 0, saltedInput, 0, salt.length);
-		//System.arraycopy(inputBytes, 0, saltedInput, salt.length, inputBytes.length);
-		String saltString = Base64.encodeBase64String(salt);
-		String saltedInput =  saltString + input; 
+		// combine the input and salt like into a byte array = salt + input
+		byte[] inputBytes = input.getBytes(defaultCharset);
+		byte[] saltedInput = new byte[salt.length + inputBytes.length];
 		
-		System.out.println("Final thing to hash " + saltedInput );
+		System.arraycopy(salt, 0, saltedInput, 0, salt.length);
+		System.arraycopy(inputBytes, 0, saltedInput, salt.length, inputBytes.length);
 		
 		// hash the salted input
-		byte[] saltedHash = defaultMessageDigest.digest( saltedInput.getBytes(defaultCharset) );
+		byte[] saltedHash = defaultMessageDigest.digest( saltedInput );
+		
+		// alternatively, the hash and salt can also be combined with a simple string concatenation
+		// this means we are using the base64 representation of the salt and not the raw bytes
+		//String saltString = new String( Base64.encodeBase64(salt) );
+		//String saltedInput =  saltString.concat(input);
+		//byte[] saltedHash = defaultMessageDigest.digest( saltedInput.getBytes(defaultCharset) );
 		
 		// get the base64 encoding of the salted hash from the previous step
 		byte[] encodedHash =  Base64.encodeBase64(saltedHash);
-		
-		System.out.println("Hash created: " + new String(encodedHash));
-		System.out.println("Hash created (String): " + Base64.encodeBase64String(saltedHash));		
 		
 		return new String(encodedHash);		
 	}	

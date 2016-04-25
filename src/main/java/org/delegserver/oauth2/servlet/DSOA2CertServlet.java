@@ -141,6 +141,8 @@ public class DSOA2CertServlet extends OA2CertServlet {
 	
 		TraceRecord traceRecord = null;
 		
+		System.out.println(" +++++++++++++ PREPARE +++++++++++++++ ");
+		
 		try { 
 			traceRecord = getTraceRecord( trans.getUserAttributes() );
 			System.out.println(" Trace Record found! ");
@@ -162,7 +164,12 @@ public class DSOA2CertServlet extends OA2CertServlet {
 			traceRecord = createTraceRecord( trans.getUserAttributes() , 0 );
 		}
 		
+		System.out.println(" save the trace record ");
+		
 		se.getTraceRecordStore().save(traceRecord);
+		
+		System.out.println(" +++++++++++++ PREPARE END +++++++++++++++ ");
+		System.out.flush();	
 	}
 	
 	/*
