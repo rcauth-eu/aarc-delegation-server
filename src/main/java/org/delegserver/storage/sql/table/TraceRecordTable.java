@@ -39,6 +39,8 @@ public class TraceRecordTable extends ExtendedTable {
             }        	
         }
 
+        update += ", last_seen=CURRENT_TIMESTAMP";
+        
         TraceRecordKeys x =  (TraceRecordKeys) keys;
         String where = " WHERE " + x.cn_hash() + "=?" + " AND " + x.sequence_nr() + "=?";
         
@@ -50,4 +52,18 @@ public class TraceRecordTable extends ExtendedTable {
         TraceRecordKeys x =  (TraceRecordKeys) keys;
         return "SELECT * from " + getFQTablename() + " where " + x.cn_hash() + "=?" + " AND " + x.sequence_nr() + "=?";
     }    
+    
+    @Override
+    public String createInsertStatement() {
+        String out = "insert into " + getFQTablename() + "(" + createRegisterStatement() + ", last_seen" + ") values (" ;
+        String qmarks = "";
+        for (int i = 0; i < getColumnDescriptor().size(); i++) {
+            qmarks = qmarks + "?" + (i + 1 == getColumnDescriptor().size() ? "" : ", ");
+        }
+        qmarks += ",CURRENT_TIMESTAMP";
+        
+        out = out + qmarks + ")";
+        return out;
+    }
+    
 }
