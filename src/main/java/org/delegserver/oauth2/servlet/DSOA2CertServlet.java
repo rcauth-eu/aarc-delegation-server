@@ -1,5 +1,6 @@
 package org.delegserver.oauth2.servlet;
 
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.TraceRecordIdentifier;
 import org.delegserver.storage.TraceRecordStore;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2CertServlet;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -135,6 +137,8 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		super.prepare(transaction, request, response);
 		
+		// 3. SAVE/UPDATE DN RECORD
+		
 		DSOA2ServiceTransaction trans = (DSOA2ServiceTransaction) transaction;
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
 		HashingUtils hasher = HashingUtils.getInstance();
@@ -168,17 +172,25 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		se.getTraceRecordStore().save(traceRecord);
 		
+		trans.setMyproxyUsername( se.getDnGenerator().getUserDNSufix( trans.getUserAttributes() ) );
+
+		System.out.println(" save the transaction ");
+		
+		se.getTransactionStore().save(trans);
+		
 		System.out.println(" +++++++++++++ PREPARE END +++++++++++++++ ");
 		System.out.flush();	
+	}
+	
+	
+	@Override
+	protected void checkMPConnection(OA2ServiceTransaction st) throws GeneralSecurityException {
+		createMPConnection(st.getIdentifier(), st.getMyproxyUsername(), "", st.getLifetime());
 	}
 	
 	/*
 	@Override
 	protected void doRealCertRequest(ServiceTransaction trans, String statusString) throws Throwable {
-		//super.doRealCertRequest(trans, statusString);
-		
-		// 3. SAVE/UPDATE DN RECORD
-		
 		// 4. CREATE MYPROXY CONNECTION BASED ON DN RECORD
 	}
 	*/
