@@ -1,4 +1,4 @@
-package delegserver;
+package org.delegserver.test;
 
 import org.delegserver.oauth2.util.HashingUtils;
 import org.junit.Test;

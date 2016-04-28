@@ -1,4 +1,4 @@
-package delegserver;
+package org.delegserver.test;
 
 import org.delegserver.storage.TraceRecord;
 import org.junit.Test;

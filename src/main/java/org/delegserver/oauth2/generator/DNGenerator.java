@@ -96,7 +96,6 @@ public class DNGenerator {
 	 * 
 	 * @param attributeMap Attribute source for building the O RDN
 	 * @return The constructed O RDN (without the '/O=' prefix!)
-	 * @throws UnsupportedEncodingException
 	 */
 	public String getOrganisation(Map<String,String> attributeMap) {
 		
@@ -363,9 +362,7 @@ public class DNGenerator {
 	 * replaced by HYPHEN-MINUS (“-“) characters.
 	 * 
 	 * @param attr Input for the USR creation
-	 * @return USR of the input attribute 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnsupportedEncodingException 
+	 * @return USR of the input attribute
 	 */
 	protected String getUSR(String attr) {
 		
@@ -473,9 +470,8 @@ public class DNGenerator {
 	 * 
 	 * @param rdn Input RDN to be truncated in case it's too large 
 	 * @param size The size to which the RDN should be truncated. This value defaults to 
-	 * RDN_MAX_SIZE (64 bytes) in case the size provided is <= 0 
+	 * RDN_MAX_SIZE (64 bytes) in case the size provided is less then or equal to 0 
 	 * @return Truncated RDN 
-	 * @throws UnsupportedEncodingException
 	 */
 	protected String truncate(String rdn,int size) {
 		

@@ -1,4 +1,4 @@
-package delegserver;
+package org.delegserver.test;
 
 import static org.junit.Assert.*;
 

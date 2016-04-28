@@ -1,6 +1,4 @@
-package delegserver;
-
-import java.net.IDN;
+package org.delegserver.test;
 
 import org.delegserver.oauth2.generator.DNGenerator;
 import org.junit.Test;

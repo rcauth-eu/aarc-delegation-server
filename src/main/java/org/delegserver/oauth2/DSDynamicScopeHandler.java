@@ -10,6 +10,16 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
 
 public class DSDynamicScopeHandler extends BasicScopeHandler {
 
+
+    /**
+     * Returns the {@link UserInfo} object passed to it completed with the claims saved by the 
+     * corresponding transaction.
+     *
+     * @param userInfo being returned to the client 
+     * @param transaction the current transaction record
+     * @return The UserInfo completed with claims 
+     * @throws UnsupportedScopeException exception
+     */
 	@Override
 	public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) throws UnsupportedScopeException {
 
