@@ -2,6 +2,10 @@ package org.delegserver.oauth2;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
 
+/**
+ * @author "Tamás Balogh"
+ *
+ */
 public interface DSConfigTags extends OA4MPConfigTags {
 
 	/* TRACEABILITY */

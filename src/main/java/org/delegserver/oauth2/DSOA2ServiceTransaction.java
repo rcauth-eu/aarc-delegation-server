@@ -42,4 +42,17 @@ public class DSOA2ServiceTransaction extends OA2ServiceTransaction {
 		this.userAttributes = userAttributes;
 	}
     
+    /* Support for saving the CN hash used by this transaction
+     * This way we can link transactions with trace records.
+     */
+    
+    protected String traceRecord;
+    
+    public String getTraceRecord() {
+		return traceRecord;
+	}
+    
+    public void setTraceRecord(String traceRecord) {
+		this.traceRecord = traceRecord;
+	}
 }

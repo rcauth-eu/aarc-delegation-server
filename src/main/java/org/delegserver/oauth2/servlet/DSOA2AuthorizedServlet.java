@@ -17,6 +17,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet;
 import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
+import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 
 
 public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
@@ -34,7 +35,7 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 	 * - ATTRIBUTES
 	 * - HEADERS
 	 * 
-	 * It either returns a single value found, or a List<String> of values in case of multi-valued 
+	 * It either returns a single value found, or a {@link List} of {@link String}s in case of multi-valued 
 	 * attributes. 
 	 * 
 	 * @param request
@@ -68,8 +69,8 @@ public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
     
     
     /**
-     * Parse a potentially multi valued attribute. It either returns a single value found,  or a List<String>
-     * of values in case of multi-valued attributes.
+     * Parse a potentially multi valued attribute. It either returns a single value found,  or a {@link List}
+     * of {@link String} in case of multi-valued attributes.
      *  
 	 * Note! Split single values containing the MULTI_VAL_DELIMITED. Since shibboleth handles multi-valued 
 	 * attributes by bundling them into a single attributes and separated with ";" we account for these here.   

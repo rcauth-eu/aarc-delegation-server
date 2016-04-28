@@ -8,6 +8,11 @@ import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
 
+/**
+ * Custom ScopeHandler that adds claims into UserInfo and IDToken 
+ * 
+ * @author "Tamás Balogh"
+ */
 public class DSDynamicScopeHandler extends BasicScopeHandler {
 
 
@@ -18,7 +23,7 @@ public class DSDynamicScopeHandler extends BasicScopeHandler {
      * @param userInfo being returned to the client 
      * @param transaction the current transaction record
      * @return The UserInfo completed with claims 
-     * @throws UnsupportedScopeException exception
+     * @throws UnsupportedScopeException
      */
 	@Override
 	public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) throws UnsupportedScopeException {

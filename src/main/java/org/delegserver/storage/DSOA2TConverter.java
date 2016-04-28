@@ -34,6 +34,8 @@ public class DSOA2TConverter<V extends DSOA2ServiceTransaction> extends OA2TConv
     		st.setUserAttributes( (Map<String, String>) JSONConverter.fromJSONObject(jsonAttributes) );
     	}
     	
+    	st.setTraceRecord( map.getString(tck.trace_record) );
+    	
     	return st;
     }
 
@@ -50,6 +52,10 @@ public class DSOA2TConverter<V extends DSOA2ServiceTransaction> extends OA2TConv
     	
     	if ( t.getUserAttributes() != null ) {
     		map.put( tck.user_attributes , JSONConverter.toJSONObject( t.getUserAttributes() ).toJSONString() );
+    	}
+    	
+    	if ( t.getTraceRecord() != null && ! t.getTraceRecord().isEmpty() ) {
+    		map.put( tck.trace_record , t.getTraceRecord() );
     	}
     	
     }

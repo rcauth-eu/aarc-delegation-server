@@ -173,6 +173,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		se.getTraceRecordStore().save(traceRecord);
 		
 		trans.setMyproxyUsername( se.getDnGenerator().getUserDNSufix( trans.getUserAttributes() ) );
+		trans.setTraceRecord( traceRecord.getCnHash() );
 
 		System.out.println(" save the transaction ");
 		
