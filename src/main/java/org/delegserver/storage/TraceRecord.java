@@ -27,8 +27,6 @@ public class TraceRecord extends IdentifiableImpl {
 	@Override
 	public void setIdentifier(Identifier identifier) {
 		super.setIdentifier(identifier);
-		
-		System.out.println("SET IDENTIFIER TO -> " + identifier.getClass().getCanonicalName() + " VALUE: " + identifier.toString());
 	}
 	
 	public String getCnHash() {
