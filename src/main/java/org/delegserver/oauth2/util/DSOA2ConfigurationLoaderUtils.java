@@ -5,7 +5,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
-import org.delegserver.oauth2.DSTraceRecordConfiguration;
+import org.delegserver.oauth2.DSDefaultDNGeneratorConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -83,7 +83,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 			cnNameSources = parseDnGenerator(cn, DN_GENERATOR_CN_NAME);
 		} else {
 			//fall back on default
-			cnNameSources = DSTraceRecordConfiguration.getDefaultCnNameCandidates();
+			cnNameSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
 		}
 		
 		return cnNameSources;
@@ -96,7 +96,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 			cnUniqueIDSources = parseDnGenerator(cn, DN_GENERATOR_CN_UNIQUE_ID);
 		} else {
 			//fall back on default
-			cnUniqueIDSources = DSTraceRecordConfiguration.getDefaultCnNameCandidates();
+			cnUniqueIDSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
 		}
 		
 		return cnUniqueIDSources;
@@ -109,7 +109,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 			orgSources = parseDnGenerator(cn, DN_GENERATOR_ORGANISATION);
 		} else {
 			//fall back on default
-			orgSources = DSTraceRecordConfiguration.getDefaultCnNameCandidates();
+			orgSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
 		}
 		
 		return orgSources;

@@ -1,6 +1,14 @@
 package org.delegserver.oauth2;
 
-public class DSTraceRecordConfiguration {
+/**
+ * This static class contains a default DN Generator configuration. This
+ * configuration is only used in case there is no DN Generator sources 
+ * are found in the server configuration.
+ * 
+ * @author "Tamás Balogh"
+ *
+ */
+public class DSDefaultDNGeneratorConfiguration {
 
 	/* Default CN Name candidates */
 	
@@ -25,7 +33,8 @@ public class DSTraceRecordConfiguration {
 	
 	public static String DEFAULT_SCHAC_HOME_ORG="schacHomeOrganisation";
 	public static String DEFAULT_ORG_DISPLAY_NAME="organisationDisplayName";
-	
+	public static String DEFAULT_ENTITY_ID="entityID";
+
 	
 	public static Object[] getDefaultCnNameCandidates() {
 		
@@ -60,9 +69,10 @@ public class DSTraceRecordConfiguration {
 		
 		if ( defaultOrgCandidates == null ) {
 			
-			defaultOrgCandidates = new Object[2];
+			defaultOrgCandidates = new Object[3];
 			defaultOrgCandidates[0] = DEFAULT_SCHAC_HOME_ORG;
 			defaultOrgCandidates[1] = DEFAULT_ORG_DISPLAY_NAME;
+			defaultOrgCandidates[2] = DEFAULT_ENTITY_ID;
 			
 		}
 		

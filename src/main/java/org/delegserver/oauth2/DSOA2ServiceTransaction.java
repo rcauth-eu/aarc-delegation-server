@@ -6,6 +6,27 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.core.Identifier;
 
+/**
+ * Custom Service Transaction extension containing:
+ * <p>
+ * {@link #claims}: The set of claims built for this specific transaction. This depends on the requested 
+ * scopes by the client, the configured attribute source in this server and the available attributes
+ * coming from the IdP of the user. 
+ * <p>
+ * {@link #userAttributes}: The set of attributes coming from the user IdP (mapped by the SP in front of 
+ * this server). This attribute set has to be part of a transaction so that it can be taken up
+ * by subsequent /getcert request.
+ * <p>
+ * {@link #traceRecord}: The key of the trace record entry linked with this transaction. This field is
+ * used to link transactions with trace records. Note that a transaction only has a linked trace record 
+ * in case a /getcert call.
+ * <p>
+ * {@link #myproxyUsername}: This is an already existing attribute that has been repurposed in this 
+ * implementation. It contains the user DN (O+CN) created for a user based on his attributes. 
+ * 
+ * @author "Tamás Balogh"
+ *
+ */
 public class DSOA2ServiceTransaction extends OA2ServiceTransaction {
 
 	public DSOA2ServiceTransaction(AuthorizationGrant ag) {

@@ -43,6 +43,21 @@ import static edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider.TR
 
 import java.util.Map;
 
+/**
+ * Custom Configuration Loader. This has been extended with the following functions:
+ * <p>
+ *  - Configure the Trace Record Store backend based on the provided server configuration
+ * <p>
+ *  - Create custom Service Environment {@link DSOA2ServiceEnvironment} on demand
+ * <p>
+ *  - Load Scopes to Claims(and Attributes) mapping from configuration into environment
+ * <p>
+ *  - Load the DN Generator sources from the configuration into the environment
+ * 
+ * @author "Tamás Balogh"
+ *
+ * @param <T> This should be the custom Service Environment {@link DSOA2ServiceEnvironment} 
+ */
 public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends OA2ConfigurationLoader<T> {
 
 	public DSOA2ConfigurationLoader(ConfigurationNode node) {
@@ -100,27 +115,29 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     				  getMySQLConnectionPoolProvider(),
 					  OA4MPConfigTags.MYSQL_STORE, 
 					  converter, 
-					  provider) );    	
-    		 
+					  provider) );    
+
     		 traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
    				  getMariaDBConnectionPoolProvider(),
 					  OA4MPConfigTags.MARIADB_STORE, 
 					  converter, 
 					  provider) );      		 
     		 
+    		 // TODO: The backend for this is not written. yet. But it might just work out of the box
+    		 /*
     		 traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
     				  getPgConnectionPoolProvider(),
     				  OA4MPConfigTags.POSTGRESQL_STORE, 
     				  converter, 
     				  provider) );
-    		 
+    		 */
     		 
     	}
     	return traceRecordSP;
     }
 
    
-    /* Configure custom ServiceTransaction to support added claims */
+    /* Configure the use of out custom Service Transaction implementation */
 
     
     public static class MPST2Provider extends DSTransactionProvider<OA2ServiceTransaction> {
