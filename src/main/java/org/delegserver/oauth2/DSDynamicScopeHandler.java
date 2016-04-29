@@ -23,10 +23,9 @@ public class DSDynamicScopeHandler extends BasicScopeHandler {
      * @param userInfo being returned to the client 
      * @param transaction the current transaction record
      * @return The UserInfo completed with claims 
-     * @throws UnsupportedScopeException
      */
 	@Override
-	public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) throws UnsupportedScopeException {
+	public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) {
 
 		//add the claims build based on the requested scopes into the userinfo reply
 		

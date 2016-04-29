@@ -10,6 +10,7 @@ import javax.inject.Provider;
 
 import org.delegserver.oauth2.generator.DNGenerator;
 import org.delegserver.oauth2.generator.UniqueAttrGenerator;
+import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.TraceRecordStore;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
@@ -185,13 +186,13 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 	/**
 	 * {@link org.delegserver.storage.TraceRecord} store
 	 */
-	protected TraceRecordStore traceRecordStore;
+	protected TraceRecordStore<TraceRecord> traceRecordStore;
 	
 	/**
 	 * Returns the {@link org.delegserver.storage.TraceRecord} store 
 	 * @return {@link org.delegserver.storage.TraceRecord} store 
 	 */
-	public TraceRecordStore getTraceRecordStore() {
+	public TraceRecordStore<TraceRecord> getTraceRecordStore() {
 		if ( traceRecordStore == null ) {
 			traceRecordStore = traceRecordSP.get();
 		}

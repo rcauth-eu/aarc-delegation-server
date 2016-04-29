@@ -20,10 +20,6 @@ import org.delegserver.storage.TraceRecord;
  * @author "Tamás Balogh"
  * @see <a href="https://rcauth.eu/policy">https://rcauth.eu/policy</a>
  */
-/**
- * @author "Tamás Balogh"
- *
- */
 public class UniqueAttrGenerator {
 
 	public static String ATTRIBUTE_SEPARATOR = ",";

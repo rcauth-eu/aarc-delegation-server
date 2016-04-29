@@ -69,6 +69,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
     		// set claims 
     		serviceTransaction.setClaims(claims);
     		// set user attributes 
+    		// TODO: Should attributes be passed in headers by shibboleth? Can't we do better?
         	serviceTransaction.setUserAttributes( getHeaderMap(state.getRequest()) );
 
         	// save transaction
