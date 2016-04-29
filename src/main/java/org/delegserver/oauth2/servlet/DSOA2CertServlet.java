@@ -2,8 +2,12 @@ package org.delegserver.oauth2.servlet;
 
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
@@ -54,6 +58,8 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
 		HashingUtils hasher = HashingUtils.getInstance();
 	
+		se.getTraceLogger().marked("NEW GETCERT REQUEST [transaction: " + trans.getIdentifierString()  +"]");
+		
 		// 1. GET TRACE RECORD FOR THIS TRANSACTION
 		info("6.a.1  Get trace record for current transaction");
 		
@@ -98,7 +104,11 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		// 4. GENERATE USER DN FOR TRANSACTION AND SAVE TRANSACTION
 		info("6.a.4 Generating user DN for transaction...");		
-		trans.setMyproxyUsername( se.getDnGenerator().getUserDNSufix( trans.getUserAttributes() ) );
+		//TODO: This is wrong! the DN sufix should be created from the trace record from above!!!!
+		//      Test THIS! it should work. but still
+		String orgRDN = se.getDnGenerator().getOrganisation( trans.getUserAttributes() );
+		String cnRDN = traceRecord.getCN();
+		trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN, cnRDN ) );
 		info("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
 		trans.setTraceRecord( traceRecord.getCnHash() );
 		se.getTransactionStore().save(trans);
@@ -141,18 +151,18 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		HashingUtils hasher = HashingUtils.getInstance();
 
 		// 1. GENERATE EVERY POSSIBLE CN HASH
-		List<Identifier> cnHashAlternatives = new ArrayList<Identifier>();
+		Map<Identifier, String> cnHashAlternatives = new HashMap<Identifier, String>();
 		
 		for ( String cn : se.getDnGenerator().getCommonNames(attributeMap) ) {
 			// hash possible CNs and then to the lookup list.
 			String cnHash = hasher.hashToBase64(cn);	
 			debug("Looking for trace record with CN Hash:" + cnHash + " ( " + cn + " )");
-			cnHashAlternatives.add( new TraceRecordIdentifier(cnHash) );
+			cnHashAlternatives.put(new TraceRecordIdentifier(cnHash) ,cn );
 		}
 		
 		// 2. LOOKUP TRACE RECORDS WITH THE ABOVE GENERATES CN HASHES
 		debug("Executing lookup for trace records...");
-		List<TraceRecord> traceRecords = traceRecordStore.getAll( cnHashAlternatives );
+		List<TraceRecord> traceRecords = traceRecordStore.getAll( new ArrayList<Identifier>( cnHashAlternatives.keySet() ) );
 		
 		if ( traceRecords == null || traceRecords.size() == 0 ) {
 			// 2.a NO TRACE RECORDS
@@ -182,6 +192,9 @@ public class DSOA2CertServlet extends OA2CertServlet {
 					
 					// this should be it! 
 					matchingTraceRecord = traceRecord;
+					
+					// find original CN that produced that match
+					matchingTraceRecord.setCN( cnHashAlternatives.get(matchingTraceRecord.getCnHash()) );
 					
 				} else {
 					debug("Trace Record does NOT match attribute set!");
@@ -219,6 +232,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		debug("Generating Trace Record with CN hash: " + cnHash + " ( " + cn + " ) and sequence nr: " + sequenceNr );
 		TraceRecord traceRecord = new TraceRecord( new TraceRecordIdentifier(cnHash) );
+		traceRecord.setCN(cn);
 		traceRecord.setCnHash( cnHash );
 		traceRecord.setSequenceNr(sequenceNr);
 
@@ -242,4 +256,25 @@ public class DSOA2CertServlet extends OA2CertServlet {
 
 		return traceRecord;
 	}	
+	
+	/* DEBUG AND DISPLAY */
+	
+	@Override
+	public void info(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().getLogger().info(x);
+	}
+	
+	@Override
+	public void debug(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().getLogger().fine(x);
+	}
+	
+	@Override
+	public void error(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().getLogger().severe(x);
+	}
+	
 }

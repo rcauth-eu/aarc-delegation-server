@@ -18,6 +18,9 @@ public class TraceRecord extends IdentifiableImpl {
 	protected String attrSalt;	
 	protected List<String> attrNames;
 	
+	//keep in memory, but don't serialize to trace record 
+	protected String CN;
+	
 	public TraceRecord(TraceRecordIdentifier identifier) {
 		super(identifier);
 	}
@@ -27,6 +30,14 @@ public class TraceRecord extends IdentifiableImpl {
 	@Override
 	public void setIdentifier(Identifier identifier) {
 		super.setIdentifier(identifier);
+	}
+	
+	public String getCN() {
+		return CN;
+	}
+	
+	public void setCN(String cN) {
+		CN = cN;
 	}
 	
 	public String getCnHash() {

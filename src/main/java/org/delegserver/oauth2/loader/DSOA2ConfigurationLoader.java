@@ -4,7 +4,9 @@ import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.generator.DNGenerator;
+import org.delegserver.oauth2.util.DSLoggingFacade;
 import org.delegserver.oauth2.util.DSOA2ConfigurationLoaderUtils;
+import org.delegserver.oauth2.util.TraceRecordLoggerProvider;
 import org.delegserver.storage.TraceRecordKeys;
 import org.delegserver.storage.TraceRecordStore;
 import org.delegserver.storage.DSOA2TConverter;
@@ -93,7 +95,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getScopesMap(),
                     getScopeHandler(),
                     isRefreshTokenEnabled(),
-                    getDNGenerator());
+                    getDNGenerator(),
+                    getTraceLogger());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new GeneralException("Error: Could not create the runtime environment", e);
         }
@@ -191,7 +194,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     public DNGenerator getDNGenerator() {
     	
     	if ( dnGenerator == null ) {
-    		dnGenerator = new DNGenerator(getCNNameSources(), getCNUniqueIDSources(), getOrgSources(), loggerProvider.get());
+    		dnGenerator = new DNGenerator(getCNNameSources(), getCNUniqueIDSources(), getOrgSources(), getTraceLogger().getLogger());
     	}
     	
     	return dnGenerator;
@@ -207,5 +210,19 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 
     public Object[] getOrgSources() {
     	return DSOA2ConfigurationLoaderUtils.getOrgSources(cn);
-    }    
+    }
+    
+	/* TRACE LOGGING */
+	
+    protected DSLoggingFacade traceLogger = null;
+    
+	protected DSLoggingFacade getTraceLogger() {
+		
+		if ( traceLogger == null ) {
+			TraceRecordLoggerProvider provider = new TraceRecordLoggerProvider(cn);
+			traceLogger =  (DSLoggingFacade) provider.get();
+		}
+		
+		return traceLogger;
+	}
 }

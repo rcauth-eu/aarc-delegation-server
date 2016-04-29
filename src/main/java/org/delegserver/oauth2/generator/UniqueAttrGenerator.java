@@ -3,6 +3,7 @@ package org.delegserver.oauth2.generator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.util.HashingUtils;
@@ -26,6 +27,8 @@ public class UniqueAttrGenerator {
 	
 	protected String[] uniqueAttrSources = null;
 	
+	protected Logger logger = null;
+	
 	/* CONSTRUCTOR */
 	
 	/**
@@ -33,8 +36,9 @@ public class UniqueAttrGenerator {
 	 * 
 	 * @param attrSources Attribute Sources 
 	 */
-	public UniqueAttrGenerator(String[] attrSources) {
+	public UniqueAttrGenerator(String[] attrSources, Logger logger) {
 		this.uniqueAttrSources = attrSources;
+		this.logger = logger;
 	}
 	
 	/* CHECKER METHODS */
@@ -54,7 +58,9 @@ public class UniqueAttrGenerator {
 	 */
 	public boolean matches(Map<String,String> attributeMap, TraceRecord traceRecord) {
 		
-		System.out.println( "========== START MATCHING ===========" );
+		logger.info("START ATTRIBUTE MATCHING" );
+		logger.fine("	- Comparing attribute map with Trace Record: '" + traceRecord.getCnHash() + "'");
+		
 		
 		// build attribute list using the attribute names in the traceRecords previously stored
 		
@@ -68,8 +74,8 @@ public class UniqueAttrGenerator {
 				}
 			} else {
 
-				System.out.println( "Attribute " + attrSource + " not found!" );
-				System.out.println( "Mismatch between stored attributes and present attributes" );
+				logger.warning( "	- Attribute " + attrSource + " not found!" );
+				logger.warning( "	- Mismatch between stored attributes and present attributes" );
 				
 				// mismatch between the attributes saved and attributes present in the attributeMap 
 				// (when an attribute which was previously used to construct the hash is missing,
@@ -78,24 +84,25 @@ public class UniqueAttrGenerator {
 			}
 		}
 
-		System.out.println( "Attribute List Computed : '" + attrList + "'");
+		logger.info( "	- Attribute List Computed : '" + attrList + "'");
 
 		// salt and hash attribute list with the same salt used in the trace records
 		
 		byte[] salt = Base64.decodeBase64( traceRecord.getAttrSalt() );
 		
-		System.out.println( "Salt (RAW) Extracted for Attribute List Hash : '" + traceRecord.getAttrSalt()  + "'");
-		System.out.println( "Salt Extracted for Attribute List Hash : '" + salt + "'");
+		logger.info( "	- Salt (RAW) Extracted for Attribute List Hash : '" + traceRecord.getAttrSalt()  + "'");
 		
 		String attrHash = HashingUtils.getInstance().saltedHashToBase64( attrList , salt );
 
-		System.out.println( "Attribute Hash Computed : '" + attrHash + "'");		
+		logger.info( "	- Attribute Hash Computed : '" + attrHash + "'");		
 		
 		// now for the moment of truth. compare the attribute hash we built with the one previously stored
 		
+		logger.fine( "	- Expecting Attribute Hash from Trace Record : '" + traceRecord.getAttrHash() + "'");
+		
 		if ( attrHash.equals( traceRecord.getAttrHash() ) ) {
 			
-			System.out.println( "Attribute Hash Computed matches Stored Attribute Hash");	
+			logger.info( "	- Attribute Hash Computed matches Stored Attribute Hash");	
 			
 			// attribute hash is matching!
 			return true;
@@ -103,7 +110,7 @@ public class UniqueAttrGenerator {
 			// attribute hash is not matching! this effectively means that (at least) one of the stored attribute 
 			// has a different value than it had before! It is impossible to say which tho.
 
-			System.out.println( "Attribute Hash Computed DOESNT matches Stored Attribute Hash");	
+			logger.warning( "Attribute Hash Computed does NOT match Stored Attribute Hash");	
 			
 			return false;
 		}

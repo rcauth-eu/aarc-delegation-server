@@ -3,10 +3,12 @@ package org.delegserver.oauth2.servlet;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -37,8 +39,10 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	
         	AuthorizedState authorizedState = (AuthorizedState) state;
         	DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) authorizedState.getTransaction());
+        	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
         	
         	/* DEBUG */
+        	env.getTraceLogger().marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString()  +"]");
         	printAllParameters( authorizedState.getRequest() );
         	
         	
@@ -199,22 +203,66 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	
 	@Override
 	protected void printAllParameters(HttpServletRequest request) {
-		super.printAllParameters(request);
 		
-		System.out.println("Attributes:");
-        Enumeration e = request.getAttributeNames();
+    	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
+    	Logger traceLogger = env.getTraceLogger().getLogger(); 
+		
+		String reqUrl = request.getRequestURL().toString();
+        String queryString = request.getQueryString();   // d=789
+        if (queryString != null) {
+            reqUrl += "?" + queryString;
+        }
+        
+        traceLogger.info("Request parameters for '" + reqUrl + "'");
+
+        if (request.getParameterMap() == null || request.getParameterMap().isEmpty()) {
+        	traceLogger.info("  (none)");
+        } else {
+            for (Object key : request.getParameterMap().keySet()) {
+                String[] values = request.getParameterValues(key.toString());
+                traceLogger.info(" " + key + ":");
+                if (values == null || values.length == 0) {
+                	traceLogger.info("   (no values)");
+                } else {
+                    for (String x : values) {
+                    	traceLogger.info("   " + x);
+                    }
+                }
+            }
+        }
+        traceLogger.info("Cookies:");
+        if (request.getCookies() == null) {
+        	traceLogger.info(" (none)");
+        } else {
+            for (javax.servlet.http.Cookie c : request.getCookies()) {
+            	traceLogger.info(" " + c.getName() + "=" + c.getValue());
+            }
+        }
+        traceLogger.info("Headers:");
+        Enumeration e = request.getHeaderNames();
         if (!e.hasMoreElements()) {
-            System.out.println(" (none)");
+        	traceLogger.info(" (none)");
         } else {
             while (e.hasMoreElements()) {
                 String name = e.nextElement().toString();
-                System.out.println(" " + name);
-                System.out.println("   " + request.getAttribute(name));
+                traceLogger.info(" " + name);
+                traceLogger.info("   " + request.getHeader(name));
+            }
+        }
+		
+
+        traceLogger.info("Attributes:");
+        Enumeration attr = request.getAttributeNames();
+        if (!e.hasMoreElements()) {
+        	traceLogger.info(" (none)");
+        } else {
+            while (attr.hasMoreElements()) {
+                String name = attr.nextElement().toString();
+                traceLogger.info(" " + name);
+                traceLogger.info("   " + request.getAttribute(name));
             }
         }
         
-        System.out.println(" " + "AJP_sn");
-        System.out.println("   " + request.getAttribute("AJP_sn"));
 	}
 	
 

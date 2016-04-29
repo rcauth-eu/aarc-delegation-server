@@ -8,8 +8,11 @@ import java.util.Map;
 
 import javax.inject.Provider;
 
+import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.delegserver.oauth2.generator.DNGenerator;
 import org.delegserver.oauth2.generator.UniqueAttrGenerator;
+import org.delegserver.oauth2.util.DSLoggingFacade;
+import org.delegserver.oauth2.util.TraceRecordLoggerProvider;
 import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.TraceRecordStore;
 
@@ -51,7 +54,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 			Provider<AGIssuer> agip, Provider<ATIssuer> atip, Provider<PAIssuer> paip, Provider<TokenForge> tfp,
 			HashMap<String, String> constants, AuthorizationServletConfig ac, UsernameTransformer usernameTransformer,
 			boolean isPingable, int clientSecretLength, Map<String,Map<String,String>> scopesMap, ScopeHandler scopeHandler,
-			boolean isRefreshTokenEnabled, DNGenerator dnGenerator) {
+			boolean isRefreshTokenEnabled, DNGenerator dnGenerator, DSLoggingFacade traceLogger) {
 		
 		super(logger, tsp, csp, maxAllowedNewClientRequests, rtLifetime, casp, mfp, mup, messagesProvider, agip, atip, paip,
 				tfp, constants, ac, usernameTransformer, isPingable, clientSecretLength, scopesMap.keySet(), scopeHandler,
@@ -60,7 +63,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 		this.traceRecordSP = trsp;
 		this.scopesMap = scopesMap;
 		this.dnGenerator = dnGenerator;
-		
+		this.traceLogger = traceLogger;
 	}
 
 	/* SCOPES AND CLAIMS  */
@@ -119,7 +122,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 	 */
 	public UniqueAttrGenerator getUniqueAttrGenerator() {
 		if ( uniqueAttrGenerator == null ) {
-			uniqueAttrGenerator = new UniqueAttrGenerator( getUniqueAttrSources() );
+			uniqueAttrGenerator = new UniqueAttrGenerator( getUniqueAttrSources(), getTraceLogger().getLogger() );
 		}
 		
 		return uniqueAttrGenerator;
@@ -199,6 +202,11 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 		return traceRecordStore;
 	}
 
+	/* TRACE LOGGING */
 	
+	protected DSLoggingFacade traceLogger = null;
 	
+	public DSLoggingFacade getTraceLogger() {
+		return traceLogger;
+	}
 }

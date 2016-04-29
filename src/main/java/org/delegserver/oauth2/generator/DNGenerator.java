@@ -14,6 +14,7 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.util.Arrays;
@@ -66,7 +67,7 @@ public class DNGenerator {
 	
 	protected Charset defaultCharset = null;
 	protected MessageDigest defaultMessageDigest = null;
-	protected MyLoggingFacade logger = null;;
+	protected Logger logger = null;;
 	
 	/* CONSTUCTOR */
 	
@@ -81,7 +82,7 @@ public class DNGenerator {
 	 * @param orgSources Attribute source list for {organisation}
 	 * @param logger Logger for producing logs.
 	 */
-	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, MyLoggingFacade logger) {
+	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, Logger logger) {
 		this.cnNameSources = cnNameSources;
 		this.cnUniqueIDSources = cnUniqueIDSources;
 		this.orgSources = orgSources;
@@ -101,7 +102,7 @@ public class DNGenerator {
 		if ( logger != null ) {
 			this.logger = logger;
 		} else {
-			this.logger = new MyLoggingFacade(this.getClass().getCanonicalName());
+			this.logger = Logger.getLogger(this.getClass().getCanonicalName());
 		}
 	}
 	
@@ -134,7 +135,7 @@ public class DNGenerator {
 	 */
 	public String getOrganisation(Map<String,String> attributeMap) {
 		
-		logger.info("CREATING ORGANISATION (O) ATTRIBUTE");
+		logger.info("GENERATING ORGANISATION (O)");
 		
 		// Pick out the attribute source from the predefined configuration which is present in the 
 		// provided attributeMap. Throw and exception if no suitable source is found.
@@ -192,7 +193,7 @@ public class DNGenerator {
 	 */
 	public String getCommonName(Map<String,String> attributeMap) {
 		
-		logger.info("COMMON NAME (CN) ATTRIBUTE");
+		logger.info("GENERATING CN");
 		
 		// First deal with the display name part of the common name
 		String diplayName = getCommonNameDisplayPart(attributeMap);
@@ -222,21 +223,27 @@ public class DNGenerator {
 	 */
 	public String getCommonName(Map<String,String> attributeMap, int sequenceNr) {
 		
+		logger.info("GENERATING CN WITH SEQUENCE NR");
+		
 		// check if the sequence number is in a valid range.
 		if ( sequenceNr <= 0 || sequenceNr > CN_MAX_SEQUENCE_NR ) {
 			throw new GeneralException("The index " + sequenceNr + " is not an acceptable value! Sequence number"
 					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
 		}
 		
+		logger.info("	- Appending sequence number: '" + sequenceNr + "'");
+		
 		// build CN and append sequence number to it
-		String rdn = getCommonName(attributeMap) + CN_DELIMITER + sequenceNr;
+		String cn = getCommonName(attributeMap) + CN_DELIMITER + sequenceNr;
+		
+		logger.info("	- Generated Common Name (CN): '" + cn + "'");
 		
 		// do a last size check to see that the length is within the allowed RDN size
-		if ( rdn.getBytes().length > RDN_MAX_SIZE ) {
+		if ( cn.getBytes().length > RDN_MAX_SIZE ) {
 			throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE= " + RDN_MAX_SIZE);
 		}
 		
-		return rdn;
+		return cn;
 	}
 	
 	/**
@@ -250,6 +257,8 @@ public class DNGenerator {
 	 * @return A list of possible CNs with different {cnUniqueId}s
 	 */
 	public List<String> getCommonNames(Map<String,String> attributeMap) {
+		
+		logger.info("GENERATING LIST OF POSSIBLE CNs");
 		
 		// The list of resulting CNs
 		List<String> cns = new ArrayList<String>();
@@ -320,6 +329,8 @@ public class DNGenerator {
 			cns.add(cn);
 		}
 		
+		logger.info("	- Possible Common Names (CNs) generated: " + cns.size());
+		
 		// check if we got any CNs at all. 
 		if ( cns.isEmpty() ) {
 			throw new GeneralException("Could not build ANY CNs! Check that you attribute sources are correct!");			
@@ -336,6 +347,8 @@ public class DNGenerator {
 	 */
 	public String getCommonNameDisplayPart(Map<String,String> attributeMap) {
 
+		logger.info("GENERATING DISPLAY NAME PART OF CN");
+		
 		// choose the first set of sources from an ordered list of preference which is 
 		// present in the provided user attributes.
 		String[] cnNameSourceAttr = chooseAttrSource(cnNameSources,attributeMap);
@@ -384,6 +397,8 @@ public class DNGenerator {
 	 */
 	public String getCommonNameUniquePart(Map<String,String> attributeMap) {
 	
+		logger.info("GENERATING UNIQUE ID PART OF CN");
+		
 		// choose the first set of sources from an ordered list of preference which is 
 		// present in the provided user attributes.		
 		String[] uniqueIDSourceAttr = chooseAttrSource(cnUniqueIDSources,attributeMap);
@@ -424,16 +439,22 @@ public class DNGenerator {
 	 */
 	public String getUserDNSufix(Map<String,String> attributeMap) {
 		
+		logger.info("GENERATING FULL DN SUFIX");
+		
 		// build O and CN parts separately 
 		String org = getOrganisation(attributeMap);
 		String cn = getCommonName(attributeMap);
 		
 		// apply formatting
+		return formatDNSufix(org,cn);
+	}
+	
+	public String formatDNSufix(String org,String cn) {
 		String dn =  String.format(DN_FORMAT, org, cn);
 		
 		logger.info("	- Generated Distingueshed Name (DN): '" + dn + "'");
 		
-		return dn;
+		return dn;		
 	}
 	
 	/* HELPER METHODS */

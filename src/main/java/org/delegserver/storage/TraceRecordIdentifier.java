@@ -31,5 +31,11 @@ public class TraceRecordIdentifier implements Identifier {
 		return cnHash;
 	}
 
+	
+	@Override
+	public boolean equals(Object obj) {
+		//TODO: fix this otherwise can't reverse lookup the CN
+		return cnHash.equals(obj.toString());
+	}
 
 }

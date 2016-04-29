@@ -1,5 +1,7 @@
 package org.delegserver.test;
 
+import java.util.Date;
+
 import org.delegserver.oauth2.generator.DNGenerator;
 import org.junit.Test;
 
@@ -30,6 +32,13 @@ public class DNGeneratorTest extends DNGenerator {
 		String dn = String.format(DN_FORMAT, org, cn);
 		System.out.println("DN = " + dn);
 		
+		String format = "%4.4s %s";
+		System.out.println( String.format(format, "ASDZQWE", "bla") );
+		System.out.println( String.format(format, "WE", "bla") );
+		System.out.println( String.format(format, "AQWE", "bla") );
+		
+		String[] split = "asd.asd.asd".split("\\.");
+		System.out.println(split.length);
 	}
 	
 	@Test
