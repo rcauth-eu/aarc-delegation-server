@@ -173,7 +173,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		if ( traceRecords == null || traceRecords.size() == 0 ) {
 			// 2.a NO TRACE RECORDS
-			debug("No Trace Records Found!");
+			debug("No Trace Records Found with any of the provided CN hashes!");
 			throw new NoTraceRecordException("No Trace Record found based on the user attributes");
 		} else {
 			// 2.b TRACE RECORDS FOUND
@@ -250,18 +250,20 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		traceRecord.setSequenceNr(sequenceNr);
 
 		// 2. Generate Unique Attribute List for Trace Record
+		debug("Generated Unique attribute list ... ");
 		String attrList = se.getUniqueAttrGenerator().getUniqueAttributes(attributeMap);
 		List<String> attrNames = se.getUniqueAttrGenerator().getUniqueAttributeNames(attributeMap);
-		debug("Generated attribute list for trace record :" + attrList );
+		debug("Generated Unique attribute source names : '" + attrNames + "'");
+		debug("Generated Unique attribute list for trace record : '" + attrList + "'");
 
 		if ( attrList != null && ! attrNames.isEmpty()) {
 			// 3. Salt and hash Unique Attribute List
 			debug("Generating random salt ...");
 			byte[] attrSalt = hasher.getRandomSalt();
-			debug("Saving hashed attribute list");
 			traceRecord.setAttrHash( hasher.saltedHashToBase64(attrList, attrSalt) );
 			traceRecord.setAttrSalt( new String(Base64.encodeBase64(attrSalt)) );
 			traceRecord.setAttrNames(attrNames);
+			debug("Generated hashed attribute list : '" + traceRecord.getAttrHash() + "'");
 		} else {
 			error("Uniqueness Attribute List is empty!");
 			throw new GeneralException("Uniqueness Attribute List is empty! Are any of your DN source attributes present?");

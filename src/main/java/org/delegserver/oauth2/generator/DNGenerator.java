@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.util.Arrays;
+import org.delegserver.oauth2.util.HashingUtils;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
@@ -66,7 +67,6 @@ public class DNGenerator {
 	/* OTHER */
 	
 	protected Charset defaultCharset = null;
-	protected MessageDigest defaultMessageDigest = null;
 	protected Logger logger = null;;
 	
 	/* CONSTUCTOR */
@@ -89,13 +89,7 @@ public class DNGenerator {
 		
 		// create helper objects here so that we don't have to create separate instances 
 		// in multiple methods whenever they are needed.
-		
 		this.defaultCharset = Charset.forName("UTF-8");
-		try {
-			this.defaultMessageDigest = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			throw new GeneralException("Unable to create default message digest SHA-256",e);
-		}
 		
 		// in case of no logger provided create a new one.
 		
@@ -472,6 +466,9 @@ public class DNGenerator {
 		
 		String normalizedOutput = "";
 		
+		logger.info("	- CONVERTING TO PRINTABLE STRING");
+		logger.info("		- Source Input: '" + input + "'");
+		
 		// take unicode characters one by one and normalize them
 		for ( int i=0; i<input.length(); i++ ) {
 			char c = input.charAt(i);
@@ -488,6 +485,7 @@ public class DNGenerator {
 				normalizedOutput += "X";
 			}
 		}
+		logger.info("		- Printable String Equivalent: '" + normalizedOutput + "'");
 		
 		return normalizedOutput;
 	}
@@ -500,7 +498,15 @@ public class DNGenerator {
 	 * @return Converted printable ascii string   
 	 */
 	protected String getIDNString(String input) {
-		return IDN.toASCII(input);
+		
+		logger.info("	- CONVERTING TO IDN");
+		logger.info("		- Source Input: '" + input + "'");
+		
+		String idn =  IDN.toASCII(input);
+		
+		logger.info("		- IDN Equivalent: '" + idn + "'");
+		
+		return idn;
 	}
 	
 	/**
@@ -516,32 +522,31 @@ public class DNGenerator {
 	 */
 	protected String getUSR(String attr) {
 		
-		// get the SHA-256 hash of the input string 
-		byte[] hash = defaultMessageDigest.digest( attr.getBytes(defaultCharset) );
+		logger.info("	- GENERATING USR FOR ATTRIBUTE : '" + attr + "'");
 		
+		// EVERY HASHING IS DONE IN HASHINGUTILS NOW!
+		// get the SHA-256 hash of the input string 
+		//byte[] hash = defaultMessageDigest.digest( attr.getBytes(defaultCharset) );
 		// get the base64 encoding of the hash from the previous step
-		byte[] encodedHash =  Base64.encodeBase64(hash);
-		String encodedHashString = new String(encodedHash);
+		//byte[] encodedHash =  Base64.encodeBase64(hash);
+		//String encodedHashString = new String(encodedHash);
 
+		String encodedHashString = HashingUtils.getInstance().hashToBase64(attr);
+		byte[] encodedHash =  encodedHashString.getBytes();
+		logger.info("		- Full Hashed Attribute: '" + encodedHashString + "'");
 		
 		// truncate the resulting base64 string to the required maximum size
 		byte [] shortEncodedHash = Arrays.copyOf(encodedHash, CN_UNIQUE_ID_MAX_SIZE);
 		String shortEncodedHashString = new String(shortEncodedHash);
+		logger.info("		- Shortened Hashed Attribute: '" + shortEncodedHashString + "'");
 		
 		// replace "/" with "-" 
 		String finalEncodedHashString = shortEncodedHashString.replaceAll("/", "-");
+		logger.info("		- Shortened Hashed Attribute (after replacements): '" + finalEncodedHashString + "'");
 		
 		// alternatively we can also use substring since we cannot break any character encoding
 		// within the base64 string cuz every character is one byte (right? (right?))
 		//String shortEncodedHashString2 = finalEncodedHashString.substring(0, CN_UNIQUE_ID_MAX_SIZE);
-		
-		//TODO: log mapping of full encoded hash and the first 16 bytes of the encoded hash
-		System.out.println(" ===================================================== ");
-		System.out.println(" ORIGINAL attribute = " + attr);
-		System.out.println(" FULL encoded hash = " + encodedHashString);
-		System.out.println(" SHORTENED encoded hash = " + shortEncodedHashString);
-		System.out.println(" SHORTENED encoded hash (after replace) = " + finalEncodedHashString);		
-		System.out.println(" ===================================================== ");
 		
 		return shortEncodedHashString;
 	}
@@ -648,10 +653,15 @@ public class DNGenerator {
 		if ( size <= 0 ) {
 			size = RDN_MAX_SIZE;
 		}
+
 		
 		// only truncate if the RDN exceeds the maximum allowed size
 		if ( rdn.getBytes(defaultCharset).length > size ) {
-		
+
+			logger.info("	- TRUNCATING RDN to " + size + " bytes");
+
+			logger.info("		- Source RDN : '" + rdn + "'");
+			
 			int truncatedSize = size - RDN_TRUNCATE_SIGN.getBytes(defaultCharset).length;
 			
 			CharsetDecoder cd = defaultCharset.newDecoder();
@@ -667,6 +677,8 @@ public class DNGenerator {
 			cd.flush(cb);
 			
 			rdn = new String(cb.array(), 0, cb.position()) + RDN_TRUNCATE_SIGN;
+			
+			logger.info("		- Truncated Form : '" + rdn + "'");
 			
 		}
 		

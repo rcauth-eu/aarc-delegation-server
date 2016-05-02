@@ -26,6 +26,7 @@ public class UniqueAttrGenerator {
 	public static String ATTRIBUTE_SEPARATOR = ",";
 	
 	protected String[] uniqueAttrSources = null;
+	protected String uniqueAttrSourceList = null;
 	
 	protected Logger logger = null;
 	
@@ -38,6 +39,11 @@ public class UniqueAttrGenerator {
 	 */
 	public UniqueAttrGenerator(String[] attrSources, Logger logger) {
 		this.uniqueAttrSources = attrSources;
+		
+		for ( String source : uniqueAttrSources ) {
+			uniqueAttrSourceList = ( uniqueAttrSourceList == null ) ? source : "," + source; 
+		}
+		
 		this.logger = logger;
 	}
 	
@@ -172,6 +178,13 @@ public class UniqueAttrGenerator {
 		}	
 		
 		return attrNames;
+	}
+	
+	/* DISPLAY AND DEBUG */
+	
+	@Override
+	public String toString() {
+		return uniqueAttrSourceList;
 	}
 	
 }
