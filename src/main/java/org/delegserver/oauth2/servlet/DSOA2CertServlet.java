@@ -104,13 +104,17 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		// 4. GENERATE USER DN FOR TRANSACTION AND SAVE TRANSACTION
 		info("6.a.4 Generating user DN for transaction...");		
-		//TODO: This is wrong! the DN sufix should be created from the trace record from above!!!!
-		//      Test THIS! it should work. but still
-		String orgRDN = se.getDnGenerator().getOrganisation( trans.getUserAttributes() );
+		//the DN sufix should be taken from the trace record retrieved/created above!!!
+		//if you recreate the CN at this point using DnGenerator you might end up
+		//creating a new CN for an already existing user in the system.
 		String cnRDN = traceRecord.getCN();
+		//the O can be recreated from scratch because we don't track modifications
+		String orgRDN = se.getDnGenerator().getOrganisation( trans.getUserAttributes() );
 		trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN, cnRDN ) );
 		info("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
+		
 		trans.setTraceRecord( traceRecord.getCnHash() );
+		
 		se.getTransactionStore().save(trans);
 		
 		// 5. PROCEED WITH MYPROXY CALL
@@ -151,7 +155,9 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		HashingUtils hasher = HashingUtils.getInstance();
 
 		// 1. GENERATE EVERY POSSIBLE CN HASH
-		Map<Identifier, String> cnHashAlternatives = new HashMap<Identifier, String>();
+		
+		// keep a reverse mapping between the original CNs and their hashes 
+		Map<TraceRecordIdentifier, String> cnHashAlternatives = new HashMap<TraceRecordIdentifier, String>();
 		
 		for ( String cn : se.getDnGenerator().getCommonNames(attributeMap) ) {
 			// hash possible CNs and then to the lookup list.
@@ -162,6 +168,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		// 2. LOOKUP TRACE RECORDS WITH THE ABOVE GENERATES CN HASHES
 		debug("Executing lookup for trace records...");
+		// execute the lookup based on the set of CN hashes (reverse map keys)
 		List<TraceRecord> traceRecords = traceRecordStore.getAll( new ArrayList<Identifier>( cnHashAlternatives.keySet() ) );
 		
 		if ( traceRecords == null || traceRecords.size() == 0 ) {
@@ -194,7 +201,13 @@ public class DSOA2CertServlet extends OA2CertServlet {
 					matchingTraceRecord = traceRecord;
 					
 					// find original CN that produced that match
-					matchingTraceRecord.setCN( cnHashAlternatives.get(matchingTraceRecord.getCnHash()) );
+					String originalCN = cnHashAlternatives.get( new TraceRecordIdentifier(matchingTraceRecord.getCnHash()));
+					if ( originalCN == null ) {
+						// this means something is wrong in the original reverse map. We need the original CN here
+						// otherwise we might end up constructing it from the wrong source attributes.
+						throw new GeneralException("Matching transaction found, but could not get original CN!");
+					}
+					matchingTraceRecord.setCN( originalCN );
 					
 				} else {
 					debug("Trace Record does NOT match attribute set!");

@@ -1,8 +1,12 @@
 package org.delegserver.test;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.delegserver.oauth2.generator.DNGenerator;
+import org.delegserver.oauth2.util.HashingUtils;
+import org.delegserver.storage.TraceRecordIdentifier;
 import org.junit.Test;
 
 public class DNGeneratorTest extends DNGenerator {
@@ -66,6 +70,26 @@ public class DNGeneratorTest extends DNGenerator {
 			System.out.println("OUT : " + this.getPrintableString(s));
 			System.out.println(" ================================ ");
 		}
+		
+	}
+	
+	@Test
+	public void testIdentifierMap() {
+		Map<TraceRecordIdentifier, String> cnHashAlternatives = new HashMap<TraceRecordIdentifier, String>();
+		
+		HashingUtils hasher = HashingUtils.getInstance();
+		
+		String[] CNs = {"CN 1 ASD", "CN 2 BSG", "CN 3 XXX"};
+		for ( String cn : CNs) {
+			String cnHash = hasher.hashToBase64(cn);	
+			cnHashAlternatives.put(new TraceRecordIdentifier(cnHash) ,cn );
+		}
+		
+		String CN = "CN 2 BSG";
+		String cnHash = hasher.hashToBase64(CN);	
+		String orig =  cnHashAlternatives.get( new TraceRecordIdentifier(cnHash) );
+		
+		System.out.println(orig);
 		
 	}
 	

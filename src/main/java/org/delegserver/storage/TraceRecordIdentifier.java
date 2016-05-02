@@ -31,11 +31,18 @@ public class TraceRecordIdentifier implements Identifier {
 		return cnHash;
 	}
 
+	/* Override these two methods so that we can use this object as the
+	 * key in a hash lookup table
+	 */
 	
 	@Override
 	public boolean equals(Object obj) {
-		//TODO: fix this otherwise can't reverse lookup the CN
 		return cnHash.equals(obj.toString());
 	}
 
+	@Override
+	public int hashCode() {
+		return cnHash.hashCode();
+	}
+	
 }
