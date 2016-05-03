@@ -99,8 +99,12 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         while (e.hasMoreElements()) {
         	
             String name = e.nextElement().toString();
-            // convert into the right encoding 
-            map.put(name , converHeader( request.getHeader(name)) );
+            // convert into the right encoding
+            String value = converHeader( request.getHeader(name));
+            
+            if ( value != null && ! value.isEmpty() ) { 
+            	map.put(name , value );
+            }
         }
 		
 		return map;
