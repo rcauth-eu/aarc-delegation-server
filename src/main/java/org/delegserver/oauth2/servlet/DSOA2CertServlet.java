@@ -70,6 +70,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 			// 2. TRY TO RETRIVE ALREADY EXISTING TRACE RECORD BASED ON CURRENT TRANSACTION
 			info("6.a.2  Look for an already existing trace record");
 			traceRecord = getTraceRecord( trans.getUserAttributes() );
+			info("6.a.2  Trace Record FOUND!");
 			
 		} catch ( AttributeMismatchException e ) {
 
@@ -108,9 +109,17 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		//if you recreate the CN at this point using DnGenerator you might end up
 		//creating a new CN for an already existing user in the system.
 		String cnRDN = traceRecord.getCN();
+		int cnRDNseqNr = traceRecord.getSequenceNr();
 		//the O can be recreated from scratch because we don't track modifications
 		String orgRDN = se.getDnGenerator().getOrganisation( trans.getUserAttributes() );
-		trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN, cnRDN ) );
+		
+		//append the sequence number where applicable 
+		if ( cnRDNseqNr > 0 ) {
+			trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN, cnRDN, cnRDNseqNr ) );
+		} else {
+			trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN, cnRDN ) );	
+		}
+		
 		info("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
 		
 		trans.setTraceRecord( traceRecord.getCnHash() );

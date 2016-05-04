@@ -451,6 +451,21 @@ public class DNGenerator {
 		return dn;		
 	}
 	
+	public String formatDNSufix(String org, String cn, int sequenceNr) {
+		
+		// check if the sequence number is in a valid range.
+		if ( sequenceNr <= 0 || sequenceNr > CN_MAX_SEQUENCE_NR ) {
+			throw new GeneralException("The index " + sequenceNr + " is not an acceptable value! Sequence number"
+					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
+		}
+		
+		String dn =  String.format(DN_FORMAT, org, cn + CN_DELIMITER + sequenceNr);
+		
+		logger.info("	- Generated Distingueshed Name (DN): '" + dn + "'");
+		
+		return dn;		
+	}	
+	
 	/* HELPER METHODS */
 	
 	/**
@@ -621,9 +636,16 @@ public class DNGenerator {
 		// special case for entityIDs that are URLs 
 		if ( attributeKey.equals("entityID") || attributeKey.equals("Shib-Identity-Provider") ) {
 			try {
+				
+				logger.fine("		- Applying special host extraction rule for entityID : '" + attribute + "'");
+				
 				// try converting to a URL
 				URL url = new URL(attribute);
-				return url.getHost();
+				String hostname =  url.getHost();
+				
+				logger.fine("		- Extracted Hostname : '" + hostname + "'");
+				return hostname;
+				
 			} catch (MalformedURLException e) {
 				// if the conversion fails the take the value as it is (is it a URN?)
 				return attribute;

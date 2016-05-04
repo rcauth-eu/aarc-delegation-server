@@ -21,6 +21,9 @@ import edu.uiuc.ncsa.security.core.Identifier;
  * used to link transactions with trace records. Note that a transaction only has a linked trace record 
  * in case a /getcert call.
  * <p>
+ * TODO: traceRecord (cnHash) alone does not link to single trace record on its own. You need cnHash+seqnr for this.
+ * Or maybe this field is redundant altogether since you can simple derive a cnHash as well as seqnr from the certificate. 
+ * <p>
  * {@link #myproxyUsername}: This is an already existing attribute that has been repurposed in this 
  * implementation. It contains the user DN (O+CN) created for a user based on his attributes. 
  * 
