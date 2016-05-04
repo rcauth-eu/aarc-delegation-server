@@ -197,7 +197,9 @@ public class DSOA2CertServlet extends OA2CertServlet {
 				debug("Matching trace record " + traceRecord.getCnHash() + " " + traceRecord.getSequenceNr());
 				if ( se.getUniqueAttrGenerator().matches(attributeMap, traceRecord ) ) {
 					
-					debug("Trace Record matches attribute set!");					
+					debug("Trace Record matches attribute set!");	
+					
+					/*
 					if ( matchingTraceRecord != null ) {
 						// found a second match for the attribute set! This should not happen!
 						//TODO: This is a corner case somewhat... Should we try to map the user to at least one of the returned 
@@ -205,6 +207,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 						//      Should we just choose a random match? or fail altogether?
 						throw new GeneralException("More than one Trace Record matched the user attributes!");
 					}
+					*/
 					
 					// this should be it! 
 					matchingTraceRecord = traceRecord;
@@ -217,6 +220,11 @@ public class DSOA2CertServlet extends OA2CertServlet {
 						throw new GeneralException("Matching transaction found, but could not get original CN!");
 					}
 					matchingTraceRecord.setCN( originalCN );
+					
+					// Instead of looking for other matches, just simple take the fist one. The trace records 
+					// returned by the DB are ordered by their last_seen date, which makes the trace record matching
+					// deterministic in case of multiple matches.
+					break;
 					
 				} else {
 					debug("Trace Record does NOT match attribute set!");

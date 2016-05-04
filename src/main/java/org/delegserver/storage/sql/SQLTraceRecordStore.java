@@ -17,14 +17,16 @@ import org.delegserver.storage.sql.table.TraceRecordTable;
 
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+import edu.uiuc.ncsa.security.core.exceptions.NFWException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPool;
+import edu.uiuc.ncsa.security.storage.sql.SQLStore;
 import edu.uiuc.ncsa.security.storage.sql.internals.ColumnDescriptorEntry;
 import edu.uiuc.ncsa.security.storage.sql.internals.ColumnMap;
 import edu.uiuc.ncsa.security.storage.sql.internals.Table;
 
-public class SQLTraceRecordStore extends ExtendedSQLStore<TraceRecord> implements TraceRecordStore<TraceRecord> {
+public class SQLTraceRecordStore extends SQLStore<TraceRecord> implements TraceRecordStore<TraceRecord> {
 
 	public static final String DEFAULT_TABLENAME = "trace_records";
 	
@@ -48,6 +50,53 @@ public class SQLTraceRecordStore extends ExtendedSQLStore<TraceRecord> implement
 			return 0;
 		}
 	}
+	
+	public List<TraceRecord> getAll(List<Identifier> ids) {
+		
+        Connection c = getConnection();
+        List<TraceRecord> resultSet = new ArrayList<TraceRecord>(); 
+        try {
+        	
+        	if ( !(getTable() instanceof TraceRecordTable) ) {
+        		throw new NFWException("The table implementation " + getTable().getFQTablename() + " + does not extend TraceRecordTable!");
+        	}
+        	TraceRecordTable table = (TraceRecordTable) getTable();
+
+        	// construct statement using the ids provided 
+            PreparedStatement stmt = c.prepareStatement(table.createMultiSelectStatement(ids.size()));
+            for (int i=0 ; i<ids.size() ; i++) {
+            	stmt.setString(i + 1, ids.get(i).toString() );
+            }
+            
+            stmt.executeQuery();
+            ResultSet rs = stmt.getResultSet();
+            
+            // iterate over result set
+            while ( rs.next() ) {
+            	ColumnMap map = rsToMap(rs);
+            	
+            	TraceRecord t = create();
+                populate(map, t);
+                
+                resultSet.add(t);
+            }
+            
+            rs.close();
+            stmt.close();
+
+        } catch (SQLException e) {
+            destroyConnection(c);
+            throw new GeneralException("Error getting objects from the provided ID set", e);
+        } finally {
+            releaseConnection(c);
+        }
+        
+        if (  resultSet.isEmpty() ) {
+        	return null;
+        } 
+        
+        return resultSet;
+	}	
 	
 	@Override
 	public void save(TraceRecord value) {
