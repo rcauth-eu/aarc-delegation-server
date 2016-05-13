@@ -38,12 +38,14 @@ public class DSDynamicScopeHandler extends BasicScopeHandler {
 			//simple append the claims from the transaction.
 			Map<String,Object> userinfoMap = userInfo.getMap();
 			for ( String claim : claims.keySet()) {
-				userinfoMap.put(claim, claims.get(claim));
+				
+				Object claimValue = claims.get(claim);
+				userinfoMap.put(claim, claimValue);
+				
 			}
 			userInfo.setMap(userinfoMap);
 		} else {
-			//TODO: fail or just simply pass through? No claims is not necessarily an error 
-			//throw new GeneralException("There were no claims saved for this transaction!");
+			//don't fail on empty claims 
 		}
 		
 		return userInfo;

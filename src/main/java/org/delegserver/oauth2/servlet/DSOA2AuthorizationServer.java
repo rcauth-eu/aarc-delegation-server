@@ -74,6 +74,8 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
     		serviceTransaction.setClaims(claims);
     		// set user attributes 
     		// TODO: Should attributes be passed in headers by shibboleth? Can't we do better?
+    		//       Update: AbstractAuthorizationServlet hardcodes the use of headers and fails 
+    		//               if UseHeader are not enabled. Ask Jim?
         	serviceTransaction.setUserAttributes( getHeaderMap(state.getRequest()) );
 
         	// save transaction
@@ -191,15 +193,24 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
     protected Object parseMultiValue(List<String> value) {
     
 		if ( value.size() == 1 && ! value.get(0).contains(SHIB_MULTI_VAL_DELIMITED) ) {
-        	//single value
-    		return value.get(0);
+        	
+			//single value
+    		String ret = value.get(0);
+    		if ( ret != null && ! ret.isEmpty() ) {
+    			return ret;
+    		} else {
+    			return null;
+    		}
+    		
     	} else {
+    		
     		//multi value
     		List<String> multiValue = new ArrayList<String>();
         	for (String v : value) {
         		multiValue.addAll(  Arrays.asList( v.split(SHIB_MULTI_VAL_DELIMITED)) );
         	}
         	return multiValue;
+        	
     	}
     }	
 	

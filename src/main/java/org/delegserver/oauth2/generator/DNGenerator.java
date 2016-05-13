@@ -632,6 +632,7 @@ public class DNGenerator {
 		
 		// TODO: maybe don't hardcode things like "entityID" or "Shib-Identity-Provider" and just
 		// simply try to parse a URL in any case for its domain name.
+		// Update: try implementing a filter class that can be configured for every <source>
 		
 		// special case for entityIDs that are URLs 
 		if ( attributeKey.equals("entityID") || attributeKey.equals("Shib-Identity-Provider") ) {
