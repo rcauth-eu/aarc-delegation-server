@@ -563,7 +563,7 @@ public class DNGenerator {
 		// within the base64 string cuz every character is one byte (right? (right?))
 		//String shortEncodedHashString2 = finalEncodedHashString.substring(0, CN_UNIQUE_ID_MAX_SIZE);
 		
-		return shortEncodedHashString;
+		return finalEncodedHashString;
 	}
 	
 	/**
