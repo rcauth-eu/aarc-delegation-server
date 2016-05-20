@@ -191,7 +191,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
      * @return A single {@link String} or a {@link List} of {@link String} in case of multi-valued attributes
      */
     protected Object parseMultiValue(List<String> value) {
-    
+/*    
 		if ( value.size() == 1 && ! value.get(0).contains(SHIB_MULTI_VAL_DELIMITED) ) {
         	
 			//single value
@@ -203,15 +203,31 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
     		}
     		
     	} else {
-    		
+*/    		
     		//multi value
     		List<String> multiValue = new ArrayList<String>();
-        	for (String v : value) {
-        		multiValue.addAll(  Arrays.asList( v.split(SHIB_MULTI_VAL_DELIMITED)) );
+    		
+        	for (String combinedValue : value) {
+        		
+        		if ( combinedValue != null && ! combinedValue.isEmpty() )
+        		
+        		for (String v : combinedValue.split(SHIB_MULTI_VAL_DELIMITED)) {
+        			if ( ! multiValue.contains(v) ) {
+        				multiValue.add(v);
+        			}
+        		}
+        		
         	}
-        	return multiValue;
         	
-    	}
+        	if ( multiValue.isEmpty() ) {
+        		return null;
+        	} else if ( multiValue.size() == 1 ) {
+        		return multiValue.get(0);
+        	} else {
+        		return multiValue;
+        	}
+        	
+//    	}
     }	
 	
     /* DEBUG AND DISPLAY */
