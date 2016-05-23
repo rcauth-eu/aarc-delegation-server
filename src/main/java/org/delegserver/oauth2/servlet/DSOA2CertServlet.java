@@ -25,6 +25,8 @@ import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 
+import static edu.uiuc.ncsa.security.oauth_2_0.server.OA2Claims.EMAIL;
+
 /**
  * Custom Cert Servlet implementation (/getcert) which supports the use of
  * {@link TraceRecord} for user tracking and DN Generation based on user attributes.
@@ -121,6 +123,16 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		}
 		
 		info("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
+
+		//complete the USERNAME parameter with extensions 
+		String additionalInfo = getCertificateExtensions( trans );
+
+		if ( additionalInfo != null ) { 
+			trans.setMyproxyUsername( trans.getMyproxyUsername() + additionalInfo );
+			info("6.a.5 The generated MyProxy username (completed with extensions) is: " + trans.getMyproxyUsername());
+		} else {
+			warn("6.a.5 No extensions appended into the certificate request. Requesting cert without it");
+		}
 		
 		trans.setTraceRecord( traceRecord.getCnHash() );
 		
@@ -140,6 +152,48 @@ public class DSOA2CertServlet extends OA2CertServlet {
 	}
 	
 	/* NEW HELPER METHODS FOR TRACE RECORD MANIPULATION */
+	
+	/**
+	 * Returns addition information that has to be added as extension into the end entity
+	 * certificate. Extensions will be presented in the form of key=value pairs
+	 * concatenated with a whitespace. This collection of extensions has to be 
+	 * passed to the MyProxy Server appended to the USERNAME request parameter.
+	 * <p>
+	 * Currently, this method only supports the EMAIL extensions. If you would like to get 
+	 * other additional information (extensions) in your EEC, extend this method. 
+	 * 
+	 * @param trans The current service transaction
+	 * @return The extensions that will be requested
+	 */
+	public String getCertificateExtensions(DSOA2ServiceTransaction trans) {
+		
+		String extensions = "";
+		
+		// so far we only support adding the email attributes into the certificate
+		Object mail = trans.getClaims().get(EMAIL);
+		if ( mail != null ) { 
+			debug("6.a.5 Completing request with EMAIL attribute");
+			// we could be dealing with a single email address
+			if ( mail instanceof String ) {
+				extensions += " " + EMAIL + "=" + ((String)mail);
+		    // or multiple email addresses 
+			} else {
+				List<String> mails = (List<String>) mail;
+				for ( String m : mails ) {
+					extensions += " " + EMAIL + "=" + m;
+				}
+			}
+		} else {
+			warn("6.a.5 No EMAIL attribute found! ");
+		}
+		
+		// return additional information
+		if ( ! extensions.isEmpty() ) {
+			return extensions;
+		} else {
+			return null;
+		}		
+	}
 	
 	/**
 	 * Retrieve and match a {@link TraceRecord} based on the set of attributes in the attributeMap. This method will
