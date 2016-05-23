@@ -149,7 +149,21 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
     	
         String[] param = request.getParameterValues(key);
         if ( param != null && param.length != 0 ) {
-        	return parseMultiValue( Arrays.asList(param) );
+        	
+        	// make a distinction between single valued and multi valued parameters
+        	if ( param.length == 1 ) { 
+        		return param[0];
+        	} else {
+        		return Arrays.asList(param);
+        	}
+        	
+        	// Alternatively you van also use the 'parseMultiValue', but be aware that 
+        	// this will split individual parameters further according to the 
+        	// SHIB_MULTI_VAL_DELIMITED. This might result in undesired splits in 
+        	// parameter values which contain SHIB_MULTI_VAL_DELIMITED, but are not an
+        	// actual shibboleth parameter.
+        	
+        	//return parseMultiValue( Arrays.asList(param) );
         }
         
         /* check key between request ATTRIBUTES */
@@ -191,27 +205,21 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
      * @return A single {@link String} or a {@link List} of {@link String} in case of multi-valued attributes
      */
     protected Object parseMultiValue(List<String> value) {
-/*    
-		if ( value.size() == 1 && ! value.get(0).contains(SHIB_MULTI_VAL_DELIMITED) ) {
-        	
-			//single value
-    		String ret = value.get(0);
-    		if ( ret != null && ! ret.isEmpty() ) {
-    			return ret;
-    		} else {
-    			return null;
-    		}
-    		
-    	} else {
-*/    		
-    		//multi value
+
+    		// resulting value set
     		List<String> multiValue = new ArrayList<String>();
     		
+    		// start out by iterating through the actual multi values  
         	for (String combinedValue : value) {
         		
         		if ( combinedValue != null && ! combinedValue.isEmpty() )
         		
+        		// try to split any combined parameter into single parameters
+        	    // the split here will have no effect on single valued attributes 
         		for (String v : combinedValue.split(SHIB_MULTI_VAL_DELIMITED)) {
+        			
+        			// filter duplicates
+        			// This here is essential to filter out duplicate 'targeted-id'(eptid) 
         			if ( ! multiValue.contains(v) ) {
         				multiValue.add(v);
         			}
@@ -219,15 +227,17 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         		
         	}
         	
+        	// in case of no value return null
         	if ( multiValue.isEmpty() ) {
         		return null;
+            // in case of a single value only return the value itself
         	} else if ( multiValue.size() == 1 ) {
         		return multiValue.get(0);
+            // in case of multi values return the whole list
         	} else {
         		return multiValue;
         	}
         	
-//    	}
     }	
 	
     /* DEBUG AND DISPLAY */
