@@ -1,19 +1,26 @@
 package org.delegserver.oauth2.servlet;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.http.HttpServletRequest;
 
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
+import org.delegserver.oauth2.util.UnverifiedConnectionFactory;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
@@ -43,7 +50,8 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	
         	/* DEBUG */
         	env.getTraceLogger().marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString()  +"]");
-        	printAllParameters( authorizedState.getRequest() );
+        	logAllParameters( authorizedState.getRequest() );
+        	logAssertions( authorizedState.getRequest() );
         	
         	
     		//build a claim map based in the incoming scope set in the transaction and the attributes given in the request
@@ -242,8 +250,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	
     /* DEBUG AND DISPLAY */
 	
-	@Override
-	protected void printAllParameters(HttpServletRequest request) {
+	protected void logAllParameters(HttpServletRequest request) {
 		
     	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
     	Logger traceLogger = env.getTraceLogger().getLogger(); 
@@ -306,5 +313,88 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         
 	}
 	
+	public static String SHIB_ASSERTION_COUNT="Shib-Assertion-Count";
+	public static String SHIB_ASSERTION="Shib-Assertion-";
 
+	/**
+	 * Log the SAML Assertions belonging to the current request into the transaction logs.
+	 * This method will create an {@link UnverifiedConnectionFactory} to the Shibboleth SP
+	 * running on 'localhost' to ask for the SAML Assertions via the {@link SHIB_ASSERTION} 
+	 * links set in the request header.
+	 *  
+	 * @param request The original request
+	 */
+	private void logAssertions(HttpServletRequest request) {
+	
+		// create the factory for upcoming unverified connections
+		// we cannot verify the https connections made to the Shibboleth SP because the called url is
+		// 'localhost' which is not guaranteed to be present in the server certificate.
+		UnverifiedConnectionFactory unverifiedConFactory = new UnverifiedConnectionFactory(this.getMyLogger());
+		
+		// get the trace logger
+    	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
+    	Logger traceLogger = env.getTraceLogger().getLogger(); 
+		
+    	// get the number of assertions in the current request 
+		String assCountHeader = request.getHeader(SHIB_ASSERTION_COUNT);
+		if ( assCountHeader != null && ! assCountHeader.isEmpty() ) {
+		
+			int assCount = Integer.parseInt( converHeader( assCountHeader ) );
+			for ( int i=1 ; i <= assCount; i++ ) {
+
+				// for every assertion found construct to retrieval URL header name
+				String assUrlHeaderName;
+				if ( i < 10 ) {
+					assUrlHeaderName = SHIB_ASSERTION + "0" + i;
+				} else {
+					assUrlHeaderName = SHIB_ASSERTION + i;					
+				}
+				
+				// get the actual retrieval URL
+				String assUrlString = request.getHeader( assUrlHeaderName );
+				if ( assUrlString != null && ! assUrlString.isEmpty() ) {
+
+					try {
+					
+						// execute a GET request to the retrieved URL
+						URL  assURL = new URL(assUrlString);
+						HttpsURLConnection assConnection = (HttpsURLConnection) assURL.openConnection();
+						assConnection = unverifiedConFactory.getUnverifiedConnection(assConnection);
+						
+						InputStream assStream = assConnection.getInputStream();
+						
+					    BufferedReader rd = new BufferedReader(new InputStreamReader(assStream));
+					    StringBuilder result = new StringBuilder();
+					    String line;
+					    
+					    // aggregate results into a single buffer
+					    while ((line = rd.readLine()) != null) {
+					       result.append(line);
+					    }
+					    
+					    rd.close();
+						
+					    // print SAML Assertion to trace log
+					    traceLogger.info("SAML Assertions Received from " + assUrlString);
+					    traceLogger.info(result.toString());
+					    
+					} catch (MalformedURLException e) {
+						this.warn("Malformed URL while requesting Shibboleth Assertion" );
+						this.warn(e.getMessage());
+					} catch (IOException e) {
+						this.warn("Request Error requesting Shibboleth Assertion" );
+						this.warn(e.getMessage());
+						e.printStackTrace();
+					}
+					
+				} else {
+					this.warn("Shibboleth Assertion URL " + assUrlHeaderName + " is empty! Ingoring..." );
+				}
+				
+			}
+			
+		}
+		
+	}
+	
 }

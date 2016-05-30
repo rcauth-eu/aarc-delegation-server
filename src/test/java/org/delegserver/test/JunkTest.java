@@ -73,4 +73,14 @@ public class JunkTest {
 		System.out.println("STRING: " + string);
 	}
 
+	@Test
+	public void test5() {
+		
+		String nr = "05";
+		int i = Integer.parseInt(nr);
+		
+		System.out.println( nr + " = " + i );
+		
+	}
+	
 }
