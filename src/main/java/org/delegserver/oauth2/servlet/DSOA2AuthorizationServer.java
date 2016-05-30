@@ -287,7 +287,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
             while (e.hasMoreElements()) {
                 String name = e.nextElement().toString();
                 traceLogger.info(" " + name);
-                traceLogger.info("   " + request.getHeader(name));
+                traceLogger.info("   " + converHeader(request.getHeader(name)) );
             }
         }
 		
