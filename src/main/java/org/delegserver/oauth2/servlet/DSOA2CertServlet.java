@@ -1,13 +1,11 @@
 package org.delegserver.oauth2.servlet;
 
+
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
@@ -15,6 +13,8 @@ import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.exceptions.AttributeMismatchException;
 import org.delegserver.oauth2.exceptions.NoTraceRecordException;
 import org.delegserver.oauth2.util.HashingUtils;
+import org.delegserver.storage.RDNElement;
+import org.delegserver.storage.RDNElementPart;
 import org.delegserver.storage.TraceRecord;
 import org.delegserver.storage.TraceRecordIdentifier;
 import org.delegserver.storage.TraceRecordStore;
@@ -60,37 +60,43 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
 		HashingUtils hasher = HashingUtils.getInstance();
 	
+		/* DEBUG AND TRACE LOGGING */
+		// initialize the session specific trace logger with the transaction identifier.
+		se.getTraceLogger().initSessionLogger( trans.getIdentifierString() );
 		se.getTraceLogger().marked("NEW GETCERT REQUEST [transaction: " + trans.getIdentifierString()  +"]");
-		
+    	
 		// 1. GET TRACE RECORD FOR THIS TRANSACTION
-		info("6.a.1  Get trace record for current transaction");
+		traceDebug("6.a.1  Get trace record for current transaction");
 		
 		TraceRecord traceRecord = null;
 		
 		try {
 			
 			// 2. TRY TO RETRIVE ALREADY EXISTING TRACE RECORD BASED ON CURRENT TRANSACTION
-			info("6.a.2  Look for an already existing trace record");
+			traceDebug("6.a.2  Look for an already existing trace record");
 			traceRecord = getTraceRecord( trans.getUserAttributes() );
-			info("6.a.2  Trace Record FOUND!");
+			traceDebug("6.a.2  Trace Record FOUND!");
 			
 		} catch ( AttributeMismatchException e ) {
 
 			// 2.a CREATE NEW TRACE RECORD WITH SEQUENCE NUMBER
-			info("6.a.2 AttributeMismatchException! Trace record found, but attributes hashed did not match. Creating new Trace Record with a sequence number");
+			traceDebug("6.a.2 AttributeMismatchException! Trace record found, but attributes hashed did not match. Creating new Trace Record with a sequence number");
+			
+			// register new trace record with sequence number 0 for a start
+			traceRecord = createTraceRecord( trans.getUserAttributes() , 0 );
 			
 			// new user with matching CN, but different attribute set! 
 		    // get the next sequence  number for the generated CN
-			String cn = se.getDnGenerator().getCommonName( trans.getUserAttributes() );
-			TraceRecordIdentifier cnId = new TraceRecordIdentifier( hasher.hashToBase64(cn) );
+			TraceRecordIdentifier cnId = (TraceRecordIdentifier) traceRecord.getIdentifier();
 			int nextSequenceNr = se.getTraceRecordStore().getNextSequenceNumber( cnId );
-			// register new trace record with sequence number
-			traceRecord = createTraceRecord( trans.getUserAttributes() , nextSequenceNr );
+			
+			// set the next assigned sequence number to the current record
+			traceRecord.setSequenceNr(nextSequenceNr);
 			
 		} catch ( NoTraceRecordException e ) {
 			
 			// 2.b CREATE NEW TRACE RECORD WITH SEQUNCE NUMBER 0
-			info("6.a.2 NoTraceRecordException! Trace record not found. Creating new Trace Record without a sequence number");
+			traceDebug("6.a.2 NoTraceRecordException! Trace record not found. Creating new Trace Record without a sequence number");
 			
 			// new user! register new trace record
 			traceRecord = createTraceRecord( trans.getUserAttributes() , 0 );
@@ -102,41 +108,47 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		}
 
 		// 3. SAVE TRACE RECORD
-		info("6.a.3 Saving trace record");		
+		traceDebug("6.a.3 Saving trace record");		
 		se.getTraceRecordStore().save(traceRecord);
 		
 		// 4. GENERATE USER DN FOR TRANSACTION AND SAVE TRANSACTION
-		info("6.a.4 Generating user DN for transaction...");		
+		traceDebug("6.a.4 Generating user DN for transaction...");		
 		//the DN sufix should be taken from the trace record retrieved/created above!!!
 		//if you recreate the CN at this point using DnGenerator you might end up
 		//creating a new CN for an already existing user in the system.
-		String cnRDN = traceRecord.getCN();
+		RDNElement cnRDN = traceRecord.getCommonName();
 		int cnRDNseqNr = traceRecord.getSequenceNr();
 		//the O can be recreated from scratch because we don't track modifications
-		String orgRDN = se.getDnGenerator().getOrganisation( trans.getUserAttributes() );
+		RDNElement orgRDN = se.getDnGenerator().getOrganisation( trans.getUserAttributes() );
+		traceRecord.setOrganization(orgRDN);
 		
 		//append the sequence number where applicable 
 		if ( cnRDNseqNr > 0 ) {
-			trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN, cnRDN, cnRDNseqNr ) );
+			trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN.getElement() , cnRDN.getElement(), cnRDNseqNr ) );
 		} else {
-			trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN, cnRDN ) );	
+			trans.setMyproxyUsername( se.getDnGenerator().formatDNSufix( orgRDN.getElement() , cnRDN.getElement() ) );	
 		}
 		
-		info("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
+		//log the final trace record elements and their origin
+		logTraceRecord(traceRecord);
+		traceInfo("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
 
 		//complete the USERNAME parameter with extensions 
 		String additionalInfo = getCertificateExtensions( trans );
 
 		if ( additionalInfo != null ) { 
 			trans.setMyproxyUsername( trans.getMyproxyUsername() + additionalInfo );
-			info("6.a.5 The generated MyProxy username (completed with extensions) is: " + trans.getMyproxyUsername());
+			traceDebug("6.a.5 The generated MyProxy username (completed with extensions) is: " + trans.getMyproxyUsername());
 		} else {
-			warn("6.a.5 No extensions appended into the certificate request. Requesting cert without it");
+			traceDebug("6.a.5 No extensions appended into the certificate request. Requesting cert without it");
 		}
 		
 		trans.setTraceRecord( traceRecord.getCnHash() );
 		
 		se.getTransactionStore().save(trans);
+		
+		// destroy the session specific trace logger
+		se.getTraceLogger().destroySessionLogger();
 		
 		// 5. PROCEED WITH MYPROXY CALL
         checkMPConnection(trans);
@@ -172,7 +184,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		// so far we only support adding the email attributes into the certificate
 		Object mail = trans.getClaims().get(EMAIL);
 		if ( mail != null ) { 
-			debug("6.a.5 Completing request with EMAIL attribute");
+			traceDebug("6.a.5 Completing request with EMAIL attribute");
 			// we could be dealing with a single email address
 			if ( mail instanceof String ) {
 				extensions += " " + EMAIL + "=" + ((String)mail);
@@ -184,7 +196,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 				}
 			}
 		} else {
-			warn("6.a.5 No EMAIL attribute found! ");
+			traceDebug("6.a.5 No EMAIL attribute found! ");
 		}
 		
 		// return additional information
@@ -219,28 +231,28 @@ public class DSOA2CertServlet extends OA2CertServlet {
 
 		// 1. GENERATE EVERY POSSIBLE CN HASH
 		
-		// keep a reverse mapping between the original CNs and their hashes 
-		Map<TraceRecordIdentifier, String> cnHashAlternatives = new HashMap<TraceRecordIdentifier, String>();
+		// keep a reverse mapping between the original CNs (inside a RDNElement) and their hashes 
+		Map<TraceRecordIdentifier, RDNElement> cnHashAlternatives = new HashMap<TraceRecordIdentifier, RDNElement>();
 		
-		for ( String cn : se.getDnGenerator().getCommonNames(attributeMap) ) {
+		for ( RDNElement cn : se.getDnGenerator().getCommonNames(attributeMap) ) {
 			// hash possible CNs and then to the lookup list.
-			String cnHash = hasher.hashToBase64(cn);	
-			debug("Looking for trace record with CN Hash:" + cnHash + " ( " + cn + " )");
+			String cnHash = hasher.hashToBase64(cn.getElement());	
+			traceDebug("Looking for trace record with CN Hash:" + cnHash + " ( " + cn.getElement() + " )");
 			cnHashAlternatives.put(new TraceRecordIdentifier(cnHash) ,cn );
 		}
 		
 		// 2. LOOKUP TRACE RECORDS WITH THE ABOVE GENERATES CN HASHES
-		debug("Executing lookup for trace records...");
+		traceDebug("Executing lookup for trace records...");
 		// execute the lookup based on the set of CN hashes (reverse map keys)
 		List<TraceRecord> traceRecords = traceRecordStore.getAll( new ArrayList<Identifier>( cnHashAlternatives.keySet() ) );
 		
 		if ( traceRecords == null || traceRecords.size() == 0 ) {
 			// 2.a NO TRACE RECORDS
-			debug("No Trace Records Found with any of the provided CN hashes!");
+			traceDebug("No Trace Records Found with any of the provided CN hashes!");
 			throw new NoTraceRecordException("No Trace Record found based on the user attributes");
 		} else {
-			// 2.b TRACE RECORDS FOUND
-			debug("Trace Records Found! Record count: " + traceRecords.size());
+			// 2.b TRACE RECORDS FOUND		
+			traceDebug("Trace Records Found! Record count: " + traceRecords.size());
 			
 			// many results for a single CN, this might mean that we bumped into a collection of DNs only distinguished 
 			// by their sequence number
@@ -248,10 +260,10 @@ public class DSOA2CertServlet extends OA2CertServlet {
 			TraceRecord matchingTraceRecord = null;
 			for ( TraceRecord traceRecord : traceRecords ) {
 				// need to check for matching attribute set in order to account for things like EPPN reuse.
-				debug("Matching trace record " + traceRecord.getCnHash() + " " + traceRecord.getSequenceNr());
+				traceDebug("Matching trace record " + traceRecord.getCnHash() + " " + traceRecord.getSequenceNr());
 				if ( se.getUniqueAttrGenerator().matches(attributeMap, traceRecord ) ) {
 					
-					debug("Trace Record matches attribute set!");	
+					traceDebug("Trace Record matches attribute set!");	
 					
 					/*
 					if ( matchingTraceRecord != null ) {
@@ -267,13 +279,13 @@ public class DSOA2CertServlet extends OA2CertServlet {
 					matchingTraceRecord = traceRecord;
 					
 					// find original CN that produced that match
-					String originalCN = cnHashAlternatives.get( new TraceRecordIdentifier(matchingTraceRecord.getCnHash()));
+					RDNElement originalCN = cnHashAlternatives.get( new TraceRecordIdentifier(matchingTraceRecord.getCnHash()));
 					if ( originalCN == null ) {
 						// this means something is wrong in the original reverse map. We need the original CN here
 						// otherwise we might end up constructing it from the wrong source attributes.
 						throw new GeneralException("Matching transaction found, but could not get original CN!");
 					}
-					matchingTraceRecord.setCN( originalCN );
+					matchingTraceRecord.setCommonName( originalCN );
 					
 					// Instead of looking for other matches, just simple take the fist one. The trace records 
 					// returned by the DB are ordered by their last_seen date, which makes the trace record matching
@@ -281,13 +293,13 @@ public class DSOA2CertServlet extends OA2CertServlet {
 					break;
 					
 				} else {
-					debug("Trace Record does NOT match attribute set!");
+					traceDebug("Trace Record does NOT match attribute set!");
 				}
 			}
 			
 			if ( matchingTraceRecord == null ) {
 				// matching CN but different attribute set! sequence number his ass!
-				debug("No Trace Record matched the attribute set...");
+				traceDebug("No Trace Record matched the attribute set...");
 				throw new AttributeMismatchException("Matching CN but different attribute set! Add a sequence number to the DN!");					
 			} else {
 				return matchingTraceRecord;
@@ -311,30 +323,30 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		HashingUtils hasher = HashingUtils.getInstance();
 		
 		// 1. Generate CN for Trace Record
-		String cn = se.getDnGenerator().getCommonName(attributeMap); 
-		String cnHash = hasher.hashToBase64(cn);
+		RDNElement cn = se.getDnGenerator().getCommonName(attributeMap); 
+		String cnHash = hasher.hashToBase64(cn.getElement());
 		
-		debug("Generating Trace Record with CN hash: " + cnHash + " ( " + cn + " ) and sequence nr: " + sequenceNr );
+		traceDebug("Generating Trace Record with CN hash: " + cnHash + " ( " + cn.getElement() + " ) and sequence nr: " + sequenceNr );
 		TraceRecord traceRecord = new TraceRecord( new TraceRecordIdentifier(cnHash) );
-		traceRecord.setCN(cn);
+		traceRecord.setCommonName(cn);
 		traceRecord.setCnHash( cnHash );
 		traceRecord.setSequenceNr(sequenceNr);
 
 		// 2. Generate Unique Attribute List for Trace Record
-		debug("Generated Unique attribute list ... ");
+		traceDebug("Generated Unique attribute list ... ");
 		String attrList = se.getUniqueAttrGenerator().getUniqueAttributes(attributeMap);
 		List<String> attrNames = se.getUniqueAttrGenerator().getUniqueAttributeNames(attributeMap);
-		debug("Generated Unique attribute source names : '" + attrNames + "'");
-		debug("Generated Unique attribute list for trace record : '" + attrList + "'");
+		traceDebug("Generated Unique attribute source names : '" + attrNames + "'");
+		traceDebug("Generated Unique attribute list for trace record : '" + attrList + "'");
 
 		if ( attrList != null && ! attrNames.isEmpty()) {
 			// 3. Salt and hash Unique Attribute List
-			debug("Generating random salt ...");
+			traceDebug("Generating random salt ...");
 			byte[] attrSalt = hasher.getRandomSalt();
 			traceRecord.setAttrHash( hasher.saltedHashToBase64(attrList, attrSalt) );
 			traceRecord.setAttrSalt( new String(Base64.encodeBase64(attrSalt)) );
 			traceRecord.setAttrNames(attrNames);
-			debug("Generated hashed attribute list : '" + traceRecord.getAttrHash() + "'");
+			traceDebug("Generated hashed attribute list : '" + traceRecord.getAttrHash() + "'");
 		} else {
 			error("Uniqueness Attribute List is empty!");
 			throw new GeneralException("Uniqueness Attribute List is empty! Are any of your DN source attributes present?");
@@ -345,22 +357,37 @@ public class DSOA2CertServlet extends OA2CertServlet {
 	
 	/* DEBUG AND DISPLAY */
 	
-	@Override
-	public void info(String x) {
-		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
-		se.getTraceLogger().getLogger().info(x);
+	public void logTraceRecord(TraceRecord traceRecord) {
+		logTraceRecordElement( traceRecord.getOrganization() );
+		logTraceRecordElement( traceRecord.getCommonName() );
 	}
 	
-	@Override
-	public void debug(String x) {
-		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
-		se.getTraceLogger().getLogger().fine(x);
+	public void logTraceRecordElement(RDNElement element) {
+		for ( RDNElementPart rdnPart : element.getElementParts() ) {
+		
+			StringBuilder orgTrace = new StringBuilder();
+			
+			orgTrace.append("DN Part : '" + rdnPart.getElement() + "' ");
+			orgTrace.append("before transformations '" + rdnPart.getElementOrig() + "' ");
+			orgTrace.append("(" + rdnPart.getElementSource() + ")");
+
+			traceInfo(orgTrace.toString());
+		}
 	}
 	
-	@Override
-	public void error(String x) {
+	public void traceInfo(String x) {
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
-		se.getTraceLogger().getLogger().severe(x);
+		se.getTraceLogger().info(x);
+	}
+	
+	public void traceDebug(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().debug(x);
+	}
+	
+	public void traceError(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().error(x);
 	}
 	
 }

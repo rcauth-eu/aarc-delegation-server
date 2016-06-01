@@ -3,8 +3,11 @@ package org.delegserver.test;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.delegserver.oauth2.generator.DNGenerator;
+import org.delegserver.oauth2.logging.ThreadsafeTraceLogger;
+import org.delegserver.oauth2.logging.TraceLoggingFacade;
 import org.delegserver.oauth2.util.HashingUtils;
 import org.delegserver.storage.TraceRecordIdentifier;
 import org.junit.Test;
@@ -12,7 +15,7 @@ import org.junit.Test;
 public class DNGeneratorTest extends DNGenerator {
 
 	public DNGeneratorTest() {
-		super(null, null, null,null);
+		super(null, null, null, new ThreadsafeTraceLogger(new TraceLoggingFacade( Logger.getLogger("Test") )));
 	}
 	
 	@Test

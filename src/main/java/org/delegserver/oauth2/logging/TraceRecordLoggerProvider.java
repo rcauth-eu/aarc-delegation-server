@@ -1,8 +1,7 @@
-package org.delegserver.oauth2.util;
+package org.delegserver.oauth2.logging;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
-import edu.uiuc.ncsa.security.core.configuration.Configurations;
 import edu.uiuc.ncsa.security.core.util.LoggerProvider;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 
@@ -16,13 +15,14 @@ import java.util.logging.LogRecord;
 
 public class TraceRecordLoggerProvider extends LoggerProvider {
 
-	protected DSLoggingFacade logger;
+	protected TraceLoggingFacade logger;
 	protected ConfigurationNode configurationNode;
 
 	public static final String TRACE_LOGGING_COMPONENT = "traceLogging";
 
-	public static final String TRACE_LOGGING_FORMAT = "[%s] %7.7s  %20.20s  %s" + System.getProperty("line.separator");
+	public static final String TRACE_LOGGING_FORMAT = "[%s] %5.5s %s" + System.getProperty("line.separator");
 
+	
 	public TraceRecordLoggerProvider(ConfigurationNode configurationNode) {
 		super(getFirstNode(configurationNode, TRACE_LOGGING_COMPONENT));
 	}
@@ -42,18 +42,8 @@ public class TraceRecordLoggerProvider extends LoggerProvider {
 					@Override
 					public String format(LogRecord rec) {
 					
-						String callingClassName = null;
-						String[] callingClass = rec.getSourceClassName().split("\\.");
-					
-						if ( callingClass == null || callingClass.length == 0 ) {
-							callingClassName = "";
-						} else {
-							callingClassName = callingClass[ callingClass.length - 1 ];
-						}
-						
 						return String.format(TRACE_LOGGING_FORMAT, (new Date()).toString(), 
 																	rec.getLevel(),
-																	callingClassName,
 																	formatMessage(rec));
 					}
 				});
@@ -62,7 +52,7 @@ public class TraceRecordLoggerProvider extends LoggerProvider {
 		}
 		basicLogger.getLogger().removeHandler(logHandler);
 		
-		logger = new DSLoggingFacade(loggerName, basicLogger.isDebugOn());
+		logger = new TraceLoggingFacade(loggerName, basicLogger.isDebugOn());
 		logger.getLogger().addHandler(logHandler);
 		logger.getLogger().setUseParentHandlers(false);
 		

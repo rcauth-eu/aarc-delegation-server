@@ -13,16 +13,17 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.http.HttpServletRequest;
 
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
+import org.delegserver.oauth2.util.JSONConverter;
 import org.delegserver.oauth2.util.UnverifiedConnectionFactory;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
+import edu.uiuc.ncsa.security.core.Logable;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
 
 /**
@@ -48,11 +49,18 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) authorizedState.getTransaction());
         	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
         	
-        	/* DEBUG */
+        	/* DEBUG AND TRACE LOGGING*/
+        	// initialize session specific trace logger with session identifier
+        	env.getTraceLogger().initSessionLogger( serviceTransaction.getIdentifierString() );
         	env.getTraceLogger().marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString()  +"]");
-        	logAllParameters( authorizedState.getRequest() );
-        	logAssertions( authorizedState.getRequest() );
         	
+        	logAssertions( authorizedState.getRequest() );
+        	// only bother printing the individual request attributes if debug is on
+        	if ( env.getTraceLogger().isDebugOn() ) {
+        		logAllParameters( authorizedState.getRequest() );
+        	}
+        	// destroy the session specific trace logger
+        	env.getTraceLogger().destroySessionLogger();
         	
     		//build a claim map based in the incoming scope set in the transaction and the attributes given in the request
     		Map<String,Object> claims = new HashMap<String,Object>();
@@ -95,7 +103,9 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	/* EXTACTING PARAMETERS FORM REQUEST */
 
 	/**
-	 * Construct a map based on the variables contained in the request header.
+	 * Construct a map based on the variables contained in the request header. 
+	 * <p>
+	 * Filter duplicate header values delimited by {@link SHIB_MULTI_VAL_DELIMITED}.
 	 * 
 	 * @param request Incoming request
 	 * @return Map created from the headers in the request 
@@ -110,10 +120,31 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	
             String name = e.nextElement().toString();
             // convert into the right encoding
-            String value = converHeader( request.getHeader(name));
+            String value = converHeader( request.getHeader(name) );
+            
+            // in case of a multi-valued header filter duplicates
+            if ( value != null && value.contains(SHIB_MULTI_VAL_DELIMITED) ) {
+            	String filteredValue = null;
+            	List<String> filteredValueList = new ArrayList<String>();
+	    		for (String v : value.split(SHIB_MULTI_VAL_DELIMITED)) {
+	    			
+	    			// filter duplicates
+	    			// This here is essential to filter out duplicate 'targeted-id'(eptid) 
+	    			if ( ! filteredValueList.contains(v) ) {
+	    				filteredValueList.add(v);
+	    				if ( filteredValue  == null ) {
+	    					filteredValue = v;
+	    				} else {
+	    					filteredValue += SHIB_MULTI_VAL_DELIMITED + v;
+	    				}
+	    			}
+	    			
+	    		}
+	    		value = filteredValue;
+            }
             
             if ( value != null && ! value.isEmpty() ) { 
-            	map.put(name , value );
+            	map.put(name , value);
             }
         }
 		
@@ -253,7 +284,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	protected void logAllParameters(HttpServletRequest request) {
 		
     	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
-    	Logger traceLogger = env.getTraceLogger().getLogger(); 
+    	Logable traceLogger = env.getTraceLogger(); 
 		
 		String reqUrl = request.getRequestURL().toString();
         String queryString = request.getQueryString();   // d=789
@@ -261,53 +292,74 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
             reqUrl += "?" + queryString;
         }
         
-        traceLogger.info("Request parameters for '" + reqUrl + "'");
+        traceLogger.debug("Request parameters for '" + reqUrl + "'");
 
         if (request.getParameterMap() == null || request.getParameterMap().isEmpty()) {
-        	traceLogger.info("  (none)");
+        	traceLogger.debug("  (none)");
         } else {
             for (Object key : request.getParameterMap().keySet()) {
                 String[] values = request.getParameterValues(key.toString());
-                traceLogger.info(" " + key + ":");
                 if (values == null || values.length == 0) {
-                	traceLogger.info("   (no values)");
                 } else {
-                    for (String x : values) {
-                    	traceLogger.info("   " + x);
-                    }
+                	
+                	if ( values.length == 1 ) {
+                		
+                		if ( values[0] != null && ! values[0].isEmpty() ) {
+                			traceLogger.debug(" " + key + " = " + values[0]);
+                		}
+                		
+                	} else {
+	                	List<String> nonEmptyValues = new ArrayList<String>();
+	                	for (String x : values) {
+	                		if ( x != null && ! x.isEmpty() ) {
+	                			nonEmptyValues.add(x);
+	                		}
+	                    }
+	                	if ( ! nonEmptyValues.isEmpty() ) {
+	                		traceLogger.debug(" " + key + " = " + JSONConverter.toJSONArray(nonEmptyValues).toJSONString());
+	                	}
+                	}
                 }
             }
         }
-        traceLogger.info("Cookies:");
+        
+        traceLogger.debug("Cookies:");
         if (request.getCookies() == null) {
-        	traceLogger.info(" (none)");
+        	traceLogger.debug(" (none)");
         } else {
             for (javax.servlet.http.Cookie c : request.getCookies()) {
-            	traceLogger.info(" " + c.getName() + "=" + c.getValue());
+            	if ( c.getValue() != null && ! c.getValue().isEmpty() ) {
+            		traceLogger.debug(" " + c.getName() + " = " + c.getValue());
+            	}
             }
         }
-        traceLogger.info("Headers:");
+        
+        traceLogger.debug("Headers:");
         Enumeration e = request.getHeaderNames();
         if (!e.hasMoreElements()) {
-        	traceLogger.info(" (none)");
+        	traceLogger.debug(" (none)");
         } else {
             while (e.hasMoreElements()) {
                 String name = e.nextElement().toString();
-                traceLogger.info(" " + name);
-                traceLogger.info("   " + converHeader(request.getHeader(name)) );
+                String header = request.getHeader(name);
+                if ( header != null && ! header.isEmpty() ) {
+                	traceLogger.debug(" " + name + " = " + converHeader(header) );
+                }
             }
         }
 		
 
-        traceLogger.info("Attributes:");
+        traceLogger.debug("Attributes:");
         Enumeration attr = request.getAttributeNames();
         if (!e.hasMoreElements()) {
-        	traceLogger.info(" (none)");
+        	traceLogger.debug(" (none)");
         } else {
             while (attr.hasMoreElements()) {
                 String name = attr.nextElement().toString();
-                traceLogger.info(" " + name);
-                traceLogger.info("   " + request.getAttribute(name));
+                String attribute = request.getAttribute(name).toString();
+                if ( attribute != null && ! attribute.isEmpty() ) {
+                	traceLogger.debug(" " + name + " = " + attribute );
+                }                
             }
         }
         
@@ -326,74 +378,83 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	 */
 	private void logAssertions(HttpServletRequest request) {
 	
-		// create the factory for upcoming unverified connections
-		// we cannot verify the https connections made to the Shibboleth SP because the called url is
-		// 'localhost' which is not guaranteed to be present in the server certificate.
-		UnverifiedConnectionFactory unverifiedConFactory = new UnverifiedConnectionFactory(this.getMyLogger());
-		
-		// get the trace logger
-    	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
-    	Logger traceLogger = env.getTraceLogger().getLogger(); 
-		
-    	// get the number of assertions in the current request 
-		String assCountHeader = request.getHeader(SHIB_ASSERTION_COUNT);
-		if ( assCountHeader != null && ! assCountHeader.isEmpty() ) {
-		
-			int assCount = Integer.parseInt( converHeader( assCountHeader ) );
-			for ( int i=1 ; i <= assCount; i++ ) {
-
-				// for every assertion found construct to retrieval URL header name
-				String assUrlHeaderName;
-				if ( i < 10 ) {
-					assUrlHeaderName = SHIB_ASSERTION + "0" + i;
-				} else {
-					assUrlHeaderName = SHIB_ASSERTION + i;					
-				}
-				
-				// get the actual retrieval URL
-				String assUrlString = request.getHeader( assUrlHeaderName );
-				if ( assUrlString != null && ! assUrlString.isEmpty() ) {
-
-					try {
-					
-						// execute a GET request to the retrieved URL
-						URL  assURL = new URL(assUrlString);
-						HttpsURLConnection assConnection = (HttpsURLConnection) assURL.openConnection();
-						assConnection = unverifiedConFactory.getUnverifiedConnection(assConnection);
-						
-						InputStream assStream = assConnection.getInputStream();
-						
-					    BufferedReader rd = new BufferedReader(new InputStreamReader(assStream));
-					    StringBuilder result = new StringBuilder();
-					    String line;
-					    
-					    // aggregate results into a single buffer
-					    while ((line = rd.readLine()) != null) {
-					       result.append(line);
-					    }
-					    
-					    rd.close();
-						
-					    // print SAML Assertion to trace log
-					    traceLogger.info("SAML Assertions Received from " + assUrlString);
-					    traceLogger.info(result.toString());
-					    
-					} catch (MalformedURLException e) {
-						this.warn("Malformed URL while requesting Shibboleth Assertion" );
-						this.warn(e.getMessage());
-					} catch (IOException e) {
-						this.warn("Request Error requesting Shibboleth Assertion" );
-						this.warn(e.getMessage());
-						e.printStackTrace();
+		try {
+			
+			// create the factory for upcoming unverified connections
+			// we cannot verify the https connections made to the Shibboleth SP because the called url is
+			// 'localhost' which is not guaranteed to be present in the server certificate.
+			UnverifiedConnectionFactory unverifiedConFactory = new UnverifiedConnectionFactory(this.getMyLogger());
+			
+			// get the trace logger
+	    	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
+	    	Logable traceLogger = env.getTraceLogger(); 
+			
+	    	// get the number of assertions in the current request 
+			String assCountHeader = request.getHeader(SHIB_ASSERTION_COUNT);
+			if ( assCountHeader != null && ! assCountHeader.isEmpty() ) {
+			
+				int assCount = Integer.parseInt( converHeader( assCountHeader ) );
+				for ( int i=1 ; i <= assCount; i++ ) {
+	
+					// for every assertion found construct to retrieval URL header name
+					String assUrlHeaderName;
+					if ( i < 10 ) {
+						assUrlHeaderName = SHIB_ASSERTION + "0" + i;
+					} else {
+						assUrlHeaderName = SHIB_ASSERTION + i;					
 					}
 					
-				} else {
-					this.warn("Shibboleth Assertion URL " + assUrlHeaderName + " is empty! Ingoring..." );
+					// get the actual retrieval URL
+					String assUrlString = request.getHeader( assUrlHeaderName );
+					if ( assUrlString != null && ! assUrlString.isEmpty() ) {
+	
+						try {
+						
+							// execute a GET request to the retrieved URL
+							URL  assURL = new URL(assUrlString);
+							HttpsURLConnection assConnection = (HttpsURLConnection) assURL.openConnection();
+							assConnection = unverifiedConFactory.getUnverifiedConnection(assConnection);
+							
+							InputStream assStream = assConnection.getInputStream();
+							
+						    BufferedReader rd = new BufferedReader(new InputStreamReader(assStream));
+						    StringBuilder result = new StringBuilder();
+						    String line;
+						    
+						    // aggregate results into a single buffer
+						    while ((line = rd.readLine()) != null) {
+						       result.append(line);
+						    }
+						    
+						    rd.close();
+							
+						    // print SAML Assertion to trace log
+						    traceLogger.debug("SAML Assertions Received from " + assUrlString);
+						    traceLogger.info(result.toString());
+						    
+						} catch (MalformedURLException e) {
+							this.warn("Malformed URL while requesting Shibboleth Assertion" );
+							this.warn(e.getMessage());
+						} catch (IOException e) {
+							this.warn("Request Error requesting Shibboleth Assertion" );
+							this.warn(e.getMessage());
+							e.printStackTrace();
+						}
+						
+					} else {
+						this.warn("Shibboleth Assertion URL " + assUrlHeaderName + " is empty! Ingoring..." );
+					}
+					
 				}
 				
 			}
 			
+		} catch (Exception e) {
+			this.warn("Request Error requesting Shibboleth Assertion" );
+			this.warn(e.getMessage());
+			e.printStackTrace();			
 		}
+		
 		
 	}
 	

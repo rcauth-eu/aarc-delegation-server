@@ -12,14 +12,15 @@ public class TraceRecord extends IdentifiableImpl {
 
 	private static final long serialVersionUID = -7707448168067694856L;
 
-	//protected String cnHash;
 	protected int sequenceNr = 0;	
 	protected String attrHash;
 	protected String attrSalt;	
 	protected List<String> attrNames;
 	
 	//keep in memory, but don't serialize to trace record 
-	protected String CN;
+	protected RDNElement commonName;
+	protected RDNElement organization;
+	
 	
 	public TraceRecord(TraceRecordIdentifier identifier) {
 		super(identifier);
@@ -27,21 +28,28 @@ public class TraceRecord extends IdentifiableImpl {
 	
 	/* GETTERS AND SETTERS */
 	
+	public void setCommonName(RDNElement commonName) {
+		this.commonName = commonName;
+	}
+	
+	public void setOrganization(RDNElement organization) {
+		this.organization = organization;
+	}
+	
+	public RDNElement getCommonName() {
+		return commonName;
+	}
+	
+	public RDNElement getOrganization() {
+		return organization;
+	}
+	
 	@Override
 	public void setIdentifier(Identifier identifier) {
 		super.setIdentifier(identifier);
 	}
-	
-	public String getCN() {
-		return CN;
-	}
-	
-	public void setCN(String cN) {
-		CN = cN;
-	}
-	
+		
 	public String getCnHash() {
-		//return cnHash;
 		return ((TraceRecordIdentifier)this.getIdentifier()).cnHash;
 	}
 	
@@ -54,7 +62,6 @@ public class TraceRecord extends IdentifiableImpl {
 	}
 	
 	public void setCnHash(String cnHash) {
-		//this.cnHash = dnHash;
 		this.setIdentifier(new TraceRecordIdentifier(cnHash));
 	}
 	

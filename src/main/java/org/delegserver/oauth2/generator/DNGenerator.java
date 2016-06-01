@@ -8,20 +8,18 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
-import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.util.Arrays;
 import org.delegserver.oauth2.util.HashingUtils;
+import org.delegserver.storage.RDNElement;
+import org.delegserver.storage.RDNElementPart;
 
+import edu.uiuc.ncsa.security.core.Logable;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
-import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 
 /**
  * Utility class for generating partial user DNs. The parts of the user DN being created 
@@ -67,7 +65,7 @@ public class DNGenerator {
 	/* OTHER */
 	
 	protected Charset defaultCharset = null;
-	protected Logger logger = null;;
+	protected Logable logger = null;;
 	
 	/* CONSTUCTOR */
 	
@@ -82,7 +80,7 @@ public class DNGenerator {
 	 * @param orgSources Attribute source list for {organisation}
 	 * @param logger Logger for producing logs.
 	 */
-	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, Logger logger) {
+	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, Logable logger) {
 		this.cnNameSources = cnNameSources;
 		this.cnUniqueIDSources = cnUniqueIDSources;
 		this.orgSources = orgSources;
@@ -96,7 +94,7 @@ public class DNGenerator {
 		if ( logger != null ) {
 			this.logger = logger;
 		} else {
-			this.logger = Logger.getLogger(this.getClass().getCanonicalName());
+			throw new GeneralException("Cannot create DNGenerator without a Logger!");
 		}
 	}
 	
@@ -125,11 +123,11 @@ public class DNGenerator {
 	 * will be thrown. 
 	 * 
 	 * @param attributeMap User attribute for building the O RDN
-	 * @return The constructed O RDN (without the '/O=' prefix!)
+	 * @return The constructed O {@link RDNElement} (without the '/O=' prefix!)
 	 */
-	public String getOrganisation(Map<String,String> attributeMap) {
+	public RDNElement getOrganisation(Map<String,String> attributeMap) {
 		
-		logger.info("GENERATING ORGANISATION (O)");
+		logger.debug("GENERATING ORGANISATION (O)");
 		
 		// Pick out the attribute source from the predefined configuration which is present in the 
 		// provided attributeMap. Throw and exception if no suitable source is found.
@@ -140,37 +138,41 @@ public class DNGenerator {
 			throw new GeneralException("No suitable attribute found for building 'Organization' attribute!");
 		}
 
-		logger.info("	- Attribute Sources: '" + getConcatenatedStrings(orgSourceAttrs) + "'");
+		logger.debug("	- Attribute Sources: '" + getConcatenatedStrings(orgSourceAttrs) + "'");
 		
 		// Build the O RDN from the selected source attribute. Use the getProcessedAttr to 
 		// process the attribute value before setting it in the RDN
 		
-		String organisation = null;
+		String origOrganisation = null;
 		for (String source : orgSourceAttrs) {
-			if ( organisation == null ) {
-				organisation = getProcessedAttr(attributeMap, source);
+			if ( origOrganisation == null ) {
+				origOrganisation = getProcessedAttr(attributeMap, source);
 			} else {
-				organisation += O_DELIMITER + getProcessedAttr(attributeMap, source);
+				origOrganisation += O_DELIMITER + getProcessedAttr(attributeMap, source);
 			}
 		}
 
-		logger.info("	- Attribute Value: '" + organisation + "'");		
+		logger.debug("	- Attribute Value: '" + origOrganisation + "'");		
 		
 		// Do some post-processing on the created RDN: 
 		
 		// convert to IDN (ASCII)
-		organisation = getIDNString(organisation);
+		String organisation = getIDNString(origOrganisation);
 
-		logger.info("	- Attribute Value (after printable string conversion): '" + organisation + "'");		
+		logger.debug("	- Attribute Value (after printable string conversion): '" + organisation + "'");		
 
 		// truncate to appropriate length
 		organisation = truncate(organisation, RDN_MAX_SIZE);
 		
-		logger.info("	- Attribute Value (after truncating): '" + organisation + "'");		
+		logger.debug("	- Attribute Value (after truncating): '" + organisation + "'");		
 
-		logger.info("	- Generated Organisation (O): '" + organisation + "'");
+		logger.debug("	- Generated Organisation (O): '" + organisation + "'");
 		
-		return organisation;
+		RDNElementPart orgPart = new RDNElementPart(organisation, origOrganisation, getConcatenatedStrings(orgSourceAttrs));
+		RDNElement org = new RDNElement(organisation);
+		org.addRDNElementPart(orgPart);
+		
+		return org;
 	}
 
 	/**
@@ -183,29 +185,33 @@ public class DNGenerator {
 	 * will be thrown. 
 	 * 
 	 * @param attributeMap User attribute for building the CN RDN
-	 * @return The constructed CN RDN (without the '/CN=' prefix!)
+	 * @return The constructed CN {@link RDNElement} (without the '/CN=' prefix!)
 	 */
-	public String getCommonName(Map<String,String> attributeMap) {
+	public RDNElement getCommonName(Map<String,String> attributeMap) {
 		
-		logger.info("GENERATING CN");
+		logger.debug("GENERATING CN");
 		
 		// First deal with the display name part of the common name
-		String diplayName = getCommonNameDisplayPart(attributeMap);
+		RDNElementPart diplayName = getCommonNameDisplayPart(attributeMap);
 
 		// Now deal with the uniqueness part of the CN
-		String uniqueID = getCommonNameUniquePart(attributeMap);
+		RDNElementPart uniqueID = getCommonNameUniquePart(attributeMap);
 
 		// the combination returned here should always be <= 64 
-		String cn = diplayName + CN_DELIMITER + uniqueID;
+		String cn = diplayName.getElement() + CN_DELIMITER + uniqueID.getElement();
 		
-		logger.info("	- Generated Common Name (CN): '" + cn + "'");
+		logger.debug("	- Generated Common Name (CN): '" + cn + "'");
 		
 		// do a last size check to see that the length is within the allowed RDN size
 		if ( cn.getBytes().length > RDN_MAX_SIZE ) {
 			throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE= " + RDN_MAX_SIZE);
 		}
 		
-		return cn;
+		RDNElement commonName = new RDNElement(cn);
+		commonName.addRDNElementPart(diplayName);
+		commonName.addRDNElementPart(uniqueID);
+		
+		return commonName;
 	}
 	 
 	/**
@@ -213,11 +219,11 @@ public class DNGenerator {
 	 * 
 	 * @param attributeMap User attribute for building the CN RDN
 	 * @param sequenceNr Sequence number to append to the CN
-	 * @return The constructed CN RDN (without the '/CN=' prefix!)
+	 * @return The constructed CN {@link RDNElement} (without the '/CN=' prefix!)
 	 */
-	public String getCommonName(Map<String,String> attributeMap, int sequenceNr) {
+	public RDNElement getCommonName(Map<String,String> attributeMap, int sequenceNr) {
 		
-		logger.info("GENERATING CN WITH SEQUENCE NR");
+		logger.debug("GENERATING CN WITH SEQUENCE NR");
 		
 		// check if the sequence number is in a valid range.
 		if ( sequenceNr <= 0 || sequenceNr > CN_MAX_SEQUENCE_NR ) {
@@ -225,19 +231,20 @@ public class DNGenerator {
 					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
 		}
 		
-		logger.info("	- Appending sequence number: '" + sequenceNr + "'");
+		logger.debug("	- Appending sequence number: '" + sequenceNr + "'");
 		
 		// build CN and append sequence number to it
-		String cn = getCommonName(attributeMap) + CN_DELIMITER + sequenceNr;
+		RDNElement commonName = getCommonName(attributeMap);
+		String cn = commonName.getElement() + CN_DELIMITER + sequenceNr;
 		
-		logger.info("	- Generated Common Name (CN): '" + cn + "'");
+		logger.debug("	- Generated Common Name (CN): '" + cn + "'");
 		
 		// do a last size check to see that the length is within the allowed RDN size
 		if ( cn.getBytes().length > RDN_MAX_SIZE ) {
 			throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE= " + RDN_MAX_SIZE);
 		}
 		
-		return cn;
+		return commonName;
 	}
 	
 	/**
@@ -248,18 +255,18 @@ public class DNGenerator {
 	 * source is considered to be available if it is present as a key in the attributeMap provided.
 	 * 
 	 * @param attributeMap User attribute for building the CNs 
-	 * @return A list of possible CNs with different {cnUniqueId}s
+	 * @return A list of possible CN {@link RDNElement}s with different {cnUniqueId}s
 	 */
-	public List<String> getCommonNames(Map<String,String> attributeMap) {
+	public List<RDNElement> getCommonNames(Map<String,String> attributeMap) {
 		
-		logger.info("GENERATING LIST OF POSSIBLE CNs");
+		logger.debug("GENERATING LIST OF POSSIBLE CNs");
 		
 		// The list of resulting CNs
-		List<String> cns = new ArrayList<String>();
+		List<RDNElement> cns = new ArrayList<RDNElement>();
 		
 		// First deal with the display name part of the common name. This will be the same for every 
 		// CN constructed below.
-		String diplayName = getCommonNameDisplayPart(attributeMap);
+		RDNElementPart diplayName = getCommonNameDisplayPart(attributeMap);
 		
 		// Take every unique ID attribute source and construct a single CN
 		for(Object obj : cnUniqueIDSources) {
@@ -273,57 +280,63 @@ public class DNGenerator {
 				uniqueIDSourceAttr[0] = (String) obj;
 			}
 			
-			logger.info("	- Unique ID Attribute Sources: '" + getConcatenatedStrings(uniqueIDSourceAttr) + "'");
+			logger.debug("	- Unique ID Attribute Sources: '" + getConcatenatedStrings(uniqueIDSourceAttr) + "'");
 			
 			// construct a concatenated list of attributes based on the attributes chosen above.
-			String uniqueID = null;
+			String origUniqueID = null;
 			for (String source : uniqueIDSourceAttr) {
 				
 				if ( ! attributeMap.containsKey(source) ) {
 					// in case a source attribute is missing, simply ignore this source set and move on to the next one.
 					// This is not an error, it simply means that the IdP is not releasing a particular unique id.
-					logger.info("	- Unique ID Attribute Sources: '" + source + "' not found attribute map. ignoring..." );
-					uniqueID = null;
+					logger.debug("	- Unique ID Attribute Sources: '" + source + "' not found attribute map. ignoring..." );
+					origUniqueID = null;
 					break;
 				}
 				
 				// construct a concatenated list of attribute values
-				if ( uniqueID == null ) {
-					uniqueID = getProcessedAttr(attributeMap, source);
+				if ( origUniqueID == null ) {
+					origUniqueID = getProcessedAttr(attributeMap, source);
 				} else {
-					uniqueID += CN_DELIMITER + getProcessedAttr(attributeMap, source);
+					origUniqueID += CN_DELIMITER + getProcessedAttr(attributeMap, source);
 				}
 			}
 			
 			// in case the unique id is empty (one of its source attributes was missing from the user attribute map)
 			// simply move on to the next set of sources.
-			if ( uniqueID == null ) {		
+			if ( origUniqueID == null ) {		
 				continue;				
 			}
 			
 			// postprocess CN
 			
-			logger.info("	- Unique ID Attribute Value: '" + uniqueID + "'");
+			logger.debug("	- Unique ID Attribute Value: '" + origUniqueID + "'");
 			
 			// create Unique Shortened Representation
-			uniqueID = getUSR(uniqueID);
+			String uniqueID = getUSR(origUniqueID);
 			
-			logger.info("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");
+			logger.debug("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");
 			
 			// the combination returned here should always be <= 64 
-			String cn = diplayName + CN_DELIMITER + uniqueID;
+			String cn = diplayName.getElement() + CN_DELIMITER + uniqueID;
 			
-			logger.info("	- Generated Common Name (CN): '" + cn + "'");			
+			logger.debug("	- Generated Common Name (CN): '" + cn + "'");			
 			
 			// do a last size check to see that the length is within the allowed RDN size
 			if ( cn.getBytes().length > RDN_MAX_SIZE ) {
 				throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE= " + RDN_MAX_SIZE);
 			}
 			
-			cns.add(cn);
+			RDNElementPart uniquePart = new RDNElementPart(uniqueID, origUniqueID, getConcatenatedStrings(uniqueIDSourceAttr));
+			RDNElement commonName = new RDNElement(cn);
+			commonName.addRDNElementPart(diplayName);
+			commonName.addRDNElementPart(uniquePart);
+			
+			cns.add(commonName);
+			
 		}
 		
-		logger.info("	- Possible Common Names (CNs) generated: " + cns.size());
+		logger.debug("	- Possible Common Names (CNs) generated: " + cns.size());
 		
 		// check if we got any CNs at all. 
 		if ( cns.isEmpty() ) {
@@ -337,11 +350,11 @@ public class DNGenerator {
 	 * Build the {cnName} display name part of the DN from a set of input attributes
 	 * 
 	 * @param attributeMap User attribute for building the CN RDN
-	 * @return The {cnName} display name part of the DN
+	 * @return The display name part of the DN inside a {@link RDNElementPart} 
 	 */
-	public String getCommonNameDisplayPart(Map<String,String> attributeMap) {
+	public RDNElementPart getCommonNameDisplayPart(Map<String,String> attributeMap) {
 
-		logger.info("GENERATING DISPLAY NAME PART OF CN");
+		logger.debug("GENERATING DISPLAY NAME PART OF CN");
 		
 		// choose the first set of sources from an ordered list of preference which is 
 		// present in the provided user attributes.
@@ -350,48 +363,48 @@ public class DNGenerator {
 			throw new GeneralException("No suitable attribute found for building the Display Name part of the 'CommonName' attribute!");
 		}		
 		
-		logger.info("	- Display Name Attribute Sources: '" + getConcatenatedStrings(cnNameSourceAttr) + "'");
+		logger.debug("	- Display Name Attribute Sources: '" + getConcatenatedStrings(cnNameSourceAttr) + "'");
 
 		// Build the {cnName} display name part of the DN from the selected source attribute. 
 		// Use the {@link #getProcessedAttr} to process the attribute value before setting it in the RDN		
 		
-		String diplayName = null;
+		String origDiplayName = null;
 		for (String source : cnNameSourceAttr) {
-			if ( diplayName == null ) {
-				diplayName = getProcessedAttr(attributeMap, source);
+			if ( origDiplayName == null ) {
+				origDiplayName = getProcessedAttr(attributeMap, source);
 			} else {
-				diplayName += CN_DELIMITER + getProcessedAttr(attributeMap, source);
+				origDiplayName += CN_DELIMITER + getProcessedAttr(attributeMap, source);
 			}
 		}
 		
 		// do some postprocessing
 		
-		logger.info("	- Display Name Attribute Value: '" + diplayName + "'");
+		logger.debug("	- Display Name Attribute Value: '" + origDiplayName + "'");
 		
 		// convert to printable string
 		
-		diplayName = getPrintableString(diplayName);
+		String diplayName = getPrintableString(origDiplayName);
 		
-		logger.info("	- Display Name Attribute Value (after printable string conversion): '" + diplayName + "'");		
+		logger.debug("	- Display Name Attribute Value (after printable string conversion): '" + diplayName + "'");		
 		
 		// truncate to the right size
 		
 		diplayName = truncate(diplayName,CN_DISPAY_NAME_MAX_SIZE);
 		
-		logger.info("	- Display Name Attribute Value (after truncating): '" + diplayName + "'");
+		logger.debug("	- Display Name Attribute Value (after truncating): '" + diplayName + "'");
 		
-		return diplayName;
+		return new RDNElementPart(diplayName, origDiplayName, getConcatenatedStrings(cnNameSourceAttr));
 	}
 	
 	/**
 	 * Build the {cnUniqueId} unique ID part of the DN from a set of input attributes
 	 * 
 	 * @param attributeMap User attribute for building the CN RDN
-	 * @return The {cnUniqueId} unique ID part of the DN
+	 * @return The unique ID part of the DN inside a {@link RDNElementPart}
 	 */
-	public String getCommonNameUniquePart(Map<String,String> attributeMap) {
+	public RDNElementPart getCommonNameUniquePart(Map<String,String> attributeMap) {
 	
-		logger.info("GENERATING UNIQUE ID PART OF CN");
+		logger.debug("GENERATING UNIQUE ID PART OF CN");
 		
 		// choose the first set of sources from an ordered list of preference which is 
 		// present in the provided user attributes.		
@@ -400,53 +413,36 @@ public class DNGenerator {
 			throw new GeneralException("No suitable attribute found for building the Unique ID part of the 'CommonName' attribute!");			
 		}
 		
-		logger.info("	- Unique ID Attribute Sources: '" + getConcatenatedStrings(uniqueIDSourceAttr) + "'");
+		logger.debug("	- Unique ID Attribute Sources: '" + getConcatenatedStrings(uniqueIDSourceAttr) + "'");
 		
 		// Build the {cnUniqueId} unique ID part of the DN from the selected source attribute. 
 		// Use the {@link #getProcessedAttr} to process the attribute value before setting it in the RDN			
 		
-		String uniqueID = null;
+		String origUniqueID = null;
 		for (String source : uniqueIDSourceAttr) {
-			if ( uniqueID == null ) {
-				uniqueID = getProcessedAttr(attributeMap, source);
+			if ( origUniqueID == null ) {
+				origUniqueID = getProcessedAttr(attributeMap, source);
 			} else {
-				uniqueID += CN_DELIMITER + getProcessedAttr(attributeMap, source);
+				origUniqueID += CN_DELIMITER + getProcessedAttr(attributeMap, source);
 			}
 		}
 		
-		logger.info("	- Unique ID Attribute Value: '" + uniqueID + "'");
+		logger.debug("	- Unique ID Attribute Value: '" + origUniqueID + "'");
 		
 		// do some postprocessing
 		
 		// convert into USR
-		uniqueID = getUSR(uniqueID);
+		String uniqueID = getUSR(origUniqueID);
 		
-		logger.info("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");	
+		logger.debug("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");	
 		
-		return uniqueID;
-	}
-	
-	/**
-	 * Return a fully formated DN sufix of the following for: /O={organisation}/CN={cnName} {cnUniqueId}
-	 * @param attributeMap User attribute for building the CN RDN
-	 * @return Formated DN sufix 
-	 */
-	public String getUserDNSufix(Map<String,String> attributeMap) {
-		
-		logger.info("GENERATING FULL DN SUFIX");
-		
-		// build O and CN parts separately 
-		String org = getOrganisation(attributeMap);
-		String cn = getCommonName(attributeMap);
-		
-		// apply formatting
-		return formatDNSufix(org,cn);
+		return new RDNElementPart(uniqueID, origUniqueID, getConcatenatedStrings(uniqueIDSourceAttr));
 	}
 	
 	public String formatDNSufix(String org,String cn) {
 		String dn =  String.format(DN_FORMAT, org, cn);
 		
-		logger.info("	- Generated Distingueshed Name (DN): '" + dn + "'");
+		logger.debug("	- Generated Distingueshed Name (DN): '" + dn + "'");
 		
 		return dn;		
 	}
@@ -461,7 +457,7 @@ public class DNGenerator {
 		
 		String dn =  String.format(DN_FORMAT, org, cn + CN_DELIMITER + sequenceNr);
 		
-		logger.info("	- Generated Distingueshed Name (DN): '" + dn + "'");
+		logger.debug("	- Generated Distingueshed Name (DN): '" + dn + "'");
 		
 		return dn;		
 	}	
@@ -481,8 +477,8 @@ public class DNGenerator {
 		
 		String normalizedOutput = "";
 		
-		logger.info("	- CONVERTING TO PRINTABLE STRING");
-		logger.info("		- Source Input: '" + input + "'");
+		logger.debug("	- CONVERTING TO PRINTABLE STRING");
+		logger.debug("		- Source Input: '" + input + "'");
 		
 		// take unicode characters one by one and normalize them
 		for ( int i=0; i<input.length(); i++ ) {
@@ -500,7 +496,7 @@ public class DNGenerator {
 				normalizedOutput += "X";
 			}
 		}
-		logger.info("		- Printable String Equivalent: '" + normalizedOutput + "'");
+		logger.debug("		- Printable String Equivalent: '" + normalizedOutput + "'");
 		
 		return normalizedOutput;
 	}
@@ -514,12 +510,12 @@ public class DNGenerator {
 	 */
 	protected String getIDNString(String input) {
 		
-		logger.info("	- CONVERTING TO IDN");
-		logger.info("		- Source Input: '" + input + "'");
+		logger.debug("	- CONVERTING TO IDN");
+		logger.debug("		- Source Input: '" + input + "'");
 		
 		String idn =  IDN.toASCII(input);
 		
-		logger.info("		- IDN Equivalent: '" + idn + "'");
+		logger.debug("		- IDN Equivalent: '" + idn + "'");
 		
 		return idn;
 	}
@@ -537,7 +533,7 @@ public class DNGenerator {
 	 */
 	protected String getUSR(String attr) {
 		
-		logger.info("	- GENERATING USR FOR ATTRIBUTE : '" + attr + "'");
+		logger.debug("	- GENERATING USR FOR ATTRIBUTE : '" + attr + "'");
 		
 		// EVERY HASHING IS DONE IN HASHINGUTILS NOW!
 		// get the SHA-256 hash of the input string 
@@ -548,16 +544,16 @@ public class DNGenerator {
 
 		String encodedHashString = HashingUtils.getInstance().hashToBase64(attr);
 		byte[] encodedHash =  encodedHashString.getBytes();
-		logger.info("		- Full Hashed Attribute: '" + encodedHashString + "'");
+		logger.debug("		- Full Hashed Attribute: '" + encodedHashString + "'");
 		
 		// truncate the resulting base64 string to the required maximum size
 		byte [] shortEncodedHash = Arrays.copyOf(encodedHash, CN_UNIQUE_ID_MAX_SIZE);
 		String shortEncodedHashString = new String(shortEncodedHash);
-		logger.info("		- Shortened Hashed Attribute: '" + shortEncodedHashString + "'");
+		logger.debug("		- Shortened Hashed Attribute: '" + shortEncodedHashString + "'");
 		
 		// replace "/" with "-" 
 		String finalEncodedHashString = shortEncodedHashString.replaceAll("/", "-");
-		logger.info("		- Shortened Hashed Attribute (after replacements): '" + finalEncodedHashString + "'");
+		logger.debug("		- Shortened Hashed Attribute (after replacements): '" + finalEncodedHashString + "'");
 		
 		// alternatively we can also use substring since we cannot break any character encoding
 		// within the base64 string cuz every character is one byte (right? (right?))
@@ -638,13 +634,13 @@ public class DNGenerator {
 		if ( attributeKey.equals("entityID") || attributeKey.equals("Shib-Identity-Provider") ) {
 			try {
 				
-				logger.fine("		- Applying special host extraction rule for entityID : '" + attribute + "'");
+				logger.debug("		- Applying special host extraction rule for entityID : '" + attribute + "'");
 				
 				// try converting to a URL
 				URL url = new URL(attribute);
 				String hostname =  url.getHost();
 				
-				logger.fine("		- Extracted Hostname : '" + hostname + "'");
+				logger.debug("		- Extracted Hostname : '" + hostname + "'");
 				return hostname;
 				
 			} catch (MalformedURLException e) {
@@ -681,9 +677,9 @@ public class DNGenerator {
 		// only truncate if the RDN exceeds the maximum allowed size
 		if ( rdn.getBytes(defaultCharset).length > size ) {
 
-			logger.info("	- TRUNCATING RDN to " + size + " bytes");
+			logger.debug("	- TRUNCATING RDN to " + size + " bytes");
 
-			logger.info("		- Source RDN : '" + rdn + "'");
+			logger.debug("		- Source RDN : '" + rdn + "'");
 			
 			int truncatedSize = size - RDN_TRUNCATE_SIGN.getBytes(defaultCharset).length;
 			
@@ -701,7 +697,7 @@ public class DNGenerator {
 			
 			rdn = new String(cb.array(), 0, cb.position()) + RDN_TRUNCATE_SIGN;
 			
-			logger.info("		- Truncated Form : '" + rdn + "'");
+			logger.debug("		- Truncated Form : '" + rdn + "'");
 			
 		}
 		

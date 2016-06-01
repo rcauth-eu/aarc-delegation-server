@@ -1,5 +1,6 @@
 package org.delegserver.oauth2.util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,10 @@ public class JSONConverter {
 		}		
 		return json;
 	}
+	
+	public static JSONArray toJSONArray(String[] list) {
+		return toJSONArray(Arrays.asList(list));
+	}	
 	
 	public static List<String> fromJSONArray(String json) {
 		try {
