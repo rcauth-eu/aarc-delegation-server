@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.http.HttpHeaders;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.util.JSONConverter;
@@ -55,6 +56,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	env.getTraceLogger().marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString()  +"]");
         	
         	logAssertions( authorizedState.getRequest() );
+        	logReferer( authorizedState.getRequest() );
         	// only bother printing the individual request attributes if debug is on
         	if ( env.getTraceLogger().isDebugOn() ) {
         		logAllParameters( authorizedState.getRequest() );
@@ -90,7 +92,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
     		serviceTransaction.setClaims(claims);
     		// set user attributes 
     		// TODO: Should attributes be passed in headers by shibboleth? Can't we do better?
-    		//       Update: AbstractAuthorizationServlet hardcodes the use of headers and fails 
+    		//       Update: AbstractAuthorizationServl.et hardcodes the use of headers and fails 
     		//               if UseHeader are not enabled. Ask Jim?
         	serviceTransaction.setUserAttributes( getHeaderMap(state.getRequest()) );
 
@@ -363,6 +365,30 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
             }
         }
         
+	}
+	
+	
+	private void logReferer(HttpServletRequest request) {
+		
+		// get the trace logger
+    	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
+    	Logable traceLogger = env.getTraceLogger();
+		
+    	// get the referer header
+		String referer = request.getHeader(HttpHeaders.REFERER);
+		
+		// in case the previous request failed, try with lowercase
+		if ( referer == null || referer.isEmpty() ) {
+			referer = request.getHeader( HttpHeaders.REFERER.toLowerCase() );
+		}
+		
+		// print referer to trace log
+		if ( referer == null || referer.isEmpty() ) {
+			traceLogger.warn("The was not 'referer' header set in the request!");
+		} else {
+			traceLogger.info("Referer Header: " + referer);
+		}
+		
 	}
 	
 	public static String SHIB_ASSERTION_COUNT="Shib-Assertion-Count";

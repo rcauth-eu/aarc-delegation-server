@@ -131,17 +131,19 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 		//log the final trace record elements and their origin
 		logTraceRecord(traceRecord);
-		traceInfo("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
+		traceDebug("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
 
 		//complete the USERNAME parameter with extensions 
 		String additionalInfo = getCertificateExtensions( trans );
 
 		if ( additionalInfo != null ) { 
 			trans.setMyproxyUsername( trans.getMyproxyUsername() + additionalInfo );
-			traceDebug("6.a.5 The generated MyProxy username (completed with extensions) is: " + trans.getMyproxyUsername());
+			traceDebug("6.a.5 Full MyProxy username:: " + trans.getMyproxyUsername());
 		} else {
 			traceDebug("6.a.5 No extensions appended into the certificate request. Requesting cert without it");
 		}
+
+		traceInfo("Full MyProxy username:: " + trans.getMyproxyUsername());		
 		
 		trans.setTraceRecord( traceRecord.getCnHash() );
 		
