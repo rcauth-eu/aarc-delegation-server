@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.inject.Provider;
 
+import org.delegserver.oauth2.generator.CertExtensionGenerator;
 import org.delegserver.oauth2.generator.DNGenerator;
 import org.delegserver.oauth2.generator.UniqueAttrGenerator;
 import org.delegserver.oauth2.logging.ThreadsafeTraceLogger;
@@ -52,7 +53,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 			Provider<AGIssuer> agip, Provider<ATIssuer> atip, Provider<PAIssuer> paip, Provider<TokenForge> tfp,
 			HashMap<String, String> constants, AuthorizationServletConfig ac, UsernameTransformer usernameTransformer,
 			boolean isPingable, int clientSecretLength, Map<String,Map<String,String>> scopesMap, ScopeHandler scopeHandler,
-			boolean isRefreshTokenEnabled, DNGenerator dnGenerator, ThreadsafeTraceLogger traceLogger) {
+			boolean isRefreshTokenEnabled, DNGenerator dnGenerator, CertExtensionGenerator certExtGenerator, ThreadsafeTraceLogger traceLogger) {
 		
 		super(logger, tsp, csp, maxAllowedNewClientRequests, rtLifetime, casp, mfp, mup, messagesProvider, agip, atip, paip,
 				tfp, constants, ac, usernameTransformer, isPingable, clientSecretLength, scopesMap.keySet(), scopeHandler,
@@ -61,6 +62,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 		this.traceRecordSP = trsp;
 		this.scopesMap = scopesMap;
 		this.dnGenerator = dnGenerator;
+		this.certExtGenerator = certExtGenerator;
 		this.traceLogger = traceLogger;
 	}
 
@@ -106,6 +108,23 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 	 */
 	protected String[] uniqueAttrSources = null;
 
+	/**
+	 *  Certificate Extension sources extracted from configuration 
+	 */
+	protected CertExtensionGenerator certExtGenerator = null;
+	
+	
+	/**
+	 * Get the certificate extension generator. This class generates 
+	 * key=value pairs from configured sources that should be appended
+	 * to the MyProxy USERNAME
+	 * 
+	 * @return the certificate extension Generator
+	 */
+	public CertExtensionGenerator getCertExtGenerator() {
+		return certExtGenerator;
+	}
+	
 	/**
 	 * Get DN Generator 
 	 * @return DN Generator

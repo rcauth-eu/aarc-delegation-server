@@ -115,6 +115,35 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 		return orgSources;
 	}		
 	
+	public static Map<String,String> getExtensionSources(ConfigurationNode cn) {
+
+		Map<String,String> sources  = new HashMap<String,String>();
+		if (0 < cn.getChildrenCount( DN_GENERATOR )) {
+			
+			// we have a dnGenerator tag!
+			ConfigurationNode dnGenratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
+			if (0 < dnGenratorNode.getChildrenCount( DN_GENERATOR_EXTENSIONS )) {
+				
+				// we have a dn component tag!
+				ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGenratorNode, DN_GENERATOR_EXTENSIONS);
+				int sourceCount = cnNameNode.getChildrenCount( DN_GENERATOR_SOURCE );
+				if (0 < sourceCount) {
+					
+					for ( int i=0 ; i<sourceCount ; i++ ) {
+						
+						ConfigurationNode sourceNode = (ConfigurationNode) cnNameNode.getChild(i);
+						String sourceName = (String) Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_NAME);
+						String source = (String) sourceNode.getValue();
+						
+						sources.put(sourceName, source);
+					}
+				}
+			}
+		}	
+		
+		return sources;
+		
+	}
 	
 	/* private method for extracting DN sources */
 	

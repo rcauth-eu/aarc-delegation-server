@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.bouncycastle.util.Arrays;
 import org.delegserver.oauth2.util.HashingUtils;
+import org.delegserver.oauth2.util.ShibAttrParser;
 import org.delegserver.storage.RDNElement;
 import org.delegserver.storage.RDNElementPart;
 
@@ -125,7 +126,7 @@ public class DNGenerator {
 	 * @param attributeMap User attribute for building the O RDN
 	 * @return The constructed O {@link RDNElement} (without the '/O=' prefix!)
 	 */
-	public RDNElement getOrganisation(Map<String,String> attributeMap) {
+	public RDNElement getOrganisation(Map<String,Object> attributeMap) {
 		
 		logger.debug("GENERATING ORGANISATION (O)");
 		
@@ -187,7 +188,7 @@ public class DNGenerator {
 	 * @param attributeMap User attribute for building the CN RDN
 	 * @return The constructed CN {@link RDNElement} (without the '/CN=' prefix!)
 	 */
-	public RDNElement getCommonName(Map<String,String> attributeMap) {
+	public RDNElement getCommonName(Map<String,Object> attributeMap) {
 		
 		logger.debug("GENERATING CN");
 		
@@ -221,7 +222,7 @@ public class DNGenerator {
 	 * @param sequenceNr Sequence number to append to the CN
 	 * @return The constructed CN {@link RDNElement} (without the '/CN=' prefix!)
 	 */
-	public RDNElement getCommonName(Map<String,String> attributeMap, int sequenceNr) {
+	public RDNElement getCommonName(Map<String,Object> attributeMap, int sequenceNr) {
 		
 		logger.debug("GENERATING CN WITH SEQUENCE NR");
 		
@@ -257,7 +258,7 @@ public class DNGenerator {
 	 * @param attributeMap User attribute for building the CNs 
 	 * @return A list of possible CN {@link RDNElement}s with different {cnUniqueId}s
 	 */
-	public List<RDNElement> getCommonNames(Map<String,String> attributeMap) {
+	public List<RDNElement> getCommonNames(Map<String,Object> attributeMap) {
 		
 		logger.debug("GENERATING LIST OF POSSIBLE CNs");
 		
@@ -352,7 +353,7 @@ public class DNGenerator {
 	 * @param attributeMap User attribute for building the CN RDN
 	 * @return The display name part of the DN inside a {@link RDNElementPart} 
 	 */
-	public RDNElementPart getCommonNameDisplayPart(Map<String,String> attributeMap) {
+	public RDNElementPart getCommonNameDisplayPart(Map<String,Object> attributeMap) {
 
 		logger.debug("GENERATING DISPLAY NAME PART OF CN");
 		
@@ -402,7 +403,7 @@ public class DNGenerator {
 	 * @param attributeMap User attribute for building the CN RDN
 	 * @return The unique ID part of the DN inside a {@link RDNElementPart}
 	 */
-	public RDNElementPart getCommonNameUniquePart(Map<String,String> attributeMap) {
+	public RDNElementPart getCommonNameUniquePart(Map<String,Object> attributeMap) {
 	
 		logger.debug("GENERATING UNIQUE ID PART OF CN");
 		
@@ -572,7 +573,7 @@ public class DNGenerator {
 	 * @param attributeMap User attribute map 
 	 * @return Array of selected source set
 	 */
-	protected String[] chooseAttrSource(Object[] attrSources, Map<String,String> attributeMap) {
+	protected String[] chooseAttrSource(Object[] attrSources, Map<String,Object> attributeMap) {
 		
 		String[] selectedAttrSource = null;
 		
@@ -582,7 +583,7 @@ public class DNGenerator {
 			
 			if (obj instanceof String) {
 				// single attribute 
-				if ( attributeMap.containsKey((String)obj) && ! attributeMap.get((String)obj).isEmpty() ) {
+				if ( attributeMap.containsKey((String)obj) ) {
 					// single attribute is present in attribute map and it's not empty
 					selectedAttrSource = new String[] { (String)obj };
 					// attribute present! use it!
@@ -593,7 +594,7 @@ public class DNGenerator {
     			String[] sources = (String[])obj;
     			boolean sourcesPresent = true;
     			for (String s : sources) {
-    				if ( ! attributeMap.containsKey(s) || attributeMap.get(s).isEmpty() ) {
+    				if ( ! attributeMap.containsKey(s) ) {
     					//one of the keys are not present, or it's empty, therefore ignore it
     					sourcesPresent = false;
     				}
@@ -616,13 +617,26 @@ public class DNGenerator {
 	 * @param attributeKey Attribute Key from the attributeMap
 	 * @return The value of attributeKey from attributeMap after processing
 	 */
-	protected String getProcessedAttr(Map<String,String> attributeMap, String attributeKey) {
+	protected String getProcessedAttr(Map<String,Object> attributeMap, String attributeKey) {
 		
 		if ( attributeMap == null || attributeKey == null || ! attributeMap.containsKey(attributeKey) ) {
 			return null;
 		}
 		
-		String attribute = attributeMap.get(attributeKey);
+		Object attr = attributeMap.get(attributeKey);
+		String attribute = null;
+		
+		if ( attr instanceof String ) {
+			attribute = (String) attr;
+		} else if ( attr instanceof List ) {
+			logger.warn("Unexpected multiple values for attribute " + attributeKey);
+			List<String> attrList = ((List<String>)attr);
+			attribute = ShibAttrParser.combineMultiValuedAttr( attrList.toArray( new String[attrList.size()] ) );
+		} else {
+			logger.error("Unexpected instance for attribute " + attributeKey +". Was expecting either String or List<String>");
+			return null;			
+		}
+		
 		
 		/* SPECIAL RULES FOR CERTAIN ATTRIBUTES SHOULD GO HERE */
 		

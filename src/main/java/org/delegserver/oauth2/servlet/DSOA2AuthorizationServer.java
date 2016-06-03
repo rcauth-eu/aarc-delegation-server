@@ -18,9 +18,11 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.HttpHeaders;
+import org.apache.http.util.ByteArrayBuffer;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.util.JSONConverter;
+import org.delegserver.oauth2.util.ShibAttrParser;
 import org.delegserver.oauth2.util.UnverifiedConnectionFactory;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
@@ -50,6 +52,8 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) authorizedState.getTransaction());
         	DSOA2ServiceEnvironment env =  (DSOA2ServiceEnvironment) environment;
         	
+        	printAllParameters( authorizedState.getRequest() );
+        	
         	/* DEBUG AND TRACE LOGGING*/
         	// initialize session specific trace logger with session identifier
         	env.getTraceLogger().initSessionLogger( serviceTransaction.getIdentifierString() );
@@ -61,6 +65,8 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         	if ( env.getTraceLogger().isDebugOn() ) {
         		logAllParameters( authorizedState.getRequest() );
         	}
+        	
+        	
         	// destroy the session specific trace logger
         	env.getTraceLogger().destroySessionLogger();
         	
@@ -112,41 +118,29 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	 * @param request Incoming request
 	 * @return Map created from the headers in the request 
 	 */
-	protected Map<String,String> getHeaderMap(HttpServletRequest request) {
+	protected Map<String,Object> getHeaderMap(HttpServletRequest request) {
 		
-		Map<String,String> map = new HashMap<String,String>();
+		Map<String,Object> map = new HashMap<String,Object>();
 		
 		// iterate over headers 
         Enumeration e = request.getHeaderNames();
         while (e.hasMoreElements()) {
         	
-            String name = e.nextElement().toString();
-            // convert into the right encoding
-            String value = converHeader( request.getHeader(name) );
+        	String name = e.nextElement().toString();
+        	
+        	// convert into the right encoding
+            String header = converHeader( request.getHeader(name) );
             
-            // in case of a multi-valued header filter duplicates
-            if ( value != null && value.contains(SHIB_MULTI_VAL_DELIMITED) ) {
-            	String filteredValue = null;
-            	List<String> filteredValueList = new ArrayList<String>();
-	    		for (String v : value.split(SHIB_MULTI_VAL_DELIMITED)) {
-	    			
-	    			// filter duplicates
-	    			// This here is essential to filter out duplicate 'targeted-id'(eptid) 
-	    			if ( ! filteredValueList.contains(v) ) {
-	    				filteredValueList.add(v);
-	    				if ( filteredValue  == null ) {
-	    					filteredValue = v;
-	    				} else {
-	    					filteredValue += SHIB_MULTI_VAL_DELIMITED + v;
-	    				}
-	    			}
-	    			
-	    		}
-	    		value = filteredValue;
-            }
+            if ( header != null && ! header.isEmpty() ) {
             
-            if ( value != null && ! value.isEmpty() ) { 
-            	map.put(name , value);
+	            String[] values = ShibAttrParser.parseMultiValuedAttr(header);
+	            
+	            if ( values.length == 1 ) {
+	            	map.put(name , values[0]);
+	            } else {
+	            	map.put(name , Arrays.asList(values));
+	            }
+	            
             }
         }
 		
@@ -166,12 +160,7 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         byte[] v = value.getBytes(isoCharset);
         return new String(v,utf8Charset);
 	}
-	
-	/**
-	 *  Shibboleth separates multi valued variables with a special delimiter. We have to account for this 
-	 *  in order to support multi valued claims! See https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPAttributeAccess
-	 */
-	public static String SHIB_MULTI_VAL_DELIMITED = ";";
+
 	
 	/**
 	 * It searches the request object for the requested key. It uses the following order of preference:
@@ -223,10 +212,22 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         if ( header != null && header.hasMoreElements() ) {
         	String value = header.nextElement().toString();
             // convert into the right encoding 
-            headerValues.add( converHeader(value) );
+        	value = converHeader(value);
+        	
+        	if ( value != null && ! value.isEmpty() ) {
+	            String[] values = ShibAttrParser.parseMultiValuedAttr( value );
+	            
+	            if (  values != null ) {
+	            	headerValues.addAll( Arrays.asList(values) );
+	            }
+        	}
         }
         if ( ! headerValues.isEmpty() ) {
-        	return parseMultiValue(headerValues);
+        	if ( headerValues.size() == 1 ) {
+        		return headerValues.get(0);
+        	} else {
+        		return headerValues;
+        	}
         }
         
         /* GIVE UP */
@@ -234,53 +235,6 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
         return null;
     }
     
-    
-    /**
-     * Parse a potentially multi valued attribute. It either returns a single value found,  or a {@link List}
-     * of {@link String} in case of multi-valued attributes.
-     *  
-	 * Note! Split single values containing the MULTI_VAL_DELIMITED. Since shibboleth handles multi-valued 
-	 * attributes by bundling them into a single attributes and separated with ";" we account for these here.   
-     *  
-     * @param value List of values to parse for potential multi values attributes
-     * @return A single {@link String} or a {@link List} of {@link String} in case of multi-valued attributes
-     */
-    protected Object parseMultiValue(List<String> value) {
-
-    		// resulting value set
-    		List<String> multiValue = new ArrayList<String>();
-    		
-    		// start out by iterating through the actual multi values  
-        	for (String combinedValue : value) {
-        		
-        		if ( combinedValue != null && ! combinedValue.isEmpty() )
-        		
-        		// try to split any combined parameter into single parameters
-        	    // the split here will have no effect on single valued attributes 
-        		for (String v : combinedValue.split(SHIB_MULTI_VAL_DELIMITED)) {
-        			
-        			// filter duplicates
-        			// This here is essential to filter out duplicate 'targeted-id'(eptid) 
-        			if ( ! multiValue.contains(v) ) {
-        				multiValue.add(v);
-        			}
-        		}
-        		
-        	}
-        	
-        	// in case of no value return null
-        	if ( multiValue.isEmpty() ) {
-        		return null;
-            // in case of a single value only return the value itself
-        	} else if ( multiValue.size() == 1 ) {
-        		return multiValue.get(0);
-            // in case of multi values return the whole list
-        	} else {
-        		return multiValue;
-        	}
-        	
-    }	
-	
     /* DEBUG AND DISPLAY */
 	
 	protected void logAllParameters(HttpServletRequest request) {
@@ -484,4 +438,62 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 		
 	}
 	
+	
+	@Override
+	protected void printAllParameters(HttpServletRequest request) {
+		super.printAllParameters(request);
+		
+		Enumeration attributes =  request.getAttributeNames();
+		System.out.println("Attributes: ");
+		
+		if ( attributes == null || ! attributes.hasMoreElements() ) {
+			System.out.println("  (none)");			
+		}
+		
+		while ( attributes.hasMoreElements() ) {
+			Object attName = attributes.nextElement();
+			Object attr = request.getAttribute(attName.toString());
+			System.out.println("  " + attName + " : " + attr);
+		}
+		
+		System.out.println("Non-Enumarable Attributes: ");
+		
+		System.out.println("  eppn : " + request.getAttribute("eppn"));
+		System.out.println("  eptid : " + request.getAttribute("eptid"));
+		System.out.println("  epuid : " + request.getAttribute("epuid"));
+		System.out.println("  orgDisplayName : " + request.getAttribute("orgDisplayName"));
+		
+		System.out.println("  AJP_eppn : " + request.getAttribute("AJP_eppn"));
+		System.out.println("  AJP_eptid : " + request.getAttribute("AJP_eptid"));
+		System.out.println("  AJP_epuid : " + request.getAttribute("AJP_epuid"));
+		System.out.println("  AJP_orgDisplayName : " + request.getAttribute("AJP_orgDisplayName"));		
+		
+		System.out.println("  Meta_eppn : " + request.getAttribute("Meta_eppn"));
+		System.out.println("  Meta_eptid : " + request.getAttribute("Meta_eptid"));
+		System.out.println("  Meta_epuid : " + request.getAttribute("Meta_epuid"));		
+		System.out.println("  Meta_orgDisplayName : " + request.getAttribute("Meta_orgDisplayName"));
+		
+		
+		System.out.println("  bogusmogus : " + request.getAttribute("bogusmogus"));
+		
+		try {
+			System.out.println("================= REQ CONTENT ================");
+			
+			BufferedReader reader = request.getReader();
+			String sCurrentLine;
+			
+			while ((sCurrentLine = reader.readLine()) != null) {
+				System.out.println(sCurrentLine);
+			}
+
+			System.out.println("================= REQ CONTENT ================");
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+				
+	}
 }

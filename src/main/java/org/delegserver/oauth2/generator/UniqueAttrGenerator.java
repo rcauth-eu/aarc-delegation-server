@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.util.HashingUtils;
+import org.delegserver.oauth2.util.ShibAttrParser;
 import org.delegserver.storage.TraceRecord;
 
 import edu.uiuc.ncsa.security.core.Logable;
@@ -69,7 +70,7 @@ public class UniqueAttrGenerator {
 	 * @param traceRecord Trace record to match against 
 	 * @return true if hashes are the same, false otherwise.
 	 */
-	public boolean matches(Map<String,String> attributeMap, TraceRecord traceRecord) {
+	public boolean matches(Map<String,Object> attributeMap, TraceRecord traceRecord) {
 		
 		logger.debug("START ATTRIBUTE MATCHING" );
 		logger.debug("	- Comparing attribute map with Trace Record: '" + traceRecord.getCnHash() + "'");
@@ -80,11 +81,13 @@ public class UniqueAttrGenerator {
 		String attrList = null;		
 		for (String attrSource : traceRecord.getAttrNames()) {
 			if ( attributeMap.containsKey(attrSource) ) {
+				
 				if ( attrList == null ) {
-					attrList = attributeMap.get(attrSource);
+					attrList = getProcessedAttr(attributeMap, attrSource);
 				} else {
-					attrList += ATTRIBUTE_SEPARATOR + attributeMap.get(attrSource);			
+					attrList += ATTRIBUTE_SEPARATOR + getProcessedAttr(attributeMap, attrSource);	
 				}
+				
 			} else {
 
 				logger.debug( "	- Attribute " + attrSource + " not found!" );
@@ -143,7 +146,7 @@ public class UniqueAttrGenerator {
 	 * @param attributeMap User attribute map
 	 * @return A concatenated list of Unique Attributes
 	 */
-	public String getUniqueAttributes(Map<String,String> attributeMap) {
+	public String getUniqueAttributes(Map<String,Object> attributeMap) {
 		
 		String attrList = null;		
 		
@@ -152,15 +155,33 @@ public class UniqueAttrGenerator {
 			if ( attributeMap.containsKey(attrSource) ) {
 				// if an attribute is present in the user map, add it to the list
 				if ( attrList == null ) {
-					attrList = attributeMap.get(attrSource);
+					attrList = getProcessedAttr(attributeMap, attrSource);
 				} else {
-					attrList += ATTRIBUTE_SEPARATOR + attributeMap.get(attrSource);			
+					attrList += ATTRIBUTE_SEPARATOR + getProcessedAttr(attributeMap, attrSource);;		
 				}
 			}
 			// if an attribute is missing from the map we simply ignore it
 		}
 		
 		return attrList;
+	}
+	
+	protected String getProcessedAttr(Map<String,Object> attributeMap, String attributeKey) {
+
+		Object attr = attributeMap.get(attributeKey);
+		String attribute = null;
+		if ( attr instanceof String ) {
+			attribute = (String) attr;
+		} else if ( attr instanceof List ) {
+			logger.warn("Unexpected multiple values for attribute " + attributeKey);
+			List<String> attrs = ((List<String>)attr);
+			attribute = ShibAttrParser.combineMultiValuedAttr( attrs.toArray( new String[attrs.size()] ) );
+		} else {
+			logger.error("Unexpected instance for attribute " + attributeKey +". Was expecting either String or List<String>");
+			return null;			
+		}				
+		
+		return attribute;
 	}
 	
 	/**
@@ -174,7 +195,7 @@ public class UniqueAttrGenerator {
 	 * @param attributeMap User attribute map
 	 * @return A list of Unique Attribute Names.
 	 */
-	public List<String> getUniqueAttributeNames(Map<String,String> attributeMap) {
+	public List<String> getUniqueAttributeNames(Map<String,Object> attributeMap) {
 
 		List<String> attrNames = new ArrayList<String>();		
 		for (String attrSource : uniqueAttrSources) {

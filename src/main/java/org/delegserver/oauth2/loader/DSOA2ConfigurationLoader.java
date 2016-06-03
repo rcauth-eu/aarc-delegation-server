@@ -3,6 +3,7 @@ package org.delegserver.oauth2.loader;
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
+import org.delegserver.oauth2.generator.CertExtensionGenerator;
 import org.delegserver.oauth2.generator.DNGenerator;
 import org.delegserver.oauth2.logging.ThreadsafeTraceLogger;
 import org.delegserver.oauth2.logging.TraceLoggingFacade;
@@ -97,6 +98,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getScopeHandler(),
                     isRefreshTokenEnabled(),
                     getDNGenerator(),
+                    getCertExtGenerator(),
                     getThreadsafeTraceLogger());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new GeneralException("Error: Could not create the runtime environment", e);
@@ -212,6 +214,16 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     public Object[] getOrgSources() {
     	return DSOA2ConfigurationLoaderUtils.getOrgSources(cn);
     }
+    
+    public CertExtensionGenerator certExtGenerator = null;
+  
+    public CertExtensionGenerator getCertExtGenerator() {
+    	if ( certExtGenerator == null ) {
+    		Map<String, String> sourceMap = DSOA2ConfigurationLoaderUtils.getExtensionSources(cn);
+    		certExtGenerator = new CertExtensionGenerator(sourceMap, getThreadsafeTraceLogger());
+    	}
+		return certExtGenerator;
+	}
     
 	/* TRACE LOGGING */
 	

@@ -15,8 +15,11 @@ public interface DSConfigTags extends OA4MPConfigTags {
 	public static final String DN_GENERATOR_CN_NAME = "cnName";
 	public static final String DN_GENERATOR_CN_UNIQUE_ID = "cnUniqueId";
 	public static final String DN_GENERATOR_ORGANISATION = "organisation";
+	public static final String DN_GENERATOR_EXTENSIONS = "extensions";
+
 	public static final String DN_GENERATOR_SOURCE = "source";
-	
+	public static final String DN_GENERATOR_SOURCE_NAME = "name";
+
 	// the name of the trace_records store backend
 	public static final String TRACE_RECORD_STORE = "traceRecords";
 

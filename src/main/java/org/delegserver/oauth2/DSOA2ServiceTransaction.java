@@ -56,13 +56,13 @@ public class DSOA2ServiceTransaction extends OA2ServiceTransaction {
      * into the transaction store 
      */
 
-    protected Map<String,String> userAttributes;
+    protected Map<String,Object> userAttributes;
     
-    public Map<String, String> getUserAttributes() {
+    public Map<String, Object> getUserAttributes() {
 		return userAttributes;
 	}
     
-    public void setUserAttributes(Map<String, String> userAttributes) {
+    public void setUserAttributes(Map<String, Object> userAttributes) {
 		this.userAttributes = userAttributes;
 	}
     

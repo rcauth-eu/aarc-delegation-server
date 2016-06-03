@@ -25,7 +25,7 @@ import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 
-import static edu.uiuc.ncsa.security.oauth_2_0.server.OA2Claims.EMAIL;
+//import static edu.uiuc.ncsa.security.oauth_2_0.server.OA2Claims.EMAIL;
 
 /**
  * Custom Cert Servlet implementation (/getcert) which supports the use of
@@ -134,10 +134,10 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		traceDebug("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
 
 		//complete the USERNAME parameter with extensions 
-		String additionalInfo = getCertificateExtensions( trans );
+		String additionalInfo = se.getCertExtGenerator().getCertificateExtensions( trans.getUserAttributes() );
 
 		if ( additionalInfo != null ) { 
-			trans.setMyproxyUsername( trans.getMyproxyUsername() + additionalInfo );
+			trans.setMyproxyUsername( trans.getMyproxyUsername() + " " + additionalInfo );
 			traceDebug("6.a.5 Full MyProxy username:: " + trans.getMyproxyUsername());
 		} else {
 			traceDebug("6.a.5 No extensions appended into the certificate request. Requesting cert without it");
@@ -167,47 +167,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 	
 	/* NEW HELPER METHODS FOR TRACE RECORD MANIPULATION */
 	
-	/**
-	 * Returns addition information that has to be added as extension into the end entity
-	 * certificate. Extensions will be presented in the form of key=value pairs
-	 * concatenated with a whitespace. This collection of extensions has to be 
-	 * passed to the MyProxy Server appended to the USERNAME request parameter.
-	 * <p>
-	 * Currently, this method only supports the EMAIL extensions. If you would like to get 
-	 * other additional information (extensions) in your EEC, extend this method. 
-	 * 
-	 * @param trans The current service transaction
-	 * @return The extensions that will be requested
-	 */
-	public String getCertificateExtensions(DSOA2ServiceTransaction trans) {
-		
-		String extensions = "";
-		
-		// so far we only support adding the email attributes into the certificate
-		Object mail = trans.getClaims().get(EMAIL);
-		if ( mail != null ) { 
-			traceDebug("6.a.5 Completing request with EMAIL attribute");
-			// we could be dealing with a single email address
-			if ( mail instanceof String ) {
-				extensions += " " + EMAIL + "=" + ((String)mail);
-		    // or multiple email addresses 
-			} else {
-				List<String> mails = (List<String>) mail;
-				for ( String m : mails ) {
-					extensions += " " + EMAIL + "=" + m;
-				}
-			}
-		} else {
-			traceDebug("6.a.5 No EMAIL attribute found! ");
-		}
-		
-		// return additional information
-		if ( ! extensions.isEmpty() ) {
-			return extensions;
-		} else {
-			return null;
-		}		
-	}
+
 	
 	/**
 	 * Retrieve and match a {@link TraceRecord} based on the set of attributes in the attributeMap. This method will
@@ -225,7 +185,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 	 * @throws AttributeMismatchException When there are trace records but their attributes do not match
 	 * @throws NoTraceRecordException When there are no trace records 
 	 */
-	protected TraceRecord getTraceRecord(Map<String,String> attributeMap) throws AttributeMismatchException, NoTraceRecordException {
+	protected TraceRecord getTraceRecord(Map<String,Object> attributeMap) throws AttributeMismatchException, NoTraceRecordException {
 		
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
 		TraceRecordStore<TraceRecord> traceRecordStore = se.getTraceRecordStore();
@@ -319,7 +279,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 	 * @param sequenceNr Sequence number of the {@link TraceRecord} to be created. Usually it's 0.
 	 * @return The {@link TraceRecord} created from the attributeMap and sequenceNr
 	 */
-	protected TraceRecord createTraceRecord(Map<String,String> attributeMap, int sequenceNr) {
+	protected TraceRecord createTraceRecord(Map<String,Object> attributeMap, int sequenceNr) {
 		
 		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
 		HashingUtils hasher = HashingUtils.getInstance();
