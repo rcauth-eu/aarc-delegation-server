@@ -3,8 +3,6 @@ package org.delegserver.oauth2.generator;
 import java.util.List;
 import java.util.Map;
 
-import org.delegserver.oauth2.util.ShibAttrParser;
-
 import edu.uiuc.ncsa.security.core.Logable;
 
 public class CertExtensionGenerator {
@@ -33,28 +31,44 @@ public class CertExtensionGenerator {
 	public String getCertificateExtensions(Map<String, Object> attributeMap) {
 		
 		String extensions = "";
+
+		logger.debug("GENERATING CERTIFICATE EXTENSIONS");
 		
+		// get extension names from the configuration
 		for (String extName : extensionSources.keySet()) {
 		
+			// get the extension value based on the provided source 
 			Object ext = attributeMap.get( extensionSources.get(extName) ); 
 			
 			if ( ext == null ) {
-				logger.warn("");
+				logger.warn("Certificate Extension " + extensionSources.get(extName) + " not found! Ignoring...");
 			} else {
 				
+				logger.debug("	- Processing extension '" + extName + "' from source '" + extensionSources.get(extName) + "'");
+				
+				int i=0;
+				
 				if ( ext instanceof String ) {
+					// single valued extension
 					extensions +=  " " + extName + "=" + ((String) ext);
+					i++;
 					
 				} else if ( ext instanceof List ) {
+					// the extension value can be multi-valued. 
+					// in this case add them all as separate key=value pairs
 					List<String> attrList = ((List<String>)ext);
 					for ( String v : attrList ) {
 						extensions += " " + extName + "=" + v;
+						i++;
 					}					
 
 				} else {
 					logger.error("Unexpected instance for attribute " + extName +". Was expecting either String or List<String>");
 					return null;			
 				}
+				
+				logger.debug("	- Added " + i + " extensions with name '" + extName + "'");
+				
 			}
 		}
 		
