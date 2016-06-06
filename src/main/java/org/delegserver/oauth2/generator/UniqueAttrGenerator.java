@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.delegserver.oauth2.shib.ShibAttrParser;
 import org.delegserver.oauth2.util.HashingUtils;
-import org.delegserver.oauth2.util.ShibAttrParser;
 import org.delegserver.storage.TraceRecord;
 
 import edu.uiuc.ncsa.security.core.Logable;

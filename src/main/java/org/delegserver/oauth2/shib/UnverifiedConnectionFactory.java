@@ -1,4 +1,4 @@
-package org.delegserver.oauth2.util;
+package org.delegserver.oauth2.shib;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -41,8 +41,8 @@ public class UnverifiedConnectionFactory {
     // valid against the trusted certificates in DEFAULT_TRUST_ROOT_PATH 
     public class DSTrustManager extends MyTrustManager {
 
-    	public DSTrustManager(MyLoggingFacade logger) {
-            super(logger, null);
+    	public DSTrustManager() {
+            super(null, null);
             this.setTrustRootPath( this.DEFAULT_TRUST_ROOT_PATH );
         }	
     	
@@ -55,19 +55,18 @@ public class UnverifiedConnectionFactory {
     protected SSLContext sslContext = null;
     protected HostnameVerifier hostnameVerifier = null;
     
-	public UnverifiedConnectionFactory(MyLoggingFacade logger) {
+	public UnverifiedConnectionFactory() throws Throwable {
 
     	try {
     		// create custom ssl context with the DSTrustManager
     		sslContext = SSLContext.getInstance("SSL");
-	        DSTrustManager mtm = new DSTrustManager(logger);
+	        DSTrustManager mtm = new DSTrustManager();
 	        sslContext.init(null, new TrustManager[]{mtm}, new java.security.SecureRandom());
 	        
 	        // create custom hostname verifier
 	        hostnameVerifier = new DSHostnameVerifier();
     	} catch (Exception e) {
-    		logger.warn("Faild to initialize SSL Context for Shibboleth Assertion retriaval" );
-    		logger.warn(e.getMessage());
+    		throw new Exception("Faild to initialize SSL Context for Shibboleth Assertion retriaval" ,e);
     	}		
 		
 	}

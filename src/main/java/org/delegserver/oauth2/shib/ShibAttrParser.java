@@ -1,4 +1,4 @@
-package org.delegserver.oauth2.util;
+package org.delegserver.oauth2.shib;
 
 import java.util.ArrayList;
 import java.util.List;

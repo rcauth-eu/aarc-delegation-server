@@ -1,8 +1,9 @@
 package org.delegserver.test;
 
-import org.delegserver.oauth2.util.ShibAttrParser;
 import org.junit.Test;
 import static org.junit.Assert.*;
+
+import org.delegserver.oauth2.shib.ShibAttrParser;
 
 public class ShibAttrParserTester {
 

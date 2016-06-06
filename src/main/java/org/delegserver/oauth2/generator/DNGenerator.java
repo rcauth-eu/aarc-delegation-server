@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.bouncycastle.util.Arrays;
+import org.delegserver.oauth2.shib.ShibAttrParser;
 import org.delegserver.oauth2.util.HashingUtils;
-import org.delegserver.oauth2.util.ShibAttrParser;
 import org.delegserver.storage.RDNElement;
 import org.delegserver.storage.RDNElementPart;
 
