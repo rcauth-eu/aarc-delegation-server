@@ -138,12 +138,12 @@ public class DSOA2CertServlet extends OA2CertServlet {
 
 		if ( additionalInfo != null ) { 
 			trans.setMyproxyUsername( trans.getMyproxyUsername() + " " + additionalInfo );
-			traceDebug("6.a.5 Full MyProxy username:: " + trans.getMyproxyUsername());
+			traceDebug("6.a.5 Full MyProxy username: " + trans.getMyproxyUsername());
 		} else {
 			traceDebug("6.a.5 No extensions appended into the certificate request. Requesting cert without it");
 		}
 
-		traceInfo("Full MyProxy username:: " + trans.getMyproxyUsername());		
+		traceInfo("Full MyProxy username: " + trans.getMyproxyUsername());		
 		
 		trans.setTraceRecord( traceRecord.getCnHash() );
 		

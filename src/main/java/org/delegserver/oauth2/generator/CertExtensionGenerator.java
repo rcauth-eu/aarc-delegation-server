@@ -7,6 +7,8 @@ import edu.uiuc.ncsa.security.core.Logable;
 
 public class CertExtensionGenerator {
 
+	protected static String EMAIL_EXTENSION = "email";
+	
 	protected Map<String, String> extensionSources;
 
 	protected Logable logger;
@@ -18,19 +20,25 @@ public class CertExtensionGenerator {
 	
 	/**
 	 * Returns addition information that has to be added as extension into the end entity
-	 * certificate. Extensions will be presented in the form of key=value pairs
-	 * concatenated with a whitespace. This collection of extensions has to be 
-	 * passed to the MyProxy Server appended to the USERNAME request parameter.
+	 * certificate. Extensions will be presented according to the following template:
 	 * <p>
-	 * Currently, this method only supports the EMAIL extensions. If you would like to get 
-	 * other additional information (extensions) in your EEC, extend this method. 
+	 * email=m1 email=m2 info:key1=value1,key2=value2...
+	 * <p>
+	 * This collection of extensions has to be passed to the MyProxy Server appended to the
+	 *  USERNAME request parameter.
+	 * <p>
+	 * The behavior of this method is configurable through the '\<extensions\>' section
+	 * of the configuration file.
 	 * 
 	 * @param trans The current service transaction
 	 * @return The extensions that will be requested
 	 */
 	public String getCertificateExtensions(Map<String, Object> attributeMap) {
 		
-		String extensions = "";
+		// collection of info extensions separated with comma (',')
+		String infoExtensions = "";
+		// collection of email extension separated with whitespace (' ')
+		String emailExtension = "";
 
 		logger.debug("GENERATING CERTIFICATE EXTENSIONS");
 		
@@ -50,15 +58,28 @@ public class CertExtensionGenerator {
 				
 				if ( ext instanceof String ) {
 					// single valued extension
-					extensions +=  " " + extName + "=" + ((String) ext);
+					
+					// distinguish between EMAIL and INFO extensions
+					if ( extName.equals(EMAIL_EXTENSION) ) {
+						emailExtension +=  (emailExtension.isEmpty()) ?  extName + "=" + ((String) ext) : " " + extName + "=" + ((String) ext);						 
+					} else {
+						infoExtensions +=  (infoExtensions.isEmpty()) ?  extName + "=" + ((String) ext) : "," + extName + "=" + ((String) ext);
+					}
+					
 					i++;
 					
 				} else if ( ext instanceof List ) {
 					// the extension value can be multi-valued. 
-					// in this case add them all as separate key=value pairs
 					List<String> attrList = ((List<String>)ext);
 					for ( String v : attrList ) {
-						extensions += " " + extName + "=" + v;
+						
+						// distinguish between EMAIL and INFO extensions
+						if ( extName.equals(EMAIL_EXTENSION) ) {
+							emailExtension +=  (emailExtension.isEmpty()) ?  extName + "=" + v : " " + extName + "=" + v;						 
+						} else {
+							infoExtensions +=  (infoExtensions.isEmpty()) ?  extName + "=" + v : "," + extName + "=" + v;
+						}
+						
 						i++;
 					}					
 
@@ -70,6 +91,15 @@ public class CertExtensionGenerator {
 				logger.debug("	- Added " + i + " extensions with name '" + extName + "'");
 				
 			}
+		}
+		
+		// combine the extensions into a single line
+		String extensions = "";
+		if ( ! emailExtension.isEmpty() ) {
+			extensions += emailExtension;
+		}
+		if ( ! infoExtensions.isEmpty() ) {
+			extensions += " info:" + infoExtensions; 
 		}
 		
 		return extensions;
