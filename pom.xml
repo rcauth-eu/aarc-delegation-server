@@ -8,6 +8,9 @@
   <!-- Change the packaging to 'jar' in case your buildin the cli -->
   <!-- <packaging>jar</packaging> -->
 
+  <properties>
+       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 
   <name>Delegation Server (OA4MP) with Traceability (CILogon)</name>
 
