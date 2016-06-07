@@ -19,7 +19,13 @@ public interface DSConfigTags extends OA4MPConfigTags {
 
 	public static final String DN_GENERATOR_SOURCE = "source";
 	public static final String DN_GENERATOR_SOURCE_NAME = "name";
-
+	public static final String DN_GENERATOR_SOURCE_FILTER = "filter";
+	
+	// attribute filter tags
+	public static final String ATTR_FILTERS = "attributeFilters";
+	public static final String ATTR_FILTER = "filter";
+	public static final String ATTR_FILTER_NAME = "name";
+	
 	// the name of the trace_records store backend
 	public static final String TRACE_RECORD_STORE = "traceRecords";
 

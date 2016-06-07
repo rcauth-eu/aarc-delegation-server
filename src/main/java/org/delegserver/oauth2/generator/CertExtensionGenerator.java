@@ -27,10 +27,10 @@ public class CertExtensionGenerator {
 	 * This collection of extensions has to be passed to the MyProxy Server appended to the
 	 *  USERNAME request parameter.
 	 * <p>
-	 * The behavior of this method is configurable through the '\<extensions\>' section
+	 * The behavior of this method is configurable through the {@code <extensions>} section
 	 * of the configuration file.
 	 * 
-	 * @param trans The current service transaction
+	 * @param attributeMap The attribute map contaning user attributes
 	 * @return The extensions that will be requested
 	 */
 	public String getCertificateExtensions(Map<String, Object> attributeMap) {

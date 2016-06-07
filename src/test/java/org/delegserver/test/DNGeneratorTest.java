@@ -15,7 +15,7 @@ import org.junit.Test;
 public class DNGeneratorTest extends DNGenerator {
 
 	public DNGeneratorTest() {
-		super(null, null, null, new ThreadsafeTraceLogger(new TraceLoggingFacade( Logger.getLogger("Test") )));
+		super(null, null, null, null, new ThreadsafeTraceLogger(new TraceLoggingFacade( Logger.getLogger("Test") )));
 	}
 	
 	@Test

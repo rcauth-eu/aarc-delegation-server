@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.bouncycastle.util.Arrays;
 import org.delegserver.oauth2.shib.ShibAttrParser;
+import org.delegserver.oauth2.shib.filters.ShibAttributeFilter;
 import org.delegserver.oauth2.util.HashingUtils;
 import org.delegserver.storage.RDNElement;
 import org.delegserver.storage.RDNElementPart;
@@ -63,6 +64,9 @@ public class DNGenerator {
 	protected Object[] cnUniqueIDSources = null;
 	protected Object[] orgSources = null;
 	
+	/* ATTRIBUTE FILTER */
+	protected Map<String,ShibAttributeFilter> filters = null;
+	
 	/* OTHER */
 	
 	protected Charset defaultCharset = null;
@@ -81,10 +85,12 @@ public class DNGenerator {
 	 * @param orgSources Attribute source list for {organisation}
 	 * @param logger Logger for producing logs.
 	 */
-	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, Logable logger) {
+	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, Map<String,ShibAttributeFilter> filters, Logable logger) {
 		this.cnNameSources = cnNameSources;
 		this.cnUniqueIDSources = cnUniqueIDSources;
 		this.orgSources = orgSources;
+		
+		this.filters = filters;
 		
 		// create helper objects here so that we don't have to create separate instances 
 		// in multiple methods whenever they are needed.
@@ -638,32 +644,17 @@ public class DNGenerator {
 		}
 		
 		
-		/* SPECIAL RULES FOR CERTAIN ATTRIBUTES SHOULD GO HERE */
+		/* ATTRIBUTE FILTERING */
 		
-		// TODO: maybe don't hardcode things like "entityID" or "Shib-Identity-Provider" and just
-		// simply try to parse a URL in any case for its domain name.
-		// Update: try implementing a filter class that can be configured for every <source>
+		ShibAttributeFilter attributeFilter = filters.get(attributeKey);
 		
-		// special case for entityIDs that are URLs 
-		if ( attributeKey.equals("entityID") || attributeKey.equals("Shib-Identity-Provider") ) {
-			try {
-				
-				logger.debug("		- Applying special host extraction rule for entityID : '" + attribute + "'");
-				
-				// try converting to a URL
-				URL url = new URL(attribute);
-				String hostname =  url.getHost();
-				
-				logger.debug("		- Extracted Hostname : '" + hostname + "'");
-				return hostname;
-				
-			} catch (MalformedURLException e) {
-				// if the conversion fails the take the value as it is (is it a URN?)
-				return attribute;
-			}
+		if ( attributeFilter != null ) {
+			
+			logger.debug("		- Applying filter '" + attributeFilter.getClass().getCanonicalName() + "' for attribute : '" + attribute + "'");
+			attribute = attributeFilter.process(attribute);
+			logger.debug("		- Attribute after filter : '" + attribute + "'");
+		
 		}
-		
-		/* END OF SPECIAL RULES */
 		
 		return attribute;
 	}

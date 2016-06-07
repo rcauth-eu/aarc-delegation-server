@@ -197,22 +197,13 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     public DNGenerator getDNGenerator() {
     	
     	if ( dnGenerator == null ) {
-    		dnGenerator = new DNGenerator(getCNNameSources(), getCNUniqueIDSources(), getOrgSources(), getThreadsafeTraceLogger() );
+    		dnGenerator = new DNGenerator(	DSOA2ConfigurationLoaderUtils.getCnNameSources(cn), 
+    									  	DSOA2ConfigurationLoaderUtils.getCnUniqueIDSources(cn), 
+    									  	DSOA2ConfigurationLoaderUtils.getOrgSources(cn), 
+    									  	DSOA2ConfigurationLoaderUtils.getAttributeFilters(cn), 
+    									  	getThreadsafeTraceLogger() );
     	}
-    	
     	return dnGenerator;
-    }
-    
-    public Object[] getCNNameSources() {
-    	return DSOA2ConfigurationLoaderUtils.getCnNameSources(cn);
-    }
-    
-    public Object[] getCNUniqueIDSources() {
-    	return DSOA2ConfigurationLoaderUtils.getCnUniqueIDSources(cn);
-    }
-
-    public Object[] getOrgSources() {
-    	return DSOA2ConfigurationLoaderUtils.getOrgSources(cn);
     }
     
     public CertExtensionGenerator certExtGenerator = null;
