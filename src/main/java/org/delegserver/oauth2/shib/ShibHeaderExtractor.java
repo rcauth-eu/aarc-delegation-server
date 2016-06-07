@@ -69,7 +69,7 @@ public class ShibHeaderExtractor {
 	 * delimiter (;) !
 	 * 
 	 * @param request The request containing the attribute
-	 * @param The key identifying the attribute
+	 * @param key The key identifying the attribute
 	 * @return The first attribute matching the key from the given request
 	 */
 	public static String getRequestAttr(HttpServletRequest request, String key) {

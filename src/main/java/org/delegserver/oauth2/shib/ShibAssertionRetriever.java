@@ -22,7 +22,8 @@ public class ShibAssertionRetriever {
 	 * links set in the request header.
 	 *  
 	 * @param request The original request
-	 * @throws Throwable 
+	 * @return A string with a single assertion per line
+	 * @throws Throwable  In case the call to shibboleth fails.
 	 */
 	public static String getShibAssertions(HttpServletRequest request) throws Throwable {
 			
