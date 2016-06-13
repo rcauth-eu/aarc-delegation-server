@@ -20,7 +20,7 @@ public class TraceRecordLoggerProvider extends LoggerProvider {
 
 	public static final String TRACE_LOGGING_COMPONENT = "traceLogging";
 
-	public static final String TRACE_LOGGING_FORMAT = "[%s] %5.5s %s" + System.getProperty("line.separator");
+	public static final String TRACE_LOGGING_FORMAT = "[%s] %7.7s %s" + System.getProperty("line.separator");
 
 	
 	public TraceRecordLoggerProvider(ConfigurationNode configurationNode) {

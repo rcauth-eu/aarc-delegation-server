@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.delegserver.oauth2.exceptions.IncompleteAttributeSetException;
 import org.delegserver.oauth2.shib.ShibAttrParser;
 import org.delegserver.oauth2.util.HashingUtils;
 import org.delegserver.storage.TraceRecord;
@@ -69,8 +70,9 @@ public class UniqueAttrGenerator {
 	 * @param attributeMap User attribute map to match
 	 * @param traceRecord Trace record to match against 
 	 * @return true if hashes are the same, false otherwise.
+	 * @throws IncompleteAttributeSetException 
 	 */
-	public boolean matches(Map<String,Object> attributeMap, TraceRecord traceRecord) {
+	public boolean matches(Map<String,Object> attributeMap, TraceRecord traceRecord) throws IncompleteAttributeSetException {
 		
 		logger.debug("START ATTRIBUTE MATCHING" );
 		logger.debug("	- Comparing attribute map with Trace Record: '" + traceRecord.getCnHash() + "'");
@@ -96,7 +98,7 @@ public class UniqueAttrGenerator {
 				// mismatch between the attributes saved and attributes present in the attributeMap 
 				// (when an attribute which was previously used to construct the hash is missing,
 				//  we can be sure that the attribute list hashes will not be the same)
-				return false;
+				throw new IncompleteAttributeSetException("Change in last seen user attribute! Missing attribute '" + attrSource + "'!");
 			}
 		}
 

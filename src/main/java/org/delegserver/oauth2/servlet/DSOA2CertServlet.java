@@ -11,6 +11,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
 import org.delegserver.oauth2.exceptions.AttributeMismatchException;
+import org.delegserver.oauth2.exceptions.IncompleteAttributeSetException;
 import org.delegserver.oauth2.exceptions.NoTraceRecordException;
 import org.delegserver.oauth2.util.HashingUtils;
 import org.delegserver.storage.RDNElement;
@@ -220,42 +221,60 @@ public class DSOA2CertServlet extends OA2CertServlet {
 			// by their sequence number
 			
 			TraceRecord matchingTraceRecord = null;
-			for ( TraceRecord traceRecord : traceRecords ) {
+			for ( int i=0; i<traceRecords.size(); i++ ) {
+				
+				TraceRecord traceRecord = traceRecords.get(i);
+				
 				// need to check for matching attribute set in order to account for things like EPPN reuse.
 				traceDebug("Matching trace record " + traceRecord.getCnHash() + " " + traceRecord.getSequenceNr());
-				if ( se.getUniqueAttrGenerator().matches(attributeMap, traceRecord ) ) {
+				
+				try {
 					
-					traceDebug("Trace Record matches attribute set!");	
-					
-					/*
-					if ( matchingTraceRecord != null ) {
-						// found a second match for the attribute set! This should not happen!
-						//TODO: This is a corner case somewhat... Should we try to map the user to at least one of the returned 
-						//      values? What happens if the user can be perfectly mapped to more then one of these records returned?
-						//      Should we just choose a random match? or fail altogether?
-						throw new GeneralException("More than one Trace Record matched the user attributes!");
+					if ( se.getUniqueAttrGenerator().matches(attributeMap, traceRecord ) ) {
+						
+						traceDebug("Trace Record matches attribute set!");	
+						
+						/*
+						if ( matchingTraceRecord != null ) {
+							// found a second match for the attribute set! This should not happen!
+							//TODO: This is a corner case somewhat... Should we try to map the user to at least one of the returned 
+							//      values? What happens if the user can be perfectly mapped to more then one of these records returned?
+							//      Should we just choose a random match? or fail altogether?
+							throw new GeneralException("More than one Trace Record matched the user attributes!");
+						}
+						*/
+						
+						// this should be it! 
+						matchingTraceRecord = traceRecord;
+						
+						// find original CN that produced that match
+						RDNElement originalCN = cnHashAlternatives.get( new TraceRecordIdentifier(matchingTraceRecord.getCnHash()));
+						if ( originalCN == null ) {
+							// this means something is wrong in the original reverse map. We need the original CN here
+							// otherwise we might end up constructing it from the wrong source attributes.
+							throw new GeneralException("Matching transaction found, but could not get original CN!");
+						}
+						matchingTraceRecord.setCommonName( originalCN );
+						
+						// Instead of looking for other matches, just simple take the fist one. The trace records 
+						// returned by the DB are ordered by their last_seen date, which makes the trace record matching
+						// deterministic in case of multiple matches.
+						break;
+						
+					} else {
+						traceDebug("Trace Record does NOT match attribute set! Mismatch on hashed attributes!");			
+						if (i == 0) { 
+							// log as warn if the last seen user attribute changes
+							traceWarn("Change in last seen user attribute! Mismatch on hashed content!");
+						}
 					}
-					*/
-					
-					// this should be it! 
-					matchingTraceRecord = traceRecord;
-					
-					// find original CN that produced that match
-					RDNElement originalCN = cnHashAlternatives.get( new TraceRecordIdentifier(matchingTraceRecord.getCnHash()));
-					if ( originalCN == null ) {
-						// this means something is wrong in the original reverse map. We need the original CN here
-						// otherwise we might end up constructing it from the wrong source attributes.
-						throw new GeneralException("Matching transaction found, but could not get original CN!");
+				
+				} catch (IncompleteAttributeSetException e) {
+					traceDebug("Trace Record does NOT match attribute set! Different attribute set!");				
+					if (i == 0) { 
+						// log as warn if the last seen user attribute changes
+						traceWarn(e.getMessage());
 					}
-					matchingTraceRecord.setCommonName( originalCN );
-					
-					// Instead of looking for other matches, just simple take the fist one. The trace records 
-					// returned by the DB are ordered by their last_seen date, which makes the trace record matching
-					// deterministic in case of multiple matches.
-					break;
-					
-				} else {
-					traceDebug("Trace Record does NOT match attribute set!");
 				}
 			}
 			
@@ -329,10 +348,11 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		
 			StringBuilder orgTrace = new StringBuilder();
 			
-			orgTrace.append("DN Part : '" + rdnPart.getElement() + "' ");
-			orgTrace.append("before transformations '" + rdnPart.getElementOrig() + "' ");
-			orgTrace.append("(" + rdnPart.getElementSource() + ")");
+			orgTrace.append("RDN : '" + rdnPart.getElement() + "' ");
+			orgTrace.append("(" + rdnPart.getElementSource() + " = ");
+			orgTrace.append("'" + rdnPart.getElementOrig() + "')");
 
+			
 			traceInfo(orgTrace.toString());
 		}
 	}
@@ -352,4 +372,8 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		se.getTraceLogger().error(x);
 	}
 	
+	public void traceWarn(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().warn(x);
+	}	
 }
