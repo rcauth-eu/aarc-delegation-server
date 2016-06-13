@@ -189,16 +189,18 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 							sources[i] = source;
 						}
 						
-						// complete the attribute filter map with any filters declared for the source
+						// complete the attribute filter map with any filter declared for the source
 						String sourceFilter =  Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_FILTER);
 						if ( sourceFilter != null && ! sourceFilter.isEmpty() ) {
 							
+							// get the actual filter object 
 							ShibAttributeFilter filterObject = getFilters(cn).get(sourceFilter);
 							
 							if ( filterObject == null ) {
 								throw new GeneralException("No instance of the filter referenced by the name '" + sourceFilter + "' found!");
 							}
 							
+							// save the filter indexed by its source name. 
 							if ( sources[i] instanceof String ) {
 								attributeFilters.put( ((String) sources[i]) , filterObject); 
 							} else {
@@ -219,6 +221,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 	/* ATTRIBUTE FILTERS */
 
 	// indexed by the source attribute to which the filter applies.
+	// the same filter can re-appear multiple times under different keys.
 	protected static Map<String,ShibAttributeFilter> attributeFilters = new HashMap<String,ShibAttributeFilter>();
 	
 	// indexed by the filter name. filters appear only once here

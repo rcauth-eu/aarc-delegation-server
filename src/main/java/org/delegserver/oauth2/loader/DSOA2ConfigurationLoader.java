@@ -57,6 +57,8 @@ import java.util.Map;
  *  - Load Scopes to Claims(and Attributes) mapping from configuration into environment
  * <p>
  *  - Load the DN Generator sources from the configuration into the environment
+ * <p>
+ *  - Load and instantiate Attribute Filters 
  * 
  * @author "Tamás Balogh"
  *

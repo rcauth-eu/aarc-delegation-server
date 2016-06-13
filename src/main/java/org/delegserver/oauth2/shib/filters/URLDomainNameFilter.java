@@ -5,6 +5,14 @@ import java.net.URL;
 
 public class URLDomainNameFilter implements ShibAttributeFilter {
 
+	/**
+	 * Try to parse a URL and return its domain name component. In case
+	 * this method fails to convert to URL or extract the domain name
+	 * it will simply return the original value 
+	 * 
+	 * @param value A URL
+	 * @return The domain name of the URL
+	 */
 	@Override
 	public String process(String value) {
 		
