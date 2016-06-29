@@ -1,0 +1,248 @@
+*				{ font-family:Verdana,Arial,Helvetica,Sans-Serif;  font-size : 12px;}
+html body			{ margin:3px 0px;  padding:0px;  text-align:center; background: #fff;}
+
+#languagebar {
+        padding-left: 10px;
+        padding-right: 10px;
+	background-image: url(rcauth-top.jpg);
+	background-repeat: repeat-x;
+	background-position: top left;
+}
+
+img				{border:0px;}
+.siteContainer			{ border-color:#000000;  border-style:solid;  border-width:1px 1px 1px;  margin:0px auto;  overflow:hidden;  text-align:left;  width:1002px;  background : transparent;}
+
+.t3ooip_bodycontainer		{ width:1000px;}
+.clear				{ clear:both;}
+
+.topLeft			{ width :800px; height:80px; float:left; background-color:#FFFFFF;}
+.topRight			{ width :158px; height:80px; float:right; background-color:#FFFFFF;}
+.topText			{ font-weight:bold; font-size:13px; margin-left:50px; margin-top:30px;  float:left;}
+.topLogo			{ padding-top:6px; padding-left:15px; float:left;}
+.topLanguage			{ border : 0px;}
+.topLanguage img		{ border : 0px; }
+
+.searchAdvancedTxt a		{ font-size:10px; text-decoration : none;}
+.intranetLink			{ font-weight:bold;  text-decoration:none;  color:red;}
+.topZoek			{ float:left;height:20px;text-align:left;line-height:0px;}
+#searchform p			{ margin:0;padding:4px 0;}
+.searchTextBox			{ width : 100px;  border:1px solid black;}
+.searchButton			{width : 50px;  border:1px solid black;cursor:pointer;}
+.topZoek select			{ width : 100px;  border:1px solid black;}
+.topMenu			{ height : 69px;margin:0px;padding:0px;background:#FFFFFF;overflow:hidden;}
+.topMenu ul			{ margin:0px;padding:0px;}
+.topMenu li			{ margin-left:2px;padding:0px;}
+
+.listTopMenu			{ list-style-type: none;  float:left;  display:block;    margin-left:2px;   }
+.topmenuImg			{ background-image:url(off.gif);  background-color : black;  background-repeat : no-repeat;  background-position : 0 9px;  height : 49px;  width  : 167px;  cursor:pointer;}
+.topmenuImg6			{ background-image:url(on.gif);  width  : 153px;  cursor : default;}
+.topmenuImgOn			{ background-image:url(on.gif);}
+.listTopMenu a 			{ color : black;  text-decoration : none;}
+
+
+.topmenuImg1			{ background-color : #e2001a;  color : #e2001a;}
+.topmenuImg2			{ background-color : #ff9900;  color : #ff9900;}
+.topmenuImg3			{ background-color : #99cc00;  color : #99cc00;}
+.topmenuImg4			{ background-color : #0099cc;  color : #0099cc;}
+.topmenuImg5			{ background-color : #990066;  color : #990066;}
+
+.listTopMenu1 a 		{ color : #e2001a;}
+.listTopMenu2 a 		{ color : #ff9900;}
+.listTopMenu3 a 		{ color : #99cc00;}
+.listTopMenu4 a 		{ color : #0099cc;}
+.listTopMenu5 a 		{ color : #990066;}
+
+.topmenuTxt			{ font-size:12px;  font-weight:bold;  display:block;}
+.topMenuAct 			{ }
+.headerEnd 			{ clear:both;  border-top:1px solid black;  overflow:hidden;  height:1px;}
+#submenuHolder 			{ width : 167px;  height:500px;  color:white;  float:left;}
+#contentHolder			{ width : 640px;  color:black;  float:left;    padding:15px;}
+#newsHolder 			{ width : 150px;  background-color:black;  color:white;  padding:2px;   float:right}
+#logoHolder			{ background-color:#FFFFFF;}
+
+ul.submenuLvl1			{ vertical-align: top;  list-style-type: none;  margin: 0px;  padding: 0px;}
+//.submenuLvl1 a		{ color:white;  font-weight:bold;  text-decoration:none;  line-height:18px;  font-size : 11px;  display:block;    text-indent: 1em;}
+.submenuLvl1 a			{ color:white;  font-weight:bold;  text-decoration:none;  line-height:18px;  font-size : 11px;  display:block;    padding-left: 1em;}
+.submenuLvl1On			{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right 0.15em;}
+
+ul.submenuLvl1 h2 		{color:white;display:block;font-size:11px;font-weight:bold;line-height:18px;padding-left:1em;text-decoration:none;}
+
+ul.submenuLvl2 			{ vertical-align: top;  list-style-type: none;  margin: 0px;  padding: 0px;}
+//.submenuLvl2 a			{ color:black;  text-decoration:none;  display:block;  font-size : 10px;  text-indent: 1.5em;}
+.submenuLvl2 a			{ color:black;  text-decoration:none;  display:block;  font-size : 10px;  padding-left: 1.5em;}
+.submenuLvl2 a:hover		{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right center;}
+.submenuLvl2On a 		{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right center;}
+
+ul.submenuLvl3 			{ vertical-align: top;  list-style-type: none;  margin: 0px;  padding: 0px;}
+.submenuLvl3 a			{ background-image: none; color:black;  text-decoration:none;  display:block;  font-size : 10px;  padding-left: 2.0em;}
+.submenuLvl3 a:hover		{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right center;}
+.submenuLvl3On a 		{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right center;}
+
+
+.overrcauth_CUR, li.overrcauth a:hover		
+				{ color: #000000; background-color: #ff9966;}
+.overrcauth h1:after		{ color:#ff9966;  content:" >";  font-weight:bold;}
+
+.onderzoek_CUR, li.onderzoek a:hover
+				{ color: #000000; background-color: #ffcc00;}
+.onderzoek h1:after		{ color:#ffcc00;  content:" >";  font-weight:bold;}
+
+.educatie_CUR, li.educatie a:hover
+				{ color: #000000; background-color: #ccff00;}
+.educatie h1:after		{ color:#ccff00;  content:" >";  font-weight:bold;}
+
+.industrie_CUR, li.industrie a:hover
+				{ color: #000000;  background-color: #66ccff;}
+.industrie h1:after		{ color:#66ccff;  content:" >";  font-weight:bold;}
+
+.media_CUR,  li.media a:hover
+				{ color: #000000;  background-color: #ff00cc;}
+.media h1:after			{ color:#ff00cc;  content:" >";  font-weight:bold;}
+
+
+.menu_intr_01_CUR, li.omenu_intr_01 a:hover		
+				{ color: #000000; background-color: #ff9966;}
+.menu_intr_01 h1:after		{ color:#ff9966;  content:" >";  font-weight:bold;}
+
+.menu_intr_02_CUR, li.menu_intr_02 a:hover
+				{ color: #000000; background-color: #ffcc00;}
+.menu_intr_02 h1:after		{ color:#ffcc00;  content:" >";  font-weight:bold;}
+
+.menu_intr_03_CUR, li.menu_intr_03 a:hover
+				{ color: #000000; background-color: #ccff00;}
+.menu_intr_03 h1:after		{ color:#ccff00;  content:" >";  font-weight:bold;}
+
+.menu_intr_04_CUR, li.menu_intr_04 a:hover
+				{ color: #000000;  background-color: #66ccff;}
+.menu_intr_04 h1:after		{ color:#66ccff;  content:" >";  font-weight:bold;}
+
+.menu_intr_05_CUR, li.menu_intr_05 a:hover
+				{ color: #000000;  background-color: #ff00cc;}
+.menu_intr_05 h1:after		{ color:#ff00cc;  content:" >";  font-weight:bold;}
+
+
+
+.altColour_0099cc		{ background : transparent url(/fileadmin/design/resources/0099cc_white_black.gif);}
+.altColour_990066		{ background : transparent url(/fileadmin/design/resources/990066_white_black.gif);}
+.altColour_99cc00		{ background : transparent url(/fileadmin/design/resources/99cc00_white_black.gif);}
+.altColour_ff9900		{ background : transparent url(/fileadmin/design/resources/ff9900_white_black.gif);}
+.altColour_red		{ background : transparent url(/fileadmin/design/resources/red_white_black.gif);}
+.altColour_white		{ background : #ffffff;}
+
+.txnews_newsCat 		{ color:red;  font-weight : bold;}
+.txnews_item hr			{ height : 1px;  border : 0px;  border-bottom:1px solid #8D7B7B;  margin:5px 0 5px 0;  padding:0px;}
+.txnews_item a 			{ font-size:10px;  text-decoration: none;   color : #FFFFFF;}
+.txnews_Date			{ font-size:9px; color:#e2e2e2;}
+
+.breadcrumb-class		{font-size:10px;border-bottom:1px solid #e2e2e2;margin-bottom:5px;padding-bottom:5px;}
+.breadcrumb-class a		{font-size:10px;font-weight:bold;text-decoration:none;color:#ae9168;}
+.breadcrumb-class span		{line-height:0px;margin-left:5px;margin-right:5px;color:#deccb2;}
+
+#ooip_lastUpdatedDate		{font-size:0.8em;text-align:center;}
+
+.t3ooip_footer			{font-size:0.8em; width:700px;margin:10px auto;}
+.t3ooip_footer	a		{text-decoration:none;font-weight:bold;font-size:1em;color:#666666;}
+
+.csc-textpic-caption		{font-style:italic;font-size:0.8em}
+
+/* ************************************************************************* */
+
+/* ************************************************************************* */
+/*   EXT: POWERMAIL                                                          */
+/* ************************************************************************* */
+.powermail_mandatory_js {
+/* Errormessages */
+	color:red;
+}
+.tx-powermail-pi1_formwrap form {
+
+	font: 1.1em  Arial, Helvetica, sans-serif;
+	margin:0;
+	padding:10px;
+	/*border:1px solid #CCCCCC;*/
+	background-color:#ffffff;
+}
+fieldset.tx-powermail-pi1_fieldset {
+	margin:0;
+	padding:0;
+	border:none;
+}
+fieldset.tx-powermail-pi1_fieldset legend {
+	display:none;
+}
+
+fieldset.tx-powermail-pi1_fieldset label {
+/* Style labels */
+	width: 100px;
+	margin:0;
+	padding:0;
+	border:none;
+	display: block;
+	float: left;
+	clear: both;
+}
+fieldset.tx-powermail-pi1_fieldset input,
+fieldset.tx-powermail-pi1_fieldset textarea,
+fieldset.tx-powermail-pi1_fieldset select {
+/* Style input fields */
+	font: 1.1em  arial, helvetica, sans-serif;
+/*	width (size) must be set in the extension! */
+	margin:0;
+	padding:2px;
+	border:1px solid #BCBCBC;
+}
+fieldset.tx-powermail-pi1_fieldset textarea {
+/*	height (rows) must be set in the extension! */
+}
+div.tx_powermail_pi1_fieldwrap_html {
+/* Increase margin between every field */
+	margin: 0px 0px 7px 0px;
+}
+fieldset.tx-powermail-pi1_fieldset input.powermail_submit {
+/* Buttons */
+	font: 1.1em arial, helvetica, sans-serif;
+	width: 75px;
+	/*background-color:#EE0000;*/
+	background-color:red;
+	color:#FFFFFF;
+	margin-top:3px;
+	margin-left:100px;
+	cursor:pointer;
+	border:1px solid #BCBCBC;
+	padding:1px 0 1px 0;
+}
+
+/*
+	Radiobuttons.......!
+*/
+div.tx_powermail_pi1_fieldwrap_html_radio {
+	overflow:auto;
+}
+p.tx_powermail_pi1_fieldwrap_html_radio_title {
+/* Style <P> as <LABEL> ! */
+	width: 100px;
+	margin:0;
+	padding:0;
+	border:0;
+	float: left;
+	display:block;
+	clear:both;
+}
+div.powermail_radio_inner {
+	margin:0 0 7px 4px;padding:0;border:0;
+	float:left;
+	display:inline;
+}
+div.powermail_radio_inner label {
+	margin:0;padding:0;border:0;
+	display:inline;
+	float:none;
+}
+div.powermail_radio_inner input.powermail_radio {
+	margin:0;padding:0;border:0;
+	position:relative;
+	float:none;
+}
+/* ************************************************************************* */
+
+

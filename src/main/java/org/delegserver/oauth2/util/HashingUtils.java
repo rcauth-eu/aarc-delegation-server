@@ -9,9 +9,9 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import org.apache.commons.beanutils.converters.ByteArrayConverter;
 import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.util.encoders.Base64Encoder;
+import org.bouncycastle.util.encoders.Hex;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 
@@ -19,7 +19,7 @@ public class HashingUtils {
 
 	protected MessageDigest defaultMessageDigest = null;
 	protected SecureRandom defualtRandomGenerator = null;
-	protected  Charset defaultCharset = null;
+	protected Charset defaultCharset = null;
 	
 	/* SINGLETON */
 	
@@ -59,6 +59,14 @@ public class HashingUtils {
 		
 		return new String(encodedHash);		
 	}
+
+	public String hashToHEX(String input) {
+		
+		// hash the input
+		byte[] hash = defaultMessageDigest.digest ( input.getBytes(defaultCharset) );
+		// convert byte stream to hex representation
+		return new String(Hex.encode(hash));		
+	}	
 	
 	public String saltedHashToBase64(String input) {
 		return saltedHashToBase64(input, getRandomSalt() );

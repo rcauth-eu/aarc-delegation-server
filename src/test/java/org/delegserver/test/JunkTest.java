@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 
+import org.delegserver.oauth2.util.HashingUtils;
 import org.junit.Test;
 
 public class JunkTest {
@@ -80,6 +81,18 @@ public class JunkTest {
 		int i = Integer.parseInt(nr);
 		
 		System.out.println( nr + " = " + i );
+		
+	}
+	
+	@Test
+	public void test6() {
+		
+		String string = "asdasd+asd=asd+//asd==";
+		
+		//string = string.replace('+', 'X').replace('/', 'X').replace('=', 'X');
+	
+		System.out.println( HashingUtils.getInstance().hashToHEX(string) );
+		
 		
 	}
 	
