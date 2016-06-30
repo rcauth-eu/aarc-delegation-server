@@ -70,7 +70,7 @@ public class UniqueAttrGenerator {
 	 * @param attributeMap User attribute map to match
 	 * @param traceRecord Trace record to match against 
 	 * @return true if hashes are the same, false otherwise.
-	 * @throws IncompleteAttributeSetException 
+	 * @throws IncompleteAttributeSetException When an attribute that was previously used to compute the hash disappears
 	 */
 	public boolean matches(Map<String,Object> attributeMap, TraceRecord traceRecord) throws IncompleteAttributeSetException {
 		

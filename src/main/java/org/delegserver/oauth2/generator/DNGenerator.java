@@ -83,6 +83,7 @@ public class DNGenerator {
 	 * @param cnNameSources Attribute source list for {cnName}
 	 * @param cnUniqueIDSources Attribute source list for {cnUniqueId} 
 	 * @param orgSources Attribute source list for {organisation}
+	 * @param filters Attribute filters to apply on individual attributes
 	 * @param logger Logger for producing logs.
 	 */
 	public DNGenerator(Object[] cnNameSources, Object[] cnUniqueIDSources, Object[] orgSources, Map<String,ShibAttributeFilter> filters, Logable logger) {
