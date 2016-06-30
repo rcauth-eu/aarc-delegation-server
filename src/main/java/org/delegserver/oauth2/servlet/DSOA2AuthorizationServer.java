@@ -1,6 +1,5 @@
 package org.delegserver.oauth2.servlet;
 
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -23,6 +22,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
 import edu.uiuc.ncsa.security.core.Logable;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
+import edu.uiuc.ncsa.security.servlet.JSPUtil;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
 
 /**
@@ -37,40 +37,23 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 		
 	/* POSTPROCESS AUTHORIZED STATE */
 	
-	public static String OA4MP_CONSENT_COOKIE_VALUE = "true";
+	/**
+	 * Prefix the consent remembering cookie with a static value 
+	 */
 	public static String OA4MP_CONSENT_COOKIE_NAME_PREFIX = "consent_";
+	/**
+	 * The value of the consent remembering cookie 
+	 */
+	public static String OA4MP_CONSENT_COOKIE_VALUE = "true";
+	/**
+	 * The age of the consent remembering cookie
+	 */
+	public static int OA4MP_CONSENT_COOKIE_MAX_AGE = 90;
 	
 	public static String AUTH_CLAIMS_KEY = "auth_claims";
-	public static String AUTH_SHOW_CONSENT_KEY = "show_consent";
-	public static String AUTH_CONSENT_COOKIE_NAME_KEY = "consent_cookie_name";
-	public static String AUTH_CONSENT_COOKIE_VALUE_KEY = "consent_cookie_value";
-	
-	@Override
-	public void preprocess(TransactionState state) throws Throwable {
-		super.preprocess(state);
-		
-		// only execute this when a new authorization request starts
-		if ( getState(state.getRequest()) == AUTHORIZATION_ACTION_START ) {
-			
-			// get the Master Portal client ID that we are talking to in this session
-			String masterPortalID = ((ServiceTransaction) state.getTransaction()).getClient().getIdentifier().toString();
-			String userName = getRemoteUser( state.getRequest() );
-			
-			// Note: be aware of the right encoding for cookies! Values such as '=' do not play nicely
-			// so use HEX representation of the hash rather then the base64
-			
-			System.out.println("CONSENTING ____ Hashing " + masterPortalID + userName);
-			
-			// get the HEX encoded hash of the client ID
-			String hashedID = HashingUtils.getInstance().hashToHEX(masterPortalID + userName);
-			
-			// set the cookie name and value for the jsp consent page
-			state.getRequest().setAttribute(AUTH_CONSENT_COOKIE_NAME_KEY, OA4MP_CONSENT_COOKIE_NAME_PREFIX + hashedID);
-			state.getRequest().setAttribute(AUTH_CONSENT_COOKIE_VALUE_KEY, OA4MP_CONSENT_COOKIE_VALUE);
-		}		
-		
-	}
-	
+
+    public static String AUTHORIZE_ENDPOINT = "/authorize";
+    public static String REMOTE_USER_REDIRECT_PAGE = "/authorize-remote-user-redirect.jsp";
 	
 	@Override
 	public void postprocess(TransactionState state) throws Throwable {
@@ -78,35 +61,39 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 		
 		// only execute this when a new authorization request starts
 		if ( getState(state.getRequest()) == AUTHORIZATION_ACTION_START ) {
-		
-			// assume that we have to present the consent page
-			boolean showConsent = true;
 
 			String masterPortalID = ((ServiceTransaction) state.getTransaction()).getClient().getIdentifier().toString();
 			String userName = getRemoteUser( state.getRequest() );
 			String hashedID = HashingUtils.getInstance().hashToHEX(masterPortalID + userName);
 			
-			System.out.println("CONSENTING ____ Hashing " + masterPortalID + userName);
-			
 			// retrieve the consent remembering cookie
 			String consentCookie = getCookie(state.getRequest(),OA4MP_CONSENT_COOKIE_NAME_PREFIX + hashedID);
-			
+
+			// check if the cookie is valid 
 			if ( consentCookie != null && ! consentCookie.isEmpty()) {
 				if ( consentCookie.equals(OA4MP_CONSENT_COOKIE_VALUE) ) {
-					showConsent = false;
+					
+					// Forward the user to an automatic redirect page. In case javascript is disabled the user
+					// will have to manually click the redirect button.
+					//
+					// Note: A custom redirecting JSP form is needed here because calling dispatcher.forward()
+					//       will create a loop by restarting the authorization session in OA2AuthorizationServer
+					//       at line 108. Checking for a new session is currently done by looking at the RESPONSE_TYPE
+					//	     parameter from the request. An additional check for the 'action=ok' parameter would
+					//		 stop the session from being restarted.
+					JSPUtil.fwd(state.getRequest(), state.getResponse(), REMOTE_USER_REDIRECT_PAGE);
+					
 				}
 			}
-			
-			state.getRequest().setAttribute(AUTH_SHOW_CONSENT_KEY, showConsent);
-			
-		}		
+		} 
 	}
-	
 	
 	
 	@Override
 	public void prepare(PresentableState state) throws Throwable {
 		super.prepare(state);
+		
+		setConsentCookie((AuthorizedState) state);
 		
 		// only do something if the user has already been authorized and gave consent
         // if (state.getState() == AUTHORIZATION_ACTION_OK) {
@@ -176,6 +163,39 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	}
 	
 	/* HELPER METHODS */
+
+    protected void setConsentCookie(AuthorizedState state) throws Throwable {
+    	
+		// only execute this if user consent has been given and  authorization was ok
+		if ( getState(state.getRequest()) == AUTHORIZATION_ACTION_OK ) {
+			
+			// get the checkbox value to see if we have to remember the consent
+			String rememberConsent = state.getRequest().getParameter("remember");
+			
+			if ( rememberConsent != null && rememberConsent.equals("on") ) {
+			
+				// get the Master Portal client ID that we are talking to in this session
+				String masterPortalID = ((ServiceTransaction) state.getTransaction()).getClient().getIdentifier().toString();
+				String userName = getRemoteUser( state.getRequest() );
+				
+				// Note: be aware of the right encoding for cookies! Values such as '=' do not play nicely
+				// so use HEX representation of the hash rather then the base64
+				
+				// get the HEX encoded hash of the client ID
+				String hashedID = HashingUtils.getInstance().hashToHEX(masterPortalID + userName);
+				
+				// create a new response cookie
+				Cookie consentCookie = new Cookie(OA4MP_CONSENT_COOKIE_NAME_PREFIX + hashedID, OA4MP_CONSENT_COOKIE_VALUE);
+				consentCookie.setMaxAge(OA4MP_CONSENT_COOKIE_MAX_AGE*24*60*60);
+				consentCookie.setPath( state.getRequest().getContextPath() + AUTHORIZE_ENDPOINT );
+
+				// add the cookie to the response
+				state.getResponse().addCookie( consentCookie );
+				
+			}			
+		}		
+	}
+		
 	
 	public static String getCookie(HttpServletRequest request, String cookieName) {
 		

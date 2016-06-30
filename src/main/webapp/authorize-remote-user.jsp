@@ -20,56 +20,20 @@
 
 <html>
 
-<style>
-body.hidden {
- visibility: hidden
-}
-body.visible {
- visibility: visible
-}
-</style>
-
-
 <head>
     <title>RCAuth Online CA</title>
     <link rel="stylesheet" type="text/css" href="default.css" />
     <link rel="stylesheet" type="text/css" href="rcauth.css" />
-	
-	<script>
-	
-		function setCookie(cname, cvalue, exdays) {
-		    var path = "; path="+ location.pathname;
-		    if (document.getElementById('remember').checked == 1) {
-		        var d = new Date();
-		        d.setTime(d.getTime() + (exdays*24*60*60*1000));
-		        document.cookie = cname + "=" + cvalue + "; expires=" + d.toUTCString() + path;
-		    } else {
-		        document.cookie = cname + "=" + "; expires=01 Jan 1970 00:00:01 GMT" + path;
-		    }
-		}
-		
-		function showPage(showConsent)  {
-			
-			if ( showConsent === 'true'  ) {
-				document.getElementById("mainBody").className = "visible";
-				document.title = 'Consent about releasing personal information';
-			} else {
-				document.title = 'Loading...';
-				document.getElementById("submitForm").submit();
-			}
-		}
-	
-	</script>
-
 </head>
 
-<body id="mainBody" class="hidden" onload="showPage('${show_consent}')">
+<body id="mainBody" >
+
 <div id="wrap">
 <div id="logoHolder">
-	<div class="topLeft">
-		<div id="topLogo" class="topLogo"><img src="RCauth-eu-logo-150.gif"><br/></div>
-		<div id="topText" class="topText">The white-label Research and Collaboration Authentication CA Service for Europe</div>				
-	</div>
+    <div class="topLeft">
+        <div id="topLogo" class="topLogo"><img src="RCauth-eu-logo-150.gif"><br/></div>
+        <div id="topText" class="topText">The white-label Research and Collaboration Authentication CA Service for Europe</div>				
+    </div>
 </div>
 <div class="clear"></div>
 
@@ -86,7 +50,8 @@ ICA G1 CA privacy policy</A>.<br>
 For further information on the CA see the
 <A href="https://rcauth.eu/">RCauth.eu homepage</A>.
 
-<form id="submitForm" action="${actionToTake}" method="POST" onsubmit="setCookie('${consent_cookie_name}','${consent_cookie_value}',90)">
+<!--form id="submitForm" action="${actionToTake}" method="POST" onsubmit="setCookie('${consent_cookie_name}','${consent_cookie_value}',90)"-->
+<form id="submitForm" action="${actionToTake}" method="POST">
 
     <input type="submit" style="float: left;" value="Yes, continue"/>
     <input type="button" style="margin-left: 1.5em;" name="cancel" value="No, cancel"/>
@@ -139,5 +104,6 @@ For further information on the CA see the
 </table>
 
 </div> <!-- wrap -->
+
 </body>
 </html>
