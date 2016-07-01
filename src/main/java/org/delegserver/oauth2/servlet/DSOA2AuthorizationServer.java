@@ -19,6 +19,7 @@ import org.delegserver.oauth2.shib.ShibAssertionRetriever;
 import org.delegserver.oauth2.shib.ShibHeaderExtractor;
 import org.delegserver.oauth2.util.HashingUtils;
 import org.delegserver.oauth2.util.JSONConverter;
+import org.delegserver.storage.DSOA2Client;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
 import edu.uiuc.ncsa.security.core.Logable;
@@ -54,7 +55,8 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	 */
 	public static int OA4MP_CONSENT_COOKIE_MAX_AGE = 90;
 
-	public static String AUTH_CLAIMS_KEY = "auth_claims";
+	public static final String AUTH_CLAIMS_KEY = "authClaims";
+	public static final String AUTH_CLIENT_DESC = "clientDesc";
 
 	public static String AUTHORIZE_ENDPOINT = "/authorize";
 	public static String REMOTE_USER_REDIRECT_PAGE = "/authorize-remote-user-redirect.jsp";
@@ -124,63 +126,16 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	public void prepare(PresentableState state) throws Throwable {
 		super.prepare(state);
 
-		setConsentCookie((AuthorizedState) state);
-
+		AuthorizedState authorizedState = (AuthorizedState) state;
+		
 		// only do something if the user has already been authorized and gave consent
 		if (state.getState() == AUTHORIZATION_ACTION_START) {
 
-			AuthorizedState authorizedState = (AuthorizedState) state;
 			DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) authorizedState.getTransaction());
-			DSOA2ServiceEnvironment env = (DSOA2ServiceEnvironment) environment;
+			
+			// generate the claims from the user attributes
+			generateClaims(authorizedState);
 
-			printAllParameters(authorizedState.getRequest());
-
-			/* DEBUG AND TRACE LOGGING */
-			// initialize session specific trace logger with session identifier
-			env.getTraceLogger().initSessionLogger(serviceTransaction.getIdentifierString());
-			env.getTraceLogger()
-					.marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString() + "]");
-
-			logAssertions(authorizedState.getRequest());
-			logReferer(authorizedState.getRequest());
-			// only bother printing the individual request attributes if debug is on
-			if (env.getTraceLogger().isDebugOn()) {
-				logAllParameters(authorizedState.getRequest());
-			}
-
-			// destroy the session specific trace logger
-			env.getTraceLogger().destroySessionLogger();
-
-			/* CLAIMS */
-
-			// build a claim map based in the incoming scope set in the
-			// transaction and the attributes given in the request
-			Map<String, Object> claims = new HashMap<String, Object>();
-
-			// iterate through the list of accepted scopes sent by the client
-			for (String scope : serviceTransaction.getScopes()) {
-
-				// get the configuration claimMap in order to decide which
-				// claims to extract for this specific scope
-				Map<String, String> claimMap = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getClaimsMap(scope);
-
-				if (claimMap != null) {
-					// we need to add some claims
-					for (String claim : claimMap.keySet()) {
-
-						// extract mapped attribute from the request object
-						String attribute = claimMap.get(claim);
-						Object value = ShibHeaderExtractor.getRequestAttrs(state.getRequest(), attribute);
-
-						if (value != null) {
-							claims.put(claim, value);
-						}
-					}
-				}
-			}
-
-			// set claims
-			serviceTransaction.setClaims(claims);
 			// set user attributes
 			// TODO: Should attributes be passed in headers by shibboleth? Can't we do better?
 			// Update: AbstractAuthorizationServl.et hardcodes the use of headers and fails
@@ -192,12 +147,85 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 
 			// set the claims as an attribute so that the consent JSP can then
 			// display them
-			authorizedState.getRequest().setAttribute(AUTH_CLAIMS_KEY, claims);
+			authorizedState.getRequest().setAttribute(AUTH_CLAIMS_KEY, serviceTransaction.getClaims());
+			
+			// set the client description for the consent page
+			DSOA2Client client = (DSOA2Client) serviceTransaction.getClient();
+			authorizedState.getRequest().setAttribute(AUTH_CLIENT_DESC, client.getDescription());
+			
+		} else if (state.getState() == AUTHORIZATION_ACTION_OK) {
+			
+			// set the consent cookie so that next time around we don't have to show the page
+			setConsentCookie(authorizedState);
+			
 		}
 	}
 
 	/* HELPER METHODS */
 
+	/**
+	 * Generate user claims from attributes. Using the mapping provided in the server 
+	 * configuration map SAML attributes into OpenIDConnect claims. These claims will
+	 * then be saved into the current transaction
+	 * 
+	 * @param state The current session state
+	 */
+	protected void generateClaims(AuthorizedState state) {
+
+		DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) state.getTransaction());
+		DSOA2ServiceEnvironment env = (DSOA2ServiceEnvironment) environment;
+
+		//printAllParameters(state.getRequest());
+
+		/* DEBUG AND TRACE LOGGING */
+		// initialize session specific trace logger with session identifier
+		env.getTraceLogger().initSessionLogger(serviceTransaction.getIdentifierString());
+		env.getTraceLogger()
+				.marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString() + "]");
+
+		logAssertions(state.getRequest());
+		logReferer(state.getRequest());
+		// only bother printing the individual request attributes if debug is on
+		if (env.getTraceLogger().isDebugOn()) {
+			logAllParameters(state.getRequest());
+		}
+
+		// destroy the session specific trace logger
+		env.getTraceLogger().destroySessionLogger();
+
+		/* CLAIMS */
+
+		// build a claim map based in the incoming scope set in the
+		// transaction and the attributes given in the request
+		Map<String, Object> claims = new HashMap<String, Object>();
+
+		// iterate through the list of accepted scopes sent by the client
+		for (String scope : serviceTransaction.getScopes()) {
+
+			// get the configuration claimMap in order to decide which
+			// claims to extract for this specific scope
+			Map<String, String> claimMap = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getClaimsMap(scope);
+
+			if (claimMap != null) {
+				// we need to add some claims
+				for (String claim : claimMap.keySet()) {
+
+					// extract mapped attribute from the request object
+					String attribute = claimMap.get(claim);
+					Object value = ShibHeaderExtractor.getRequestAttrs(state.getRequest(), attribute);
+
+					if (value != null) {
+						claims.put(claim, value);
+					}
+				}
+			}
+		}
+
+		// set claims
+		serviceTransaction.setClaims(claims);		
+	}
+	
+	
 	/**
 	 * Set a consent remembering cookie in the response object of the current session.
 	 * The consent cookie is a composed of the hash of the Master Portal client ID
@@ -207,38 +235,34 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	 */
 	protected void setConsentCookie(AuthorizedState state)  {
 
-		// only execute this if user consent has been given and authorization
-		// was ok
-		if (getState(state.getRequest()) == AUTHORIZATION_ACTION_OK) {
+		// get the checkbox value to see if we have to remember the consent
+		String rememberConsent = state.getRequest().getParameter("remember");
 
-			// get the checkbox value to see if we have to remember the consent
-			String rememberConsent = state.getRequest().getParameter("remember");
+		if (rememberConsent != null && rememberConsent.equals("on")) {
 
-			if (rememberConsent != null && rememberConsent.equals("on")) {
+			// get the Master Portal client ID that we are talking to in this session
+			String masterPortalID = ((ServiceTransaction) state.getTransaction()).getClient().getIdentifier().toString();
+			String userName = getRemoteUser(state);
 
-				// get the Master Portal client ID that we are talking to in this session
-				String masterPortalID = ((ServiceTransaction) state.getTransaction()).getClient().getIdentifier().toString();
-				String userName = getRemoteUser(state);
+			// Note: be aware of the right encoding for cookies! Values such as '=' do not play nicely
+			// so use HEX representation of the hash rather then the base64
 
-				// Note: be aware of the right encoding for cookies! Values such as '=' do not play nicely
-				// so use HEX representation of the hash rather then the base64
+			// get the HEX encoded hash of the client ID
+			String hashedID = HashingUtils.getInstance().hashToHEX(masterPortalID + userName);
 
-				// get the HEX encoded hash of the client ID
-				String hashedID = HashingUtils.getInstance().hashToHEX(masterPortalID + userName);
+			// create a new response cookie
+			Cookie consentCookie = new Cookie(OA4MP_CONSENT_COOKIE_NAME_PREFIX + hashedID,
+					OA4MP_CONSENT_COOKIE_VALUE);
+			consentCookie.setMaxAge(OA4MP_CONSENT_COOKIE_MAX_AGE * 24 * 60 * 60);
+			consentCookie.setPath(state.getRequest().getContextPath() + AUTHORIZE_ENDPOINT);
 
-				// create a new response cookie
-				Cookie consentCookie = new Cookie(OA4MP_CONSENT_COOKIE_NAME_PREFIX + hashedID,
-						OA4MP_CONSENT_COOKIE_VALUE);
-				consentCookie.setMaxAge(OA4MP_CONSENT_COOKIE_MAX_AGE * 24 * 60 * 60);
-				consentCookie.setPath(state.getRequest().getContextPath() + AUTHORIZE_ENDPOINT);
+			debug("Setting the consent remembering cookie " + consentCookie.getValue());
+			
+			// add the cookie to the response
+			state.getResponse().addCookie(consentCookie);
 
-				debug("Setting the consent remembering cookie " + consentCookie.getValue());
-				
-				// add the cookie to the response
-				state.getResponse().addCookie(consentCookie);
-
-			}
 		}
+	
 	}
 
 	/**

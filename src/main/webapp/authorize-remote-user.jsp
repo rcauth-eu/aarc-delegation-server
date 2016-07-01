@@ -58,7 +58,7 @@ For further information on the CA see the
 
     <p>
     <p>
-    <input type="checkbox" name="remember" id="remember"/>
+    <input type="checkbox" name="remember" id="remember" checked="on"/>
     Remember
 
     <!-- Unhide this when you want to support it. All the machinery is in place.
@@ -81,6 +81,7 @@ For further information on the CA see the
 <h4>Master Portal Information:</h4>
 <table>
     <tr style="height: 2.0em;"><td><i style="margin-right: 1.5em;">Name:</i><td>${clientName}</tr>
+    <tr style="height: 2.0em;  vertical-align: top"><td><i style="margin-right: 1.5em;">Description:</i><td>${clientDesc}</tr>
     <tr style="height: 2.0em;"><td><i style="margin-right: 1.5em;">URL:</i><td>${clientHome}</tr>
 </table>
 
@@ -93,7 +94,7 @@ For further information on the CA see the
                 <td>${userName}
         </tr>
 
-<c:forEach items="${auth_claims}" var="claim">
+<c:forEach items="${authClaims}" var="claim">
 	
 	<tr style="height: 2.0em;">
 		<td><i style="margin-right: 1.5em;">${claim.key} :</i>

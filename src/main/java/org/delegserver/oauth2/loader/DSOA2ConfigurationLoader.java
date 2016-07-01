@@ -11,30 +11,41 @@ import org.delegserver.oauth2.logging.TraceRecordLoggerProvider;
 import org.delegserver.oauth2.util.DSOA2ConfigurationLoaderUtils;
 import org.delegserver.storage.TraceRecordKeys;
 import org.delegserver.storage.TraceRecordStore;
+import org.delegserver.storage.DSOA2ClientConverter;
 import org.delegserver.storage.DSOA2TConverter;
 import org.delegserver.storage.DSOA2TransactionKeys;
 import org.delegserver.storage.TraceRecordConverter;
 import org.delegserver.storage.TraceRecordIdentifierProvider;
 import org.delegserver.storage.impl.TraceRecordProvider;
+import org.delegserver.storage.impl.DSOA2ClientProvider;
 import org.delegserver.storage.impl.MultiTraceRecordStoreProvider;
+import org.delegserver.storage.sql.DSOA2ClientSQLStoreProvider;
 import org.delegserver.storage.sql.DSOA2SQLTransactionStoreProvider;
 import org.delegserver.storage.sql.SQLTraceRecordStoreProvider;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2ClientSQLStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2SQLTransactionStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.DSTransactionProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientStoreProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider;
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.core.Identifier;
+import edu.uiuc.ncsa.security.core.configuration.provider.CfgEvent;
+import edu.uiuc.ncsa.security.core.configuration.provider.TypedProvider;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.IdentifierProvider;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
+import edu.uiuc.ncsa.security.delegation.server.storage.ClientStore;
+import edu.uiuc.ncsa.security.delegation.server.storage.impl.ClientMemoryStore;
+import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
 import edu.uiuc.ncsa.security.delegation.token.TokenForge;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPool;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPoolProvider;
@@ -145,12 +156,12 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     }
 
    
-    /* Configure the use of out custom Service Transaction implementation */
+    /* Configure the use of custom Service Transaction implementation */
 
     
-    public static class MPST2Provider extends DSTransactionProvider<OA2ServiceTransaction> {
+    public static class DSST2Provider extends DSTransactionProvider<OA2ServiceTransaction> {
 
-        public MPST2Provider(IdentifierProvider<Identifier> idProvider) {
+        public DSST2Provider(IdentifierProvider<Identifier> idProvider) {
             super(idProvider);
         }
 
@@ -163,7 +174,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 
     @Override
     protected Provider<TransactionStore> getTSP() {
-        IdentifiableProvider tp = new MPST2Provider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, TRANSACTION_ID, false));
+        IdentifiableProvider tp = new DSST2Provider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, TRANSACTION_ID, false));
         DSOA2TransactionKeys keys = new DSOA2TransactionKeys();
         DSOA2TConverter<DSOA2ServiceTransaction> tc = new DSOA2TConverter<DSOA2ServiceTransaction>(keys, tp, getTokenForgeProvider().get(), getClientStoreProvider().get());
         return getTSP(tp,  tc);
@@ -180,6 +191,47 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     	return new DSOA2SQLTransactionStoreProvider(config,cpp,type,clientStoreProvider,tp,tfp,converter);
     }
     
+    /* Configure the use of custom Client implementation */
+    
+    @Override
+    protected MultiDSClientStoreProvider getCSP() {
+        if (csp == null) {
+            DSOA2ClientConverter converter = new DSOA2ClientConverter(getClientProvider());
+            csp = new MultiDSClientStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null, getClientProvider());
+
+            csp.addListener(new DSFSClientStoreProvider(cn, converter, getClientProvider()));
+            csp.addListener(new DSOA2ClientSQLStoreProvider(getMySQLConnectionPoolProvider(),
+                    OA4MPConfigTags.MYSQL_STORE,
+                    converter, getClientProvider()));
+            csp.addListener(new DSOA2ClientSQLStoreProvider(getMariaDBConnectionPoolProvider(),
+                    OA4MPConfigTags.MARIADB_STORE,
+                    converter, getClientProvider()));
+            csp.addListener(new DSOA2ClientSQLStoreProvider(getPgConnectionPoolProvider(),
+                    OA4MPConfigTags.POSTGRESQL_STORE,
+                    converter, getClientProvider()));
+            csp.addListener(new TypedProvider<ClientStore>(cn, OA4MPConfigTags.MEMORY_STORE, OA4MPConfigTags.CLIENTS_STORE) {
+
+                @Override
+                public Object componentFound(CfgEvent configurationEvent) {
+                    if (checkEvent(configurationEvent)) {
+                        return get();
+                    }
+                    return null;
+                }
+
+                @Override
+                public ClientStore get() {
+                    return new ClientMemoryStore(getClientProvider());
+                }
+            });
+        }
+        return csp;
+    }
+    
+    @Override
+    public IdentifiableProvider<? extends Client> getClientProvider() {
+    	return new DSOA2ClientProvider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, OA2Constants.CLIENT_ID, false));
+    }
     
     /* Load scope configuration with claim mapping */
     

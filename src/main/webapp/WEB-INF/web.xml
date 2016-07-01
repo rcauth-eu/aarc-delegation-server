@@ -83,7 +83,7 @@
 
     <servlet>
         <servlet-name>clientVetting</servlet-name>
-        <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2RegistrationServlet</servlet-class>
+        <servlet-class>org.delegserver.oauth2.servlet.DSOA2RegistrationServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
