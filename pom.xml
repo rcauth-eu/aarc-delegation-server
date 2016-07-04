@@ -43,6 +43,12 @@
     </dependency>
 
     <dependency>
+      <groupId>edu.uiuc.ncsa.myproxy</groupId>
+      <artifactId>oa4mp-server-admin-oauth2</artifactId>
+      <version>3.2.1</version>
+    </dependency>
+
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
@@ -92,15 +98,7 @@
 
   <profiles>
     <profile>
-
-      <dependencies>
-        <dependency>
-          <groupId>edu.uiuc.ncsa.myproxy</groupId>
-          <artifactId>oa4mp-server-admin-oauth2</artifactId>
-          <version>3.2.1</version>
-        </dependency>
-      </dependencies>
-
+    
       <id>cli</id>
 
       <build>
@@ -112,7 +110,7 @@
             <executions>
               <execution>
                 <configuration>
-                  <mainClass>edu.uiuc.ncsa.myproxy.oauth2.tools.OA2Commands</mainClass>
+                  <mainClass>org.delegserver.oauth2.cli.DSOA2Commands</mainClass>
                   <filename>oa2-cli.jar</filename>
                 </configuration>
                 <goals>
