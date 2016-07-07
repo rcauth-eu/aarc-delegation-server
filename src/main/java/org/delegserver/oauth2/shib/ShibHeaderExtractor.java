@@ -13,6 +13,46 @@ import javax.servlet.http.HttpServletRequest;
 public class ShibHeaderExtractor {
 
 	/**
+	 * Return the authenticated users' user name / identifier sent by Shibboleth.
+	 * <p>
+	 * Extract the username from the Shibboleth headers. This method will try different
+	 * alternatives to retrieve the username. First it will try returning the remote user
+	 * under the remoteUserHeader specified in this call. Alternatively it will return
+	 * the result of the getRemoteUser call   
+	 * 
+	 * @param request The current request object
+	 * @param remoteUserHeader The name of the remote user header 
+	 * @return The remote users' name
+	 */
+	public static String getRemoteUser(HttpServletRequest request, String remoteUserHeader) {
+
+        String x = null;
+        
+        // Alternative 1. : use the provided remote user header
+        if ( remoteUserHeader != null && ! remoteUserHeader.isEmpty() ) {
+        
+	        if (remoteUserHeader.equals("REMOTE_USER")) {
+	            // slightly more surefire way to get this.
+	            x = request.getRemoteUser();
+	        } else {
+	            x = request.getHeader(remoteUserHeader);
+	        }
+        }
+        
+        // Alternative 2. : use the remote user call 
+        if ( x == null ) {
+        	
+        	// default to the remote user call
+        	x = request.getRemoteUser();
+        	
+        }
+        
+		return x;
+        
+	}
+	
+	
+	/**
 	 * Get a specific request attribute identified by the given key
 	 * <p>
 	 * It either returns a single {@link String} value found, or a 

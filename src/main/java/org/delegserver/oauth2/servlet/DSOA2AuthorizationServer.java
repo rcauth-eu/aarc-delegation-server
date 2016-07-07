@@ -1,7 +1,5 @@
 package org.delegserver.oauth2.servlet;
 
-import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
-
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -9,24 +7,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.HttpHeaders;
 import org.delegserver.oauth2.DSOA2ServiceEnvironment;
 import org.delegserver.oauth2.DSOA2ServiceTransaction;
+import org.delegserver.oauth2.generator.CertExtensionGenerator;
+import org.delegserver.oauth2.generator.DNGenerator;
+import org.delegserver.oauth2.generator.TraceRecordGenerator;
 import org.delegserver.oauth2.shib.ShibAssertionRetriever;
 import org.delegserver.oauth2.shib.ShibHeaderExtractor;
-import org.delegserver.oauth2.util.HashingUtils;
 import org.delegserver.oauth2.util.JSONConverter;
 import org.delegserver.storage.DSOA2Client;
+import org.delegserver.storage.RDNElement;
+import org.delegserver.storage.RDNElementPart;
+import org.delegserver.storage.TraceRecord;
 
-import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer;
-import edu.uiuc.ncsa.security.core.Logable;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
-import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
-import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
-import edu.uiuc.ncsa.security.servlet.JSPUtil;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
 
 /**
@@ -34,93 +32,31 @@ import edu.uiuc.ncsa.security.servlet.PresentableState;
  * regular authorization flow this servlet will save the attribute list released
  * by the home IdP of the authenticated user and the claims constructed from
  * them into the Service Transaction.
+ * <p>
+ * When the 'edu.uiuc.ncsa.myproxy.getcert' is received this servlet will create
+ * a {@link TraceRecord} and a subject DN for the authenticated user.
+ * <p>
+ * For more details on DNs  are constructed consult the RCauth Policy Document
+ * ( https://rcauth.eu/policy ) section 3.1.2 * 
  * 
  * @author "Tamás Balogh"
- *
+ * @see <a href="https://rcauth.eu/policy">https://rcauth.eu/policy</a>
  */
-public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
-
-	/* POSTPROCESS AUTHORIZED STATE */
+public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
 	/**
-	 * Prefix the consent remembering cookie with a static value
+	 * JSP Variable for the consent page
 	 */
-	public static String OA4MP_CONSENT_COOKIE_NAME_PREFIX = "consent_";
-	/**
-	 * The value of the consent remembering cookie
-	 */
-	public static String OA4MP_CONSENT_COOKIE_VALUE = "true";
-	/**
-	 * The age of the consent remembering cookie
-	 */
-	public static int OA4MP_CONSENT_COOKIE_MAX_AGE = 90;
-
 	public static final String AUTH_CLAIMS_KEY = "authClaims";
 	public static final String AUTH_CLIENT_DESC = "clientDesc";
 
-	public static String AUTHORIZE_ENDPOINT = "/authorize";
-	public static String REMOTE_USER_REDIRECT_PAGE = "/authorize-remote-user-redirect.jsp";
-
-	@Override
-	public void present(PresentableState state) throws Throwable {
-
-		AuthorizedState aState = (AuthorizedState) state;
-		postprocess(new TransactionState(state.getRequest(), aState.getResponse(), null, aState.getTransaction()));
-
-		switch (aState.getState()) {
-		case AUTHORIZATION_ACTION_START:
-
-			String userName = getRemoteUser(aState);
-
-			// saving the username 
-			aState.getTransaction().setUsername(userName);
-			info("*** storing user name = " + userName);
-			getTransactionStore().save(aState.getTransaction());
-
-			String masterPortalID = ((ServiceTransaction) aState.getTransaction()).getClient().getIdentifier().toString();
-			String hashedID = HashingUtils.getInstance().hashToHEX(masterPortalID + userName);
-
-			// retrieve the consent remembering cookie
-			String consentCookie = getCookie(aState.getRequest(), OA4MP_CONSENT_COOKIE_NAME_PREFIX + hashedID);
-			
-			// check if the cookie is valid
-			if (consentCookie != null && consentCookie.equals(OA4MP_CONSENT_COOKIE_VALUE)) {
-
-				debug("Consent cookie found! Automatically redirecting user without the consent page");
-				
-				// Forward the user to an automatic redirect page. In case javascript is disabled the user
-				// will have to manually click the redirect button.
-				
-				// Note: A custom redirecting JSP form is needed here because calling dispatcher.forward()
-				// will create a loop by restarting the authorization session in OA2AuthorizationServer
-				// at line 108. Checking for a new session is currently done by looking at the RESPONSE_TYPE
-				// parameter from the request. An additional check for the 'action=ok' parameter would
-				// stop the session from being restarted.
-				
-				JSPUtil.fwd(aState.getRequest(), aState.getResponse(), REMOTE_USER_REDIRECT_PAGE);
-
-			} else {
-
-				debug("No consent cookie found! Showing consent page");
-				
-				aState.getRequest().setAttribute(AUTHORIZATION_USER_NAME_VALUE, escapeHtml(userName));
-				
-				JSPUtil.fwd(state.getRequest(), state.getResponse(), REMOTE_USER_INITIAL_PAGE);
-				info("3.a. User information obtained for grant = " + aState.getTransaction().getAuthorizationGrant());
-
-			}
-			break;
-
-		case AUTHORIZATION_ACTION_OK:
-
-			JSPUtil.fwd(state.getRequest(), state.getResponse(), OK_PAGE);
-			break;
-
-		default:
-			// fall through and do nothing
-			debug("Hit default case in AbstractAuthZ servlet");
-		}
-	}
+	/**
+	 * Special attribute name under which the user certificate DN is stored internally.
+	 * Use this name in the server.cfg to map this attribute to a claim
+	 */
+	public static final String CERT_SUBJECT_ATTR = "X509_CERT_SUBJECT";
+	
+	/* OVERRIDEN METHODS */
 
 	@Override
 	public void prepare(PresentableState state) throws Throwable {
@@ -128,20 +64,31 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 
 		AuthorizedState authorizedState = (AuthorizedState) state;
 		
-		// only do something if the user has already been authorized and gave consent
 		if (state.getState() == AUTHORIZATION_ACTION_START) {
 
 			DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) authorizedState.getTransaction());
+			DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
 			
-			// generate the claims from the user attributes
-			generateClaims(authorizedState);
+			//printAllParameters(state.getRequest());
 
+			/* DEBUG AND TRACE LOGGING */
+			// initialize session specific trace logger with session identifier
+			se.getTraceLogger().initSessionLogger(serviceTransaction.getIdentifierString());
+			se.getTraceLogger().marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString() + "]");
+
+			logAssertions(state.getRequest());
+			logReferer(state.getRequest());
+			logAllParameters(state.getRequest());
+			
 			// set user attributes
 			// TODO: Should attributes be passed in headers by shibboleth? Can't we do better?
 			// Update: AbstractAuthorizationServl.et hardcodes the use of headers and fails
 			// if UseHeader are not enabled. Ask Jim?
 			serviceTransaction.setUserAttributes(ShibHeaderExtractor.getAttrMap(state.getRequest()));
 
+			// generate the claims from the user attributes
+			generateClaims(authorizedState);
+			
 			// save transaction
 			getTransactionStore().save(serviceTransaction);
 
@@ -153,15 +100,13 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 			DSOA2Client client = (DSOA2Client) serviceTransaction.getClient();
 			authorizedState.getRequest().setAttribute(AUTH_CLIENT_DESC, client.getDescription());
 			
-		} else if (state.getState() == AUTHORIZATION_ACTION_OK) {
+			// destroy the session specific trace logger
+			se.getTraceLogger().destroySessionLogger();
 			
-			// set the consent cookie so that next time around we don't have to show the page
-			setConsentCookie(authorizedState);
-			
-		}
-	}
+		} 
+	}	
 
-	/* HELPER METHODS */
+	/* GENERATOR METHODS */
 
 	/**
 	 * Generate user claims from attributes. Using the mapping provided in the server 
@@ -173,28 +118,12 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 	protected void generateClaims(AuthorizedState state) {
 
 		DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) state.getTransaction());
-		DSOA2ServiceEnvironment env = (DSOA2ServiceEnvironment) environment;
 
-		//printAllParameters(state.getRequest());
-
-		/* DEBUG AND TRACE LOGGING */
-		// initialize session specific trace logger with session identifier
-		env.getTraceLogger().initSessionLogger(serviceTransaction.getIdentifierString());
-		env.getTraceLogger()
-				.marked("NEW AUTHORIZE REQUEST [transaction: " + serviceTransaction.getIdentifierString() + "]");
-
-		logAssertions(state.getRequest());
-		logReferer(state.getRequest());
-		// only bother printing the individual request attributes if debug is on
-		if (env.getTraceLogger().isDebugOn()) {
-			logAllParameters(state.getRequest());
+		//handle the 'edu.uiuc.ncsa.myproxy.getcert' scope in a special way 
+		if ( serviceTransaction.getScopes().contains( OA2Scopes.SCOPE_MYPROXY ) ) {
+			generateTraceRecord( serviceTransaction );
 		}
-
-		// destroy the session specific trace logger
-		env.getTraceLogger().destroySessionLogger();
-
-		/* CLAIMS */
-
+		
 		// build a claim map based in the incoming scope set in the
 		// transaction and the attributes given in the request
 		Map<String, Object> claims = new HashMap<String, Object>();
@@ -212,7 +141,9 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 
 					// extract mapped attribute from the request object
 					String attribute = claimMap.get(claim);
-					Object value = ShibHeaderExtractor.getRequestAttrs(state.getRequest(), attribute);
+				
+					//Object value = ShibHeaderExtractor.getRequestAttrs(state.getRequest(), attribute);
+					Object value = serviceTransaction.getUserAttributes().get( attribute );
 
 					if (value != null) {
 						claims.put(claim, value);
@@ -225,210 +156,180 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 		serviceTransaction.setClaims(claims);		
 	}
 	
-	
 	/**
-	 * Set a consent remembering cookie in the response object of the current session.
-	 * The consent cookie is a composed of the hash of the Master Portal client ID
-	 * and the authenticated user 'sub'. 
-	 * 
-	 * @param state The current session state
-	 */
-	protected void setConsentCookie(AuthorizedState state)  {
-
-		// get the checkbox value to see if we have to remember the consent
-		String rememberConsent = state.getRequest().getParameter("remember");
-
-		if (rememberConsent != null && rememberConsent.equals("on")) {
-
-			// get the Master Portal client ID that we are talking to in this session
-			String masterPortalID = ((ServiceTransaction) state.getTransaction()).getClient().getIdentifier().toString();
-			String userName = getRemoteUser(state);
-
-			// Note: be aware of the right encoding for cookies! Values such as '=' do not play nicely
-			// so use HEX representation of the hash rather then the base64
-
-			// get the HEX encoded hash of the client ID
-			String hashedID = HashingUtils.getInstance().hashToHEX(masterPortalID + userName);
-
-			// create a new response cookie
-			Cookie consentCookie = new Cookie(OA4MP_CONSENT_COOKIE_NAME_PREFIX + hashedID,
-					OA4MP_CONSENT_COOKIE_VALUE);
-			consentCookie.setMaxAge(OA4MP_CONSENT_COOKIE_MAX_AGE * 24 * 60 * 60);
-			consentCookie.setPath(state.getRequest().getContextPath() + AUTHORIZE_ENDPOINT);
-
-			debug("Setting the consent remembering cookie " + consentCookie.getValue());
-			
-			// add the cookie to the response
-			state.getResponse().addCookie(consentCookie);
-
-		}
-	
-	}
-
-	/**
-	 * Retrieve a cookie value from the request object by its name. If there is no
-	 * cookie found with cookieName, return null
-	 * 
-	 * @param request The current request object 
-	 * @param cookieName The name of the cookie
-	 * @return The value of the cookie
-	 */
-	public static String getCookie(HttpServletRequest request, String cookieName) {
-
-		for (Cookie cookie : request.getCookies()) {
-
-			if (cookie.getName().equals(cookieName)) {
-				return cookie.getValue();
-			}
-
-		}
-		return null;
-
-	}
-
-	/**
-	 * Return the authenticated users' user name / identifier sent by Shibboleth.
+	 * Generate a TraceRecord from the user attributes under the current transaction. 
+	 * This method will search for an already existing TraceRecord for the user or create
+	 * a new one. The resulting TraceRecord, the generated user DN (saved as a custom 
+	 * attribute under {@link CERT_SUBJECT_ATTR}) and the MyProxy USERNAME will be saved
+	 * into the current transaction.
 	 * <p>
-	 * Only Shibboleth headers are supported at the moment. This method will try different
-	 * alternatives to retrieve the username, including the REMOT_USER header.  
+	 * Moreover, this method also generates the final user DN which will be passed along to the
+	 * MyProxy connection. Both trace record and transaction should get updates by this method.
 	 * 
-	 * @param aState The current session state
-	 * @return The remote users' name
+	 * @param trans The current transaction with user attributes 
 	 */
-	public String getRemoteUser(AuthorizedState aState) {
+	protected void generateTraceRecord(DSOA2ServiceTransaction trans) {
 
-        if (getServiceEnvironment().getAuthorizationServletConfig().isUseHeader()) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		DNGenerator dnGenerator = se.getDnGenerator();
+		TraceRecordGenerator generator = se.getTraceRecordGenerator();
+		CertExtensionGenerator certExtGenerator = se.getCertExtGenerator();
+	
+		// 1. GET TRACE RECORD FOR THIS TRANSACTION
+		traceDebug("6.a.1  Get trace record for current transaction");
+		
+		TraceRecord traceRecord =  generator.generate( trans.getUserAttributes() );
+		
+		// by now we should already have a trace record. if not we shouldn't continue!  
+		if ( traceRecord == null ) {
+			throw new GeneralException("Could not create/retrieve trace record for the current transaction!");
+		}
 
-            info("*** PRESENT: Use headers enabled.");
-            String x = null;
-            
-            if (getServiceEnvironment().getAuthorizationServletConfig().getHeaderFieldName().equals("REMOTE_USER")) {
-                // slightly more surefire way to get this.
-                x = aState.getRequest().getRemoteUser();
-                info("*** got user name from request = " + x);
-            } else {
-                x = aState.getRequest().getHeader(getServiceEnvironment().getAuthorizationServletConfig().getHeaderFieldName());
-                info("Got username from header \"" + getServiceEnvironment().getAuthorizationServletConfig().getHeaderFieldName() + "\" + directly: " + x);
-            }
+		// 3. SAVE TRACE RECORD
+		traceDebug("6.a.3 Saving trace record");		
+		se.getTraceRecordStore().save(traceRecord);
+		
+		// 4. GENERATE USER DN FOR TRANSACTION AND SAVE TRANSACTION
+		traceDebug("6.a.4 Generating user DN for transaction...");		
+		//the DN sufix should be taken from the trace record retrieved/created above!!!
+		//if you recreate the CN at this point using DnGenerator you might end up
+		//creating a new CN for an already existing user in the system.
+		RDNElement orgRDN = traceRecord.getOrganization();
+		RDNElement cnRDN = traceRecord.getCommonName();
+		int cnRDNseqNr = traceRecord.getSequenceNr();
+		
+		//append the sequence number where applicable 
+		if ( cnRDNseqNr > 0 ) {
+			trans.setMyproxyUsername( dnGenerator.formatDNSufix( orgRDN.getElement() , cnRDN.getElement(), cnRDNseqNr ) );
+		} else {
+			trans.setMyproxyUsername( dnGenerator.formatDNSufix( orgRDN.getElement() , cnRDN.getElement() ) );	
+		}
+		
+		//log the final trace record elements and their origin
+		logTraceRecord(traceRecord);
+		traceDebug("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());		
 
-            if (isEmpty(x)) {
-                if (getServiceEnvironment().getAuthorizationServletConfig().isRequireHeader()) {
-                    throw new GeneralException("Error: configuration required using the header \"" +
-                            getServiceEnvironment().getAuthorizationServletConfig().getHeaderFieldName() + "\" " +
-                            "but this was not set. Cannot continue."
-                    );
-                }
-                // not required, it is null
+		//complete the USERNAME parameter with extensions 
+		String additionalInfo = certExtGenerator.getCertificateExtensions( trans.getUserAttributes() );
 
-            } else {
-                return x;
-            }
-        } else {
-            info("*** PRESENT: Use headers DISABLED.");
-        }
-        
-		return null;
-        
+		if ( additionalInfo != null ) { 
+			trans.setMyproxyUsername( trans.getMyproxyUsername() + " " + additionalInfo );
+			traceDebug("6.a.5 Full MyProxy username: " + trans.getMyproxyUsername());
+		} else {
+			traceDebug("6.a.5 No extensions appended into the certificate request. Requesting cert without it");
+		}
+
+		// log the final DN (with extension) to INFO
+		traceInfo("Full MyProxy username: " + trans.getMyproxyUsername());		
+		
+		// save the trace_recrod reference to the transaction
+		// TODO: Do we need this for anything?
+		trans.setTraceRecord( traceRecord.getCnHash() );
+		
+		// save the generated full user DN as a user attribute 
+		trans.getUserAttributes().put(dnGenerator.getAttributeName() , dnGenerator.formatFullDN( orgRDN.getElement() , 
+																							     cnRDN.getElement() ,
+																							     cnRDNseqNr ));
+		se.getTransactionStore().save(trans);	
+		
 	}
 
 	/* DEBUG AND DISPLAY */
 
 	protected void logAllParameters(HttpServletRequest request) {
 
-		DSOA2ServiceEnvironment env = (DSOA2ServiceEnvironment) environment;
-		Logable traceLogger = env.getTraceLogger();
-
-		String reqUrl = request.getRequestURL().toString();
-		String queryString = request.getQueryString(); // d=789
-		if (queryString != null) {
-			reqUrl += "?" + queryString;
-		}
-
-		traceLogger.debug("Request parameters for '" + reqUrl + "'");
-
-		if (request.getParameterMap() == null || request.getParameterMap().isEmpty()) {
-			traceLogger.debug("  (none)");
-		} else {
-			for (Object key : request.getParameterMap().keySet()) {
-				String[] values = request.getParameterValues(key.toString());
-				if (values == null || values.length == 0) {
-				} else {
-
-					if (values.length == 1) {
-
-						if (values[0] != null && !values[0].isEmpty()) {
-							traceLogger.debug(" " + key + " = " + values[0]);
-						}
-
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		
+		// only bother printing the individual request attributes if debug is on
+		if ( se.getTraceLogger().isDebugOn() ) {
+			
+			String reqUrl = request.getRequestURL().toString();
+			String queryString = request.getQueryString(); // d=789
+			if (queryString != null) {
+				reqUrl += "?" + queryString;
+			}
+	
+			traceDebug("Request parameters for '" + reqUrl + "'");
+	
+			if (request.getParameterMap() == null || request.getParameterMap().isEmpty()) {
+				traceDebug("  (none)");
+			} else {
+				for (Object key : request.getParameterMap().keySet()) {
+					String[] values = request.getParameterValues(key.toString());
+					if (values == null || values.length == 0) {
 					} else {
-						List<String> nonEmptyValues = new ArrayList<String>();
-						for (String x : values) {
-							if (x != null && !x.isEmpty()) {
-								nonEmptyValues.add(x);
+	
+						if (values.length == 1) {
+	
+							if (values[0] != null && !values[0].isEmpty()) {
+								traceDebug(" " + key + " = " + values[0]);
 							}
-						}
-						if (!nonEmptyValues.isEmpty()) {
-							traceLogger.debug(
-									" " + key + " = " + JSONConverter.toJSONArray(nonEmptyValues).toJSONString());
+	
+						} else {
+							List<String> nonEmptyValues = new ArrayList<String>();
+							for (String x : values) {
+								if (x != null && !x.isEmpty()) {
+									nonEmptyValues.add(x);
+								}
+							}
+							if (!nonEmptyValues.isEmpty()) {
+								traceDebug(
+										" " + key + " = " + JSONConverter.toJSONArray(nonEmptyValues).toJSONString());
+							}
 						}
 					}
 				}
 			}
-		}
-
-		traceLogger.debug("Cookies:");
-		if (request.getCookies() == null) {
-			traceLogger.debug(" (none)");
-		} else {
-			for (javax.servlet.http.Cookie c : request.getCookies()) {
-				if (c.getValue() != null && !c.getValue().isEmpty()) {
-					traceLogger.debug(" " + c.getName() + " = " + c.getValue());
+	
+			traceDebug("Cookies:");
+			if (request.getCookies() == null) {
+				traceDebug(" (none)");
+			} else {
+				for (javax.servlet.http.Cookie c : request.getCookies()) {
+					if (c.getValue() != null && !c.getValue().isEmpty()) {
+						traceDebug(" " + c.getName() + " = " + c.getValue());
+					}
+				}
+			}
+	
+			traceDebug("Headers:");
+			Enumeration e = request.getHeaderNames();
+			if (!e.hasMoreElements()) {
+				traceDebug(" (none)");
+			} else {
+	
+				// IMPORTANT !!! Map the header parameters with the right encoding
+				Charset isoCharset = Charset.forName("ISO-8859-1");
+				Charset utf8Charset = Charset.forName("UTF-8");
+	
+				while (e.hasMoreElements()) {
+					String name = e.nextElement().toString();
+					String header = request.getHeader(name);
+					if (header != null && !header.isEmpty()) {
+	
+						byte[] v = header.getBytes(isoCharset);
+						traceDebug(" " + name + " = " + new String(v, utf8Charset));
+					}
+				}
+			}
+	
+			traceDebug("Attributes:");
+			Enumeration attr = request.getAttributeNames();
+			if (!e.hasMoreElements()) {
+				traceDebug(" (none)");
+			} else {
+				while (attr.hasMoreElements()) {
+					String name = attr.nextElement().toString();
+					String attribute = request.getAttribute(name).toString();
+					if (attribute != null && !attribute.isEmpty()) {
+						traceDebug(" " + name + " = " + attribute);
+					}
 				}
 			}
 		}
-
-		traceLogger.debug("Headers:");
-		Enumeration e = request.getHeaderNames();
-		if (!e.hasMoreElements()) {
-			traceLogger.debug(" (none)");
-		} else {
-
-			// IMPORTANT !!! Map the header parameters with the right encoding
-			Charset isoCharset = Charset.forName("ISO-8859-1");
-			Charset utf8Charset = Charset.forName("UTF-8");
-
-			while (e.hasMoreElements()) {
-				String name = e.nextElement().toString();
-				String header = request.getHeader(name);
-				if (header != null && !header.isEmpty()) {
-
-					byte[] v = header.getBytes(isoCharset);
-					traceLogger.debug(" " + name + " = " + new String(v, utf8Charset));
-				}
-			}
-		}
-
-		traceLogger.debug("Attributes:");
-		Enumeration attr = request.getAttributeNames();
-		if (!e.hasMoreElements()) {
-			traceLogger.debug(" (none)");
-		} else {
-			while (attr.hasMoreElements()) {
-				String name = attr.nextElement().toString();
-				String attribute = request.getAttribute(name).toString();
-				if (attribute != null && !attribute.isEmpty()) {
-					traceLogger.debug(" " + name + " = " + attribute);
-				}
-			}
-		}
-
 	}
 
 	private void logReferer(HttpServletRequest request) {
-
-		// get the trace logger
-		DSOA2ServiceEnvironment env = (DSOA2ServiceEnvironment) environment;
-		Logable traceLogger = env.getTraceLogger();
 
 		// get the referer header
 		String referer = request.getHeader(HttpHeaders.REFERER);
@@ -440,25 +341,21 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 
 		// print referer to trace log
 		if (referer == null || referer.isEmpty()) {
-			traceLogger.warn("There was no 'referer' header set in the request!");
+			traceWarn("There was no 'referer' header set in the request!");
 		} else {
-			traceLogger.info("Referer Header: " + referer);
+			traceInfo("Referer Header: " + referer);
 		}
 
 	}
 
 	private void logAssertions(HttpServletRequest request) {
 
-		// get the trace logger
-		DSOA2ServiceEnvironment env = (DSOA2ServiceEnvironment) environment;
-		Logable traceLogger = env.getTraceLogger();
-
 		try {
 
 			String assertions = ShibAssertionRetriever.getShibAssertions(request);
 
-			traceLogger.debug("SAML Assertions Received :");
-			traceLogger.info(assertions);
+			traceDebug("SAML Assertions Received :");
+			traceInfo(assertions);
 
 		} catch (Throwable e) {
 			this.warn("Error Requesting Shibboleth Assertion");
@@ -467,5 +364,44 @@ public class DSOA2AuthorizationServer extends OA2AuthorizationServer {
 		}
 
 	}
+
+	public void logTraceRecord(TraceRecord traceRecord) {
+		logTraceRecordElement( traceRecord.getOrganization() );
+		logTraceRecordElement( traceRecord.getCommonName() );
+	}
+	
+	public void logTraceRecordElement(RDNElement element) {
+		for ( RDNElementPart rdnPart : element.getElementParts() ) {
+		
+			StringBuilder orgTrace = new StringBuilder();
+			
+			orgTrace.append("RDN : '" + rdnPart.getElement() + "' ");
+			orgTrace.append("(" + rdnPart.getElementSource() + " = ");
+			orgTrace.append("'" + rdnPart.getElementOrig() + "')");
+
+			
+			traceInfo(orgTrace.toString());
+		}
+	}
+	
+	public void traceInfo(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().info(x);
+	}
+	
+	public void traceDebug(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().debug(x);
+	}
+	
+	public void traceError(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().error(x);
+	}
+	
+	public void traceWarn(String x) {
+		DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
+		se.getTraceLogger().warn(x);
+	}		
 
 }

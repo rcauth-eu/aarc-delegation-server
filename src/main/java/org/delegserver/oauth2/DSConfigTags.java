@@ -12,6 +12,10 @@ public interface DSConfigTags extends OA4MPConfigTags {
 	
 	// DN generator tags used to specify DN sources 
 	public static final String DN_GENERATOR = "dnGenerator";
+	public static final String DN_GENERATOR_ATTRIBUTE = "attributeName";
+	public static final String DN_GENERATOR_TYPE = "type";
+	public static final String DN_GENERATOR_BASE_DN = "baseDN";
+	
 	public static final String DN_GENERATOR_CN_NAME = "cnName";
 	public static final String DN_GENERATOR_CN_UNIQUE_ID = "cnUniqueId";
 	public static final String DN_GENERATOR_ORGANISATION = "organisation";

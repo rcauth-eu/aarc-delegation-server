@@ -35,6 +35,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientStoreProvi
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider;
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.core.Identifier;
+import edu.uiuc.ncsa.security.core.configuration.Configurations;
 import edu.uiuc.ncsa.security.core.configuration.provider.CfgEvent;
 import edu.uiuc.ncsa.security.core.configuration.provider.TypedProvider;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -54,6 +55,7 @@ import javax.inject.Provider;
 
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME;
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME_SPECIFIC_PART;
+import static org.delegserver.oauth2.DSConfigTags.*;
 import static edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider.TRANSACTION_ID;
 
 import java.util.Map;
@@ -256,6 +258,36 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     									  	DSOA2ConfigurationLoaderUtils.getOrgSources(cn), 
     									  	DSOA2ConfigurationLoaderUtils.getAttributeFilters(cn), 
     									  	getThreadsafeTraceLogger() );
+    		
+    		// load any additional attributes required for DN generation
+    		if (0 < cn.getChildrenCount( DN_GENERATOR )) {
+    			
+    			// we have a dnGenerator tag!
+    			ConfigurationNode dnGeneratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
+    			String dnType = Configurations.getFirstAttribute(dnGeneratorNode, DN_GENERATOR_TYPE );
+    			String baseDN = Configurations.getFirstAttribute(dnGeneratorNode, DN_GENERATOR_BASE_DN ); 
+    			String attr = Configurations.getFirstAttribute(dnGeneratorNode, DN_GENERATOR_ATTRIBUTE ); 
+    			
+    			if ( attr == null ) {
+    				throw new GeneralException("Missing mandatory attribute 'attributeName' from the DN Generator");
+    			}
+    			
+    			dnGenerator.setAttributeName(attr);
+    			
+    			if ( dnType == null ) {
+    				// default to RFC2253
+    				dnGenerator.setBaseDNRFC2253( baseDN );
+    			} else if ( dnType.equals( DNGenerator.DN_TYPE_OPENSSL ) ) {
+    				dnGenerator.setBaseDNOpenSSL( baseDN );
+    				dnGenerator.setDnType(dnType);
+    			} else if ( dnType.equals( DNGenerator.DN_TYPE_RFC2253 ) ) {
+    				dnGenerator.setBaseDNRFC2253( baseDN );
+    				dnGenerator.setDnType(dnType);
+    			} else { 
+    				throw new GeneralException("Unsupported 'type' attribute in DN Generator configuration!");
+    			}
+    		}
+    		
     	}
     	return dnGenerator;
     }

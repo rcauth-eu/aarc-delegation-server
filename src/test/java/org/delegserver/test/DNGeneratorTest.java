@@ -1,6 +1,5 @@
 package org.delegserver.test;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -36,7 +35,7 @@ public class DNGeneratorTest extends DNGenerator {
 		String org = "simple.org";
 		String cn = "Simple Ton 45Ns0-21aaDX";
 		
-		String dn = String.format(DN_FORMAT, org, cn);
+		String dn = String.format(DN_OPENSSL_FORMAT, org, cn);
 		System.out.println("DN = " + dn);
 		
 		String format = "%4.4s %s";
@@ -95,6 +94,4 @@ public class DNGeneratorTest extends DNGenerator {
 		System.out.println(orig);
 		
 	}
-	
-	
 }

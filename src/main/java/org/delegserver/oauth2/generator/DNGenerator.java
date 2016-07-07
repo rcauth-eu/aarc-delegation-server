@@ -1,8 +1,6 @@
 package org.delegserver.oauth2.generator;
 
 import java.net.IDN;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -56,8 +54,20 @@ public class DNGenerator {
 	public static int CN_UNIQUE_ID_MAX_SIZE = 16;
 	public static int CN_MAX_SEQUENCE_NR = 999;
 	
-	public static String DN_FORMAT = "/O=%s/CN=%s"; 
-
+	public static String DN_OPENSSL_FORMAT = "/O=%s/CN=%s"; 
+	public static String DN_RFC2253_FORMAT = "CN=%s,O=%s"; 
+	
+	public static String DN_TYPE_OPENSSL = "openssl";
+	public static String DN_TYPE_RFC2253 = "rfc2253";
+	public static String DEFAULT_DN_TYPE = DN_TYPE_RFC2253;
+	
+	/* CONFIGURATION ATTRIBUTES */
+	
+	public String dnType = null;
+	public String baseDNOpenSSL = null;
+	public String baseDNRFC2253 = null;
+	public String attributeName = null;
+	
 	/* ATTRIBUTE SOURCES */
 	
 	protected Object[] cnNameSources = null; 
@@ -70,7 +80,7 @@ public class DNGenerator {
 	/* OTHER */
 	
 	protected Charset defaultCharset = null;
-	protected Logable logger = null;;
+	protected Logable logger = null;
 	
 	/* CONSTUCTOR */
 	
@@ -118,6 +128,26 @@ public class DNGenerator {
 	
 	public Object[] getOrgSources() {
 		return orgSources;
+	}
+	
+	public void setBaseDNOpenSSL(String bASE_DN_OPENSSL) {
+		baseDNOpenSSL = bASE_DN_OPENSSL;
+	}
+	
+	public void setBaseDNRFC2253(String bASE_DN_RFC2253) {
+		baseDNRFC2253 = bASE_DN_RFC2253;
+	}	
+	
+	public void setDnType(String dnType) {
+		this.dnType = dnType;
+	}
+	
+	public void setAttributeName(String attributeName) {
+		this.attributeName = attributeName;
+	}
+	
+	public String getAttributeName() {
+		return attributeName;
 	}
 	
 	/* METHODS FOR CONSTRUCTING THE USER DN FROM AN ATTRIBUTE MAP */
@@ -447,8 +477,10 @@ public class DNGenerator {
 		return new RDNElementPart(uniqueID, origUniqueID, getConcatenatedStrings(uniqueIDSourceAttr));
 	}
 	
+	/* DN FORMATTING METHODS */
+	
 	public String formatDNSufix(String org,String cn) {
-		String dn =  String.format(DN_FORMAT, org, cn);
+		String dn =  String.format(DN_OPENSSL_FORMAT, org, cn);
 		
 		logger.debug("	- Generated Distingueshed Name (DN): '" + dn + "'");
 		
@@ -457,20 +489,85 @@ public class DNGenerator {
 	
 	public String formatDNSufix(String org, String cn, int sequenceNr) {
 		
-		// check if the sequence number is in a valid range.
-		if ( sequenceNr <= 0 || sequenceNr > CN_MAX_SEQUENCE_NR ) {
-			throw new GeneralException("The index " + sequenceNr + " is not an acceptable value! Sequence number"
-					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
+		validateSequenceNr(sequenceNr);
+		
+		if ( sequenceNr == 0 ) {
+			return formatDNSufix(org, cn);
 		}
 		
-		String dn =  String.format(DN_FORMAT, org, cn + CN_DELIMITER + sequenceNr);
+		String dn =  String.format(DN_OPENSSL_FORMAT, org, cn + CN_DELIMITER + sequenceNr);
 		
 		logger.debug("	- Generated Distingueshed Name (DN): '" + dn + "'");
 		
 		return dn;		
 	}	
 	
+	public String formatToOpenSSL(String org, String cn, int sequenceNr) {
+		
+		if ( baseDNOpenSSL == null || baseDNOpenSSL.isEmpty() ) {
+			throw new GeneralException("Cannot create full DN in openssl format without the base dn!");
+		}
+ 		
+		if ( baseDNOpenSSL.endsWith("/") ) {
+			return baseDNOpenSSL + formatDNSufix(org, cn, sequenceNr).substring(1); 
+		} else {
+			return baseDNOpenSSL + formatDNSufix(org, cn, sequenceNr);
+		}
+		
+	}
+	
+	public String formatToRFC2253(String org, String cn, int sequenceNr) {
+		
+		if ( CN_DELIMITER == null || CN_DELIMITER.isEmpty() ) {
+			throw new GeneralException("Cannot create full DN in RFC2253 format without the base dn!");
+		}
+		
+		validateSequenceNr(sequenceNr);
+		
+		if ( sequenceNr > 0 ) {
+			cn += CN_DELIMITER + sequenceNr;
+		}
+		
+		return String.format(DN_RFC2253_FORMAT, cn , org) + "," + baseDNRFC2253;
+
+	}
+	
+	public String formatFullDN(String org, String cn, int sequenceNr) {
+		
+		String format = null;
+		if ( dnType != null ) {
+			format  = dnType;
+		} else {
+			format = DEFAULT_DN_TYPE;
+		}
+			
+		if ( format.equals( DN_TYPE_OPENSSL ) ) {
+			return formatToOpenSSL(org, cn, sequenceNr);
+		} else if ( format.equals( DN_TYPE_RFC2253 ) ) {
+			return formatToRFC2253(org, cn, sequenceNr);
+		}
+		
+		throw new GeneralException("Unsupported DN formatting '" + format  + "'");
+	}
+	
+	
 	/* HELPER METHODS */
+	
+	/**
+	 * Validate a sequence number. It will be checked against a valid range of
+	 * [0..{@link CN_MAX_SEQUENCE_NR}]. An exception is thrown in case the 
+	 * number is not valid.
+	 * 
+	 * @param sequenceNr The number to validate
+	 */
+	protected void validateSequenceNr(int sequenceNr) {
+		
+		// check if the sequence number is in a valid range.
+		if ( sequenceNr < 0 || sequenceNr > CN_MAX_SEQUENCE_NR ) {
+			throw new GeneralException("The index " + sequenceNr + " is not an acceptable value! Sequence number"
+					+ "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
+		}
+	}
 	
 	/**
 	 * Convert the provided input into a Printable String version. A 'normalization' will

@@ -10,6 +10,7 @@ import javax.inject.Provider;
 
 import org.delegserver.oauth2.generator.CertExtensionGenerator;
 import org.delegserver.oauth2.generator.DNGenerator;
+import org.delegserver.oauth2.generator.TraceRecordGenerator;
 import org.delegserver.oauth2.generator.UniqueAttrGenerator;
 import org.delegserver.oauth2.logging.ThreadsafeTraceLogger;
 import org.delegserver.storage.TraceRecord;
@@ -197,6 +198,21 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 	
 	
 	/* TRACE RECORD */
+	
+	/**
+	 * {@link org.delegserver.storage.TraceRecord} generator class.
+	 */
+	protected TraceRecordGenerator traceRecordGenerator;
+	
+	public TraceRecordGenerator getTraceRecordGenerator() {
+		if ( traceRecordGenerator == null ) {
+			traceRecordGenerator = new TraceRecordGenerator( getTraceRecordStore() , 
+															 getDnGenerator(),
+															 getUniqueAttrGenerator(), 
+															 getTraceLogger());
+		}
+		return traceRecordGenerator;
+	}
 	
 	/** 
 	 * {@link org.delegserver.storage.TraceRecord} Store Provider creating TraceRecord Stores  

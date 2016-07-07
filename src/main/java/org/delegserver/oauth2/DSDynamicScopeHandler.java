@@ -3,10 +3,8 @@ package org.delegserver.oauth2;
 import java.util.Map;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.BasicScopeHandler;
-import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
-import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
 
 /**
  * Custom ScopeHandler that adds claims into UserInfo and IDToken 
@@ -14,7 +12,6 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
  * @author "Tamás Balogh"
  */
 public class DSDynamicScopeHandler extends BasicScopeHandler {
-
 
     /**
      * Returns the {@link UserInfo} object passed to it completed with the claims saved by the 
