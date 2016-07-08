@@ -341,7 +341,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
 		// print referer to trace log
 		if (referer == null || referer.isEmpty()) {
-			traceWarn("There was no 'referer' header set in the request!");
+			traceDebug("There was no 'referer' header set in the request!");
 		} else {
 			traceInfo("Referer Header: " + referer);
 		}
