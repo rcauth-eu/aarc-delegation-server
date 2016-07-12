@@ -10,6 +10,7 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.bouncycastle.util.Arrays;
 import org.delegserver.oauth2.shib.ShibAttrParser;
@@ -630,8 +631,8 @@ public class DNGenerator {
 	 * a USR is constructed is outlined in the RCauth Policy Document ( https://rcauth.eu/policy ) 
 	 * in section 3.1.2. 
 	 * 
-	 * The USR is the first 16 bytes of base64(sha256(attr)), with any SOLIDUS (“/”) characters 
-	 * replaced by HYPHEN-MINUS (“-“) characters.
+	 * The USR is the first 16 bytes of base64(sha256(attr)), with any SOLIDUS ("/") and plus ("+")
+	 * characters replaced by HYPHEN-MINUS ("-") characters.
 	 * 
 	 * @param attr Input for the USR creation
 	 * @return USR of the input attribute
@@ -640,13 +641,7 @@ public class DNGenerator {
 		
 		logger.debug("	- GENERATING USR FOR ATTRIBUTE : '" + attr + "'");
 		
-		// EVERY HASHING IS DONE IN HASHINGUTILS NOW!
-		// get the SHA-256 hash of the input string 
-		//byte[] hash = defaultMessageDigest.digest( attr.getBytes(defaultCharset) );
-		// get the base64 encoding of the hash from the previous step
-		//byte[] encodedHash =  Base64.encodeBase64(hash);
-		//String encodedHashString = new String(encodedHash);
-
+		// get the base64 encoded SHA-256 hash of the input string 
 		String encodedHashString = HashingUtils.getInstance().hashToBase64(attr);
 		byte[] encodedHash =  encodedHashString.getBytes();
 		logger.debug("		- Full Hashed Attribute: '" + encodedHashString + "'");
@@ -656,8 +651,9 @@ public class DNGenerator {
 		String shortEncodedHashString = new String(shortEncodedHash);
 		logger.debug("		- Shortened Hashed Attribute: '" + shortEncodedHashString + "'");
 		
-		// replace "/" with "-" 
+		// replace "/" and "+" with "-" 
 		String finalEncodedHashString = shortEncodedHashString.replaceAll("/", "-");
+		finalEncodedHashString = finalEncodedHashString.replaceAll(Pattern.quote("+"), "-");
 		logger.debug("		- Shortened Hashed Attribute (after replacements): '" + finalEncodedHashString + "'");
 		
 		// alternatively we can also use substring since we cannot break any character encoding
