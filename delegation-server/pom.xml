@@ -4,9 +4,7 @@
   <groupId>nikhef.oa4mp.oauth2</groupId>
   <artifactId>delegation-server</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <packaging>war</packaging>
-  <!-- Change the packaging to 'jar' in case your buildin the cli -->
-  <!-- <packaging>jar</packaging> -->
+  <packaging>${packaging.type}</packaging>
 
   <properties>
        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -82,24 +80,34 @@
 
   </build>
 
+  <profiles>
+  
+    <!-- default profile (it builds a war file) -->
+    <profile>
+        <id>webapp</id>
+        
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+        <properties>
+            <packaging.type>war</packaging.type>
+        </properties>      
+    </profile>
 
-  <!--
+    <!-- cli profile (it builds a jar files) -->  
+    <profile>
+    
+      <!--
     	Using the 'cli' profile you can build the oa2-cli.jar tool, that
     	can be used for client approvals. You need to build this tool 
     	here if you're planning to use it with the Delegation Server!
-    	To build the cli:
-    	
-    	1. Change pom packaging from 'war' to 'jar'. This is because 
-    	the classes defined in this project should end up in the CLI 
-    	
-    	2. Execute: mvn clean package -P cli   
-    -->
-
-
-  <profiles>
-    <profile>
-    
+    	To build the cli execute: mvn clean package -P cli   
+      -->
       <id>cli</id>
+
+      <properties>
+          <packaging.type>jar</packaging.type>
+      </properties>
 
       <build>
         <plugins>
@@ -121,8 +129,8 @@
           </plugin>
         </plugins>
       </build>
-
     </profile>
+    
   </profiles>
 
   <pluginRepositories>
