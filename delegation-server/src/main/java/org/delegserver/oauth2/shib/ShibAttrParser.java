@@ -65,11 +65,11 @@ public class ShibAttrParser {
 	
 	public static String combineMultiValuedAttr(String[] attr) {
 		
-		String value = null;
+		String value = "";
 		
 		for( String v : attr ) {
 			v = v.replaceAll(";", "\\\\;");
-			value += (value == null) ? v : SHIB_MULTI_VAL_DELIMITED + v;
+			value += (value.isEmpty()) ? v : SHIB_MULTI_VAL_DELIMITED + v;
 		}
 		
 		return value;

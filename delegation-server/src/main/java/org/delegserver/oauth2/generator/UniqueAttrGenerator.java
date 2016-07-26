@@ -30,7 +30,7 @@ public class UniqueAttrGenerator {
 	public static String ATTRIBUTE_SEPARATOR = ",";
 	
 	protected String[] uniqueAttrSources = null;
-	protected String uniqueAttrSourceList = null;
+	protected String uniqueAttrSourceList = "";
 	
 	protected Logable logger = null;
 	
@@ -46,7 +46,7 @@ public class UniqueAttrGenerator {
 		this.uniqueAttrSources = attrSources;
 		
 		for ( String source : uniqueAttrSources ) {
-			uniqueAttrSourceList = ( uniqueAttrSourceList == null ) ? source : "," + source; 
+			uniqueAttrSourceList = ( uniqueAttrSourceList.isEmpty() ) ? source : "," + source; 
 		}
 		
 		if ( logger != null ) {
