@@ -68,7 +68,9 @@ public class ShibAttrParser {
 		String value = "";
 		
 		for( String v : attr ) {
-			v = v.replaceAll(";", "\\\\;");
+			// escape any delimiter that is in the attribute originally
+			// so that it wouldn't become a delimiter itself 
+			v = v.replaceAll(SHIB_MULTI_VAL_DELIMITED, "\\\\" + SHIB_MULTI_VAL_DELIMITED);
 			value += (value.isEmpty()) ? v : SHIB_MULTI_VAL_DELIMITED + v;
 		}
 		

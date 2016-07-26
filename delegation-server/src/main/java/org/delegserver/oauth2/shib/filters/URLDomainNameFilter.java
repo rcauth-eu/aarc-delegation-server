@@ -20,7 +20,16 @@ public class URLDomainNameFilter implements ShibAttributeFilter {
 		
 			// try converting to a URL
 			URL url = new URL(value);
-			return url.getHost();
+			String host = url.getHost();
+			
+			// strip off the hostname form the domain name in
+			// case there are more than two "."-s in the URL
+			int firstDot = host.indexOf(".");
+			if ( firstDot >= 0 && host.indexOf(".", firstDot+1) >= 0 ) {
+				return host.substring(firstDot+1);
+			} else {
+				return host;
+			}
 			
 		} catch (MalformedURLException e) {
 			
