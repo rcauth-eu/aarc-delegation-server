@@ -65,7 +65,8 @@ public class DNGeneratorTest extends DNGenerator {
 	public void testDisplayNameSimplification() {
 		String[] input = {"Jőzsi Bácsi\uc3a1" , "Ákom Bákom" , "T\u00eatu Elpasso" , "\u8a00\u8a9e \u6e2c\u8a66" ,
 				          "оживлённым берегам", "君子務本", "φάω σπασμένα", "þess að meiða", "på mig",
-				          "J'peux manger", "kācaṃ śaknomyattum", "ὕαλον ϕαγεῖν", "Michał Jankowski"};
+				          "J'peux manger", "kācaṃ śaknomyattum", "ὕαλον ϕαγεῖν", "Michał Jankowski", 
+				          "https://centos7-shibboleth-idp-bd.novalocal/idp/shibboleth"};
 		
 		for (String s : input) {
 			System.out.println("IN  : " + s);

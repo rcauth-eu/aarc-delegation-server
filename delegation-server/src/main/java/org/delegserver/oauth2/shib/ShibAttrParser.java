@@ -63,7 +63,7 @@ public class ShibAttrParser {
 		return values;
 	}
 	
-	public static String combineMultiValuedAttr(String[] attr) {
+	public static String combineMultiValuedAttr(List<String> attr) {
 		
 		String value = "";
 		

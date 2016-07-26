@@ -177,7 +177,7 @@ public class UniqueAttrGenerator {
 		} else if ( attr instanceof List ) {
 			logger.warn("Unexpected multiple values for attribute " + attributeKey);
 			List<String> attrs = ((List<String>)attr);
-			attribute = ShibAttrParser.combineMultiValuedAttr( attrs.toArray( new String[attrs.size()] ) );
+			attribute = ShibAttrParser.combineMultiValuedAttr( attrs );
 		} else {
 			logger.error("Unexpected instance for attribute " + attributeKey +". Was expecting either String or List<String>");
 			return null;			

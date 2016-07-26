@@ -1,7 +1,5 @@
 package org.delegserver.test;
 
-import static org.junit.Assert.*;
-
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -94,6 +92,15 @@ public class JunkTest {
 		System.out.println( HashingUtils.getInstance().hashToHEX(string) );
 		
 		
+	}
+	
+	@Test
+	public void test7() {
+		
+		String str = "https://centos7-shibboleth-idp-bd.novalocal/idp/shibboleth";
+		String escpedStr = str.replaceAll("/", "\\\\/");
+		
+		System.out.println(escpedStr);
 	}
 	
 }

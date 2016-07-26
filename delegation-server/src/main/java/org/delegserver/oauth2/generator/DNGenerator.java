@@ -205,6 +205,9 @@ public class DNGenerator {
 		
 		logger.debug("	- Attribute Value (after truncating): '" + organisation + "'");		
 
+		// escape slashes 
+		organisation = organisation.replaceAll("/", "\\\\/");
+		
 		logger.debug("	- Generated Organisation (O): '" + organisation + "'");
 		
 		RDNElementPart orgPart = new RDNElementPart(organisation, origOrganisation, getConcatenatedStrings(orgSourceAttrs));
@@ -727,30 +730,49 @@ public class DNGenerator {
 		String attribute = null;
 		
 		if ( attr instanceof String ) {
-			attribute = (String) attr;
+			attribute = getFilteredAttribute(attributeKey, (String) attr);
 		} else if ( attr instanceof List ) {
 			logger.warn("Unexpected multiple values for attribute " + attributeKey);
 			List<String> attrList = ((List<String>)attr);
-			attribute = ShibAttrParser.combineMultiValuedAttr( attrList.toArray( new String[attrList.size()] ) );
+			List<String> filteredList = new ArrayList<String>();
+			
+			// apply attribute filters on every value separately
+			for ( String a : attrList ) {
+				String filteredAttr =  getFilteredAttribute(attributeKey, a);
+				// make a copy of the attributes in order to preserve the original form
+				filteredList.add(filteredAttr);
+			}
+			
+			attribute = ShibAttrParser.combineMultiValuedAttr( filteredList );
 		} else {
 			logger.error("Unexpected instance for attribute " + attributeKey +". Was expecting either String or List<String>");
 			return null;			
 		}
+
+		return attribute;
+	}
+	
+	/**
+	 * Apply filters on a specific attribute. The attrKey determined which 
+	 * filters should be applied (if any) on the attrValue. Returns the
+	 * filtered attrValue. 
+	 * 
+	 * @param attrKey The key of the attribute
+	 * @param attrValue The value of the attribute
+	 * @return The filtered attribute value
+	 */
+	protected String getFilteredAttribute(String attrKey, String attrValue) {
 		
-		
-		/* ATTRIBUTE FILTERING */
-		
-		ShibAttributeFilter attributeFilter = filters.get(attributeKey);
+		ShibAttributeFilter attributeFilter = filters.get(attrKey);
 		
 		if ( attributeFilter != null ) {
 			
-			logger.debug("		- Applying filter '" + attributeFilter.getClass().getCanonicalName() + "' for attribute : '" + attribute + "'");
-			attribute = attributeFilter.process(attribute);
-			logger.debug("		- Attribute after filter : '" + attribute + "'");
+			logger.debug("		- Applying filter '" + attributeFilter.getClass().getCanonicalName() + "' for attribute : '" + attrValue + "'");
+			attrValue = attributeFilter.process(attrValue);
+			logger.debug("		- Attribute after filter : '" + attrValue + "'");
 		
 		}
-		
-		return attribute;
+		return attrValue;
 	}
 	
 	/**
