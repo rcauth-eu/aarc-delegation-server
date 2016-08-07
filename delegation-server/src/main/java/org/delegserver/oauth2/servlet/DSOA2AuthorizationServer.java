@@ -212,7 +212,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 		//complete the USERNAME parameter with extensions 
 		String additionalInfo = certExtGenerator.getCertificateExtensions( trans.getUserAttributes() );
 
-		if ( additionalInfo != null ) { 
+		if ( additionalInfo != null && !additionalInfo.isEmpty()) { 
 			trans.setMyproxyUsername( trans.getMyproxyUsername() + " " + additionalInfo );
 			traceDebug("6.a.5 Full MyProxy username: " + trans.getMyproxyUsername());
 		} else {
