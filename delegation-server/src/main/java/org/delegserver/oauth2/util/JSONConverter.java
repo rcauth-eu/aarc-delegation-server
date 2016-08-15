@@ -29,7 +29,7 @@ public class JSONConverter {
     		}
 		
 		} catch (ParseException e) {
-			throw new GeneralException("Erro while parsing JSONObject! Could not parse JSON: " + json);
+			throw new GeneralException("Error while parsing JSONObject! Could not parse JSON: " + json , e);
 		}
 		
 		return map;		
@@ -60,7 +60,7 @@ public class JSONConverter {
 				return (List<String>) parsedObj;
 			}
 		} catch (ParseException e) {
-			throw new GeneralException("Erro while parsing JSONArray! Could not parse JSON: " + json);
+			throw new GeneralException("Error while parsing JSONArray! Could not parse JSON: " + json, e);
 		}
 		return null;
 	}	
