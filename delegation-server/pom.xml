@@ -82,18 +82,19 @@
         </activation>
         <properties>
             <packaging.type>war</packaging.type>
-        </properties>      
+        </properties>
     </profile>
-
-    <!-- cli profile (it builds a jar files) -->  
+  
+  
+    <!-- cli profile (it builds a jar files) -->
     <profile>
     
       <!--
-    	Using the 'cli' profile you can build the oa2-cli.jar tool, that
-    	can be used for client approvals. You need to build this tool 
-    	here if you're planning to use it with the Delegation Server!
-    	To build the cli execute: mvn clean package -P cli   
-      -->
+        Using the 'cli' profile you can build the oa2-cli.jar tool, that
+        can be used for client approvals. You need to build this tool 
+        here if you're planning to use it with the Delegation Server!
+        To build the cli execute: mvn clean package -P cli   
+      -->    
       <id>cli</id>
 
       <properties>
@@ -101,34 +102,38 @@
       </properties>
 
       <build>
-        <plugins>
-          <plugin>
-            <groupId>org.dstovall</groupId>
-            <artifactId>onejar-maven-plugin</artifactId>
-            <version>1.4.5</version>
-            <executions>
-              <execution>
-                <configuration>
-                  <mainClass>org.delegserver.oauth2.cli.DSOA2Commands</mainClass>
-                  <filename>oa2-cli.jar</filename>
-                </configuration>
-                <goals>
-                  <goal>one-jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
+	    <plugins>
+		<plugin>
+		    <artifactId>maven-assembly-plugin</artifactId>
+		    <configuration>
+			<archive>
+			    <manifest>
+				<addClasspath>true</addClasspath>
+				<mainClass>edu.uiuc.ncsa.myproxy.oauth2.tools.OA2Commands</mainClass>
+			    </manifest>
+			</archive>
+			<descriptorRefs>
+			    <descriptorRef>jar-with-dependencies</descriptorRef>
+			</descriptorRefs>
+			<appendAssemblyId>false</appendAssemblyId>
+			<attach>false</attach>
+			<finalName>oa2-cli</finalName>
+		    </configuration>
+		    <executions>
+			<execution>
+			    <id>make-my-jar-with-dependencies</id>
+			    <phase>package</phase>
+			    <goals>
+				<goal>single</goal>
+			    </goals>
+			</execution>
+		    </executions>
+		</plugin>
+	    </plugins>
       </build>
+
     </profile>
     
   </profiles>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>onejar-maven-plugin.googlecode.com</id>
-      <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-    </pluginRepository>
-  </pluginRepositories>
 
 </project>
