@@ -539,7 +539,7 @@ public class DNGenerator {
 	public String formatFullDN(String org, String cn, int sequenceNr) {
 		
 		String format = null;
-		if ( dnType != null ) {
+		if ( dnType != null && ! dnType.isEmpty()) {
 			format  = dnType;
 		} else {
 			format = DEFAULT_DN_TYPE;
