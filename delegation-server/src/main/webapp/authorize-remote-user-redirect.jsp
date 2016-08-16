@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <html>
 
@@ -10,11 +11,16 @@
     <script>
     
     function autoSubmit()  {
-            
-       document.getElementById("showRedirectWait").style.display = "inline";
-       document.title = 'Loading...';
-       document.getElementById("submitForm").submit();
-   
+
+    	// only redirect autmatically if request succeeded without an error
+    	// this is needed to prevent infinately redirecting error loops
+    	if ( ! "${retryMessage}" ) {
+	
+    		document.getElementById("showRedirectWait").style.display = "inline";
+			document.title = 'Loading...';
+			document.getElementById("submitForm").submit();
+  
+    	} 
     }
     
     </script>
@@ -27,6 +33,14 @@
 <div id="showRedirectWait" style="display: none">
 <h1>Redirecting to Master Portal "${clientName}"...</h1>
 </div>
+
+
+<c:if test="${not empty retryMessage}">
+<div id="retryError">
+<h3>${retryMessage}<BR>Could not connect to online CA. Please retry.</h3><p>
+</div>
+</c:if>
+
 
 <noscript>
 <div id="manualRedirect">

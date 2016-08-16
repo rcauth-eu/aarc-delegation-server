@@ -9,6 +9,14 @@ html body			{ margin:3px 0px;  padding:0px;  text-align:center; background: #fff
 	background-position: top left;
 }
 
+#retryError {
+	border-style: solid; 
+	border-color: #c00000; 
+	width: 100%; 
+	margin: 0px; 
+	padding: 5px;
+}
+
 img				{border:0px;}
 .siteContainer			{ border-color:#000000;  border-style:solid;  border-width:1px 1px 1px;  margin:0px auto;  overflow:hidden;  text-align:left;  width:1002px;  background : transparent;}
 
