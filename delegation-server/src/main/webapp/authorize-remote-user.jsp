@@ -38,6 +38,14 @@
 <div class="clear"></div>
 
 <h2>RCauth.eu Online CA consent page</h2>
+
+<c:if test="${not empty retryMessage}">
+<div id="retryError">
+<h3>${retryMessage}<BR>Could not connect to online CA. Please retry.</h3><p>
+</div>
+</c:if>
+
+
 <p>
 The Master Portal below is requesting access to your personal information and
 to act on your behalf.

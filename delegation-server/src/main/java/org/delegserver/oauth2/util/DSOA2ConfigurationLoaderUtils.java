@@ -10,7 +10,6 @@ import org.delegserver.oauth2.DSDefaultDNGeneratorConfiguration;
 import org.delegserver.oauth2.shib.filters.ShibAttributeFilter;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static edu.uiuc.ncsa.security.oauth_2_0.OA2ConfigTags.SCOPES;

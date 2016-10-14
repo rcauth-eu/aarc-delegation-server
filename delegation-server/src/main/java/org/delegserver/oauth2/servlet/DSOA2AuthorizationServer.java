@@ -245,7 +245,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 			
 			String reqUrl = request.getRequestURL().toString();
 			String queryString = request.getQueryString(); // d=789
-			if (queryString != null) {
+			if (queryString != null && ! queryString.isEmpty()) {
 				reqUrl += "?" + queryString;
 			}
 	

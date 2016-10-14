@@ -80,7 +80,7 @@ public class ShibHeaderExtractor {
 	        	if ( value != null && ! value.isEmpty() ) {
 		            String[] values = ShibAttrParser.parseMultiValuedAttr( value );
 		            
-		            if (  values != null ) {
+		            if (  values != null && ! value.isEmpty()) {
 		            	headerValues.addAll( Arrays.asList(values) );
 		            }
 	        	}
@@ -147,7 +147,10 @@ public class ShibHeaderExtractor {
             
             	if ( header instanceof String ) {
             		
-            		map.put(name , ((String)header) );
+            		String h = (String) header;
+            		if ( ! h.isEmpty() ) {
+            			map.put(name , h );
+            		}
             		
             	} else {
             	
@@ -155,7 +158,7 @@ public class ShibHeaderExtractor {
 		            
 		            if ( values.size() == 1 ) {
 		            	map.put(name , values.get(0));
-		            } else {
+		            } else if (values.size() > 1)  {
 		            	map.put(name , values);
 		            }
 		            
