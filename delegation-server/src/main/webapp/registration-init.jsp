@@ -60,9 +60,7 @@
         </tr>
         <tr>
             <td></td>
-            <td><input type="checkbox" name="${clientProxyLimited}" ${clientProxyLimitedValue} /><span
-                    title="Check this box for delegation of limited proxy certificates for use with Globus Toolkit GridFTP servers. Leave this box unchecked
-                    for delegation of general-use X.509 certificates." >Use Limited Proxy Certificates?</span>
+            <td><input type="hidden" name="${clientProxyLimited}" ${clientProxyLimitedValue} />
             </td>
         </tr>
 
