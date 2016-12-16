@@ -60,15 +60,6 @@ For further information on the CA see the
 
 <!--form id="submitForm" action="${actionToTake}" method="POST" onsubmit="setCookie('${consent_cookie_name}','${consent_cookie_value}',90)"-->
 <form id="submitForm" action="${actionToTake}" method="POST">
-
-    <input type="submit" style="float: left;" value="Yes, continue"/>
-    <input type="button" style="margin-left: 1.5em;" name="cancel" value="No, cancel"/>
-
-    <p>
-    <p>
-    <input type="checkbox" name="remember" id="remember" checked="on"/>
-    Remember
-
     <!-- Unhide this when you want to support it. All the machinery is in place.
                      <tr>
                         <td>Refresh token lifetime</td>
@@ -76,12 +67,23 @@ For further information on the CA see the
                                    value="${rtLifetime}"/></td>
                     </tr>
                     -->
+
     <!-- Close sign in table -->
     <input type="hidden" id="status" name="${action}"
            value="${actionOk}"/>
     <input type="hidden" id="token" name="${tokenKey}" value="${authorizationGrant}"/>
     <input type="hidden" id="state" name="${stateKey}" value="${authorizationState}"/>
 
+    <input type="checkbox" name="remember" id="remember" checked="on"/>
+    Remember
+
+    <p>
+    <p>
+
+    <input type="submit" style="float: left;" value="Yes, continue"/>
+</form>
+<form action="https://rcauth.eu/noconsent/" method="POST">
+    <input type="submit" style="margin-left: 1.5em;" name="cancel" value="No, cancel"/>
 </form>
 
 <br>
