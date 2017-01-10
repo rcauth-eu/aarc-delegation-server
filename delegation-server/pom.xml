@@ -36,6 +36,19 @@
       <!--version>3.2.1</version-->
       <version>3.4-SNAPSHOT</version>
     </dependency>
+    <!-- Used to come via nimbus-jose-jwt from
+	 edu/uiuc/ncsa/security/delegation/ncsa-security-oauth-2.0 -->
+    <dependency>
+	<groupId>net.minidev</groupId>
+	<artifactId>json-smart</artifactId>
+	<version>1.1.1</version>
+    </dependency>
+    <!-- comes normally from cANL in security-lib from us -->
+    <dependency>
+	<groupId>org.bouncycastle</groupId>
+	<artifactId>bcprov-jdk15on</artifactId>
+	<version>1.52</version>
+    </dependency>
 
     <dependency>
       <groupId>javax.servlet</groupId>

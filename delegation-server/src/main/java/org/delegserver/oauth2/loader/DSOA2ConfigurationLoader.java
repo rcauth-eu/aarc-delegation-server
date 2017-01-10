@@ -27,12 +27,14 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2ClientSQLStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2SQLTransactionStoreProvider;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.DSTransactionProvider;
+//import edu.uiuc.ncsa.myproxy.oa4mp.server.DSTransactionProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.DSTransactionProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientStoreProvider;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider;
+//import edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.OA4MPIdentifierProvider;
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
@@ -56,7 +58,8 @@ import javax.inject.Provider;
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME;
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME_SPECIFIC_PART;
 import static org.delegserver.oauth2.DSConfigTags.*;
-import static edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider.TRANSACTION_ID;
+//import static edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider.TRANSACTION_ID;
+import static edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.OA4MPIdentifierProvider.TRANSACTION_ID;
 
 import java.util.Map;
 
@@ -108,10 +111,15 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getAuthorizationServletConfig(),
                     getUsernameTransformer(),
                     getPingable(),
+		    getMpp(),	// see OA2ConfigurationLoader
+		    getMacp(),	// see OA2ConfigurationLoader
                     getClientSecretLength(),
                     getScopesMap(),
                     getScopeHandler(),
+		    getLdapConfiguration(),
                     isRefreshTokenEnabled(),
+		    isTwoFactorSupportEnabled(),
+		    getMaxClientRefreshTokenLifetime(),
                     getDNGenerator(),
                     getCertExtGenerator(),
                     getThreadsafeTraceLogger());
