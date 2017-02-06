@@ -120,6 +120,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     isRefreshTokenEnabled(),
 		    isTwoFactorSupportEnabled(),
 		    getMaxClientRefreshTokenLifetime(),
+		    getJSONWebKeys(),	// see OA2ConfigurationLoader
                     getDNGenerator(),
                     getCertExtGenerator(),
                     getThreadsafeTraceLogger());

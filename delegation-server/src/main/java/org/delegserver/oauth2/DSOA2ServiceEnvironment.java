@@ -34,6 +34,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.LDAPConfiguration;
 import edu.uiuc.ncsa.security.oauth_2_0.server.ScopeHandler;
 import edu.uiuc.ncsa.security.servlet.UsernameTransformer;
 import edu.uiuc.ncsa.security.util.mail.MailUtilProvider;
+import edu.uiuc.ncsa.security.util.jwk.JSONWebKeys;
 
 /**
  * A custom ServiceEnvironment implementation which adds a couple of extra this to the environment:
@@ -79,6 +80,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 				       boolean isRefreshTokenEnabled,
 				       boolean twoFactorSupportEnabled,
 				       long maxClientRefreshTokenLifetime,
+				       JSONWebKeys jsonWebKeys,
 				       DNGenerator dnGenerator,
 				       CertExtensionGenerator certExtGenerator,
 				       ThreadsafeTraceLogger traceLogger) {
@@ -108,7 +110,8 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 		      ldapConfiguration2,
 		      isRefreshTokenEnabled,
 		      twoFactorSupportEnabled,
-		      maxClientRefreshTokenLifetime);
+		      maxClientRefreshTokenLifetime,
+		      jsonWebKeys);
 		
 		this.traceRecordSP = trsp;
 		this.scopesMap = scopesMap;
