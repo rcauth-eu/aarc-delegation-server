@@ -23,6 +23,7 @@ import org.delegserver.storage.sql.DSOA2ClientSQLStoreProvider;
 import org.delegserver.storage.sql.DSOA2SQLTransactionStoreProvider;
 import org.delegserver.storage.sql.SQLTraceRecordStoreProvider;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.BasicScopeHandler;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2ClientSQLStoreProvider;
@@ -93,7 +94,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     @Override
     public T createInstance() {
         try {
-            return (T) new DSOA2ServiceEnvironment(loggerProvider.get(),
+	    T se = (T) new DSOA2ServiceEnvironment(loggerProvider.get(),
             		getTraceRecordStoreProvider(),
                     getTransactionStoreProvider(),
                     getClientStoreProvider(),
@@ -124,6 +125,10 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getDNGenerator(),
                     getCertExtGenerator(),
                     getThreadsafeTraceLogger());
+            if (getScopeHandler() instanceof BasicScopeHandler) {
+                ((BasicScopeHandler) getScopeHandler()).setOa2SE((DSOA2ServiceEnvironment) se);
+            }
+            return se;
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new GeneralException("Error: Could not create the runtime environment", e);
         }
