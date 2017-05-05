@@ -494,7 +494,7 @@ public class DNGenerator {
 	public String formatDNSufix(String org,String cn) {
 		String dn =  String.format(DN_OPENSSL_FORMAT, org, cn);
 		
-		logger.debug("	- Generated Distingueshed Name (DN): '" + dn + "'");
+		logger.debug("	- Generated Distinguished Name (DN): '" + dn + "'");
 		
 		return dn;		
 	}
@@ -509,7 +509,7 @@ public class DNGenerator {
 		
 		String dn =  String.format(DN_OPENSSL_FORMAT, org, cn + CN_DELIMITER + sequenceNr);
 		
-		logger.debug("	- Generated Distingueshed Name (DN): '" + dn + "'");
+		logger.debug("	- Generated Distinguished Name (DN): '" + dn + "'");
 		
 		return dn;		
 	}	
