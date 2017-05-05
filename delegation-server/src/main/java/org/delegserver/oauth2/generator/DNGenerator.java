@@ -44,10 +44,15 @@ import com.ibm.icu.text.Transliterator;
  *
  */
 public class DNGenerator {
+	// Various steps: Russian first to transliterate without accents, then
+	// Serbian for Serbian and Macedonian extra letters, then Greek UNGEGN
+	// which and the nfd line to have eta -> i and prevent : to adjust the
+	// following consonants.
 	private final static Transliterator trans =
-	    Transliterator.getInstance(	"Serbian-Latin/BGN;"+
-					"Russian-Latin/BGN;"+
-					"Greek-en_US/UNGEGN;"+
+	    Transliterator.getInstance(	"Russian-Latin/BGN;"+
+					"Serbian-Latin/BGN;"+
+					"Greek-Latin/UNGEGN;"+
+					"nfd; [:Nonspacing Mark:] remove; nfc;"+
 					"Any-Latin;"+
 					"Latin-Ascii");
 
