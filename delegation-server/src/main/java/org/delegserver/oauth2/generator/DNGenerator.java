@@ -6,7 +6,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
-import java.text.Normalizer;
+//import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,8 @@ import org.delegserver.storage.RDNElementPart;
 
 import edu.uiuc.ncsa.security.core.Logable;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+
+import com.ibm.icu.text.Transliterator;
 
 /**
  * Utility class for generating partial user DNs. The parts of the user DN being created 
@@ -42,6 +44,12 @@ import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
  *
  */
 public class DNGenerator {
+	private final static Transliterator trans =
+	    Transliterator.getInstance(	"Serbian-Latin/BGN;"+
+					"Russian-Latin/BGN;"+
+					"Greek-en_US/UNGEGN;"+
+					"Any-Latin;"+
+					"Latin-Ascii");
 
 	/* DEFAULTS AND CONSTANTS */
 	
@@ -196,7 +204,7 @@ public class DNGenerator {
 		// Do some post-processing on the created RDN: 
 		
 		// convert to IDN (ASCII)
-		String organisation = getIDNString(origOrganisation);
+		String organisation = getPrintableString(origOrganisation);
 
 		logger.debug("	- Attribute Value (after printable string conversion): '" + organisation + "'");		
 
@@ -410,22 +418,22 @@ public class DNGenerator {
 		// Build the {cnName} display name part of the DN from the selected source attribute. 
 		// Use the {@link #getProcessedAttr} to process the attribute value before setting it in the RDN		
 		
-		String origDiplayName = null;
+		String origDisplayName = null;
 		for (String source : cnNameSourceAttr) {
-			if ( origDiplayName == null ) {
-				origDiplayName = getProcessedAttr(attributeMap, source);
+			if ( origDisplayName == null ) {
+				origDisplayName = getProcessedAttr(attributeMap, source);
 			} else {
-				origDiplayName += CN_DELIMITER + getProcessedAttr(attributeMap, source);
+				origDisplayName += CN_DELIMITER + getProcessedAttr(attributeMap, source);
 			}
 		}
 		
 		// do some postprocessing
 		
-		logger.debug("	- Display Name Attribute Value: '" + origDiplayName + "'");
+		logger.debug("	- Display Name Attribute Value: '" + origDisplayName + "'");
 		
 		// convert to printable string
 		
-		String diplayName = getPrintableString(origDiplayName);
+		String diplayName = getPrintableString(origDisplayName);
 		
 		logger.debug("	- Display Name Attribute Value (after printable string conversion): '" + diplayName + "'");		
 		
@@ -435,7 +443,7 @@ public class DNGenerator {
 		
 		logger.debug("	- Display Name Attribute Value (after truncating): '" + diplayName + "'");
 		
-		return new RDNElementPart(diplayName, origDiplayName, getConcatenatedStrings(cnNameSourceAttr));
+		return new RDNElementPart(diplayName, origDisplayName, getConcatenatedStrings(cnNameSourceAttr));
 	}
 	
 	/**
@@ -583,50 +591,21 @@ public class DNGenerator {
 	 * @return Printable string representation of the provided input
 	 */
 	protected String getPrintableString(String input) {
-		
-		String normalizedOutput = "";
-		
-		logger.debug("	- CONVERTING TO PRINTABLE STRING");
-		logger.debug("		- Source Input: '" + input + "'");
-		
-		// take unicode characters one by one and normalize them
-		for ( int i=0; i<input.length(); i++ ) {
-			char c = input.charAt(i);
-			// normalize a single unicode character, then remove every non-ascii symbol (like
-			// accents) 
-			String normalizedChar = Normalizer.normalize(String.valueOf(c) , Normalizer.Form.NFD)
-					                          .replaceAll("[^\\p{ASCII}]", "");
-			
-			if ( ! normalizedChar.isEmpty() ) {
-				// if there is a valid ascii representation, use it
-				normalizedOutput += normalizedChar;
-			} else {
-				// otherwise replace character with an "X"
-				normalizedOutput += "X";
-			}
-		}
-		logger.debug("		- Printable String Equivalent: '" + normalizedOutput + "'");
-		
-		return normalizedOutput;
-	}
-	
-	/**
-	 * Get an IDN printable string equivalent of the input. This method should be used to convert 
-	 * hostnames (like the ones set in schacHomeOrganisation) into printable strings
-	 * 
-	 * @param input The hostname to convert
-	 * @return Converted printable ascii string   
-	 */
-	protected String getIDNString(String input) {
-		
-		logger.debug("	- CONVERTING TO IDN");
-		logger.debug("		- Source Input: '" + input + "'");
-		
-		String idn =  IDN.toASCII(input);
-		
-		logger.debug("		- IDN Equivalent: '" + idn + "'");
-		
-		return idn;
+	    
+	    logger.debug("	- CONVERTING TO PRINTABLE STRING");
+	    logger.debug("		- Source Input: '" + input + "'");
+
+	    String output1 = trans.transliterate(input);
+
+	    // PrintableString == \\p{Lower}\\p{Upper}\\p{Digit} '()+,-./:=?
+	    // Remove /:= from set of PrintableString to prevent collisions with
+	    // e.g. htaccess files and openssl strings. Do add @ for e.g. the
+	    // igtf proxy which adds the ePPN to the displayName
+	    String normalizedOutput = output1.replaceAll("[^\\p{Lower}\\p{Upper}\\p{Digit} '()+,-.?@]", "X");
+	    
+	    logger.debug("		- Printable String Equivalent: '" + normalizedOutput + "'");
+	    
+	    return normalizedOutput;
 	}
 	
 	/**

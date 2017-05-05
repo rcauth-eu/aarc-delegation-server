@@ -57,6 +57,14 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
+    <dependency>
+	<groupId>com.ibm.icu</groupId>
+	<artifactId>icu4j</artifactId>
+	<version>59.1</version>
+    </dependency>
+
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

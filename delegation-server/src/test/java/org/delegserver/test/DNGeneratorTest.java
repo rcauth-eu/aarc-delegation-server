@@ -48,25 +48,26 @@ public class DNGeneratorTest extends DNGenerator {
 	}
 	
 	@Test
-	public void testHostnameASCIIConversion() {
-
-		String[] input = { "t\u00eatu.élpaaso.org", "\u8a00\u8a9e.net", "host.\u6e2c\u8a66",
-				           "оживлённым.берегам.ru", "ваше здоровье"};
-
-		for (String s : input) {
-			System.out.println("IN  : " + s);
-			System.out.println("OUT : " + this.getIDNString(s));
-			System.out.println(" ================================ ");
-		}
-	    
-	}
-	
-	@Test
 	public void testDisplayNameSimplification() {
-		String[] input = {"Jőzsi Bácsi\uc3a1" , "Ákom Bákom" , "T\u00eatu Elpasso" , "\u8a00\u8a9e \u6e2c\u8a66" ,
-				          "оживлённым берегам", "君子務本", "φάω σπασμένα", "þess að meiða", "på mig",
-				          "J'peux manger", "kācaṃ śaknomyattum", "ὕαλον ϕαγεῖν", "Michał Jankowski", 
-				          "https://centos7-shibboleth-idp-bd.novalocal/idp/shibboleth"};
+		String[] input = {
+		    "Jőzsi Bácsi\uc3a1",
+		    "Ákom Bákom",
+		    "T\u00eatu Elpasso",
+		    "\u8a00\u8a9e \u6e2c\u8a66",
+		    "оживлённым берегам",
+		    "君子務本",
+		    "φάω σπασμένα",
+		    "þess að meiða",
+		    "på mig",
+		    "J'peux manger",
+		    "kācaṃ śaknomyattum",
+		    "ὕαλον ϕαγεῖν",
+		    "Michał Jankowski",
+		    "https://centos7-shibboleth-idp-bd.novalocal/idp/shibboleth",
+		    "urn:mace:људи:tést",
+		    "urn:mace:ανθρωποι:tést",
+		    "ΑΡΙΣΤΟΤΕΛΕΙΟ ΠΑΝΕΠΙΣΤΗΜΙΟ ΘΕΣΣΑΛΟΝΙΚΗΣ"
+		};
 		
 		for (String s : input) {
 			System.out.println("IN  : " + s);
