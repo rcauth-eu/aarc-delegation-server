@@ -63,8 +63,11 @@ public class DNGeneratorTest extends DNGenerator {
 		    "kācaṃ śaknomyattum",
 		    "ὕαλον ϕαγεῖν",
 		    "Michał Jankowski",
+		    "Բարեւ աշխարհ", // Armenian
+		    "გამარჯობა მსოფლიო", // Georgian
+		    "שולחן", // Hebrew with shin (has problems in Any-Latin/BGN)
 		    "https://centos7-shibboleth-idp-bd.novalocal/idp/shibboleth",
-		    "urn:mace:људи:tést",
+		    "urn:mace:људи:tést", // Serbian/Macedonian
 		    "urn:mace:ανθρωποι:tést",
 		    "ΑΡΙΣΤΟΤΕΛΕΙΟ ΠΑΝΕΠΙΣΤΗΜΙΟ ΘΕΣΣΑΛΟΝΙΚΗΣ"
 		};
