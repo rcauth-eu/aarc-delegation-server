@@ -124,7 +124,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 		    getJSONWebKeys(),	// see OA2ConfigurationLoader
                     getDNGenerator(),
                     getCertExtGenerator(),
-                    getThreadsafeTraceLogger());
+                    getThreadsafeTraceLogger(),
+		    getIssuer());   // see OA2ConfigurationLoader
             if (getScopeHandler() instanceof BasicScopeHandler) {
                 ((BasicScopeHandler) getScopeHandler()).setOa2SE((DSOA2ServiceEnvironment) se);
             }

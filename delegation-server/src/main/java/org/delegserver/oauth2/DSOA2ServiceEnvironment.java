@@ -83,7 +83,8 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 				       JSONWebKeys jsonWebKeys,
 				       DNGenerator dnGenerator,
 				       CertExtensionGenerator certExtGenerator,
-				       ThreadsafeTraceLogger traceLogger) {
+				       ThreadsafeTraceLogger traceLogger,
+				       String issuer) {
 		
 		super(logger,
 		      tsp,
@@ -111,7 +112,8 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 		      isRefreshTokenEnabled,
 		      twoFactorSupportEnabled,
 		      maxClientRefreshTokenLifetime,
-		      jsonWebKeys);
+		      jsonWebKeys,
+		      issuer);
 		
 		this.traceRecordSP = trsp;
 		this.scopesMap = scopesMap;
