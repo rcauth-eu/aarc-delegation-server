@@ -32,6 +32,7 @@
 
 <div id="showRedirectWait" style="display: none">
 <h1>Redirecting to Master Portal "${clientName}"...</h1>
+<h2>this might take a few seconds, please wait</h2>
 </div>
 
 
