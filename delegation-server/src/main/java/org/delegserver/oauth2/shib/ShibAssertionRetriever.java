@@ -84,7 +84,7 @@ public class ShibAssertionRetriever {
 					} catch (MalformedURLException e) {
 						throw new Exception("Malformed URL while requesting Shibboleth Assertion" );
 					} catch (IOException e) {
-						throw new Exception("Request Error requesting Shibboleth Assertion" );
+						throw new Exception("Request Error requesting Shibboleth Assertion for header \"" + assUrlString + "\": "+e.getMessage() );
 					}
 					
 				} else {

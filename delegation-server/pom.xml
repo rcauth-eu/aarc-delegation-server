@@ -30,12 +30,15 @@
       <version>3.4-SNAPSHOT</version>
     </dependency>
 
+    <!-- Ideally next one should only be used for cli. Not clear how we can do
+         separate source files with profiles -->
     <dependency>
       <groupId>edu.uiuc.ncsa.myproxy</groupId>
       <artifactId>oa4mp-server-admin-oauth2</artifactId>
       <!--version>3.2.1</version-->
       <version>3.4-SNAPSHOT</version>
     </dependency>
+
     <!-- Used to come via nimbus-jose-jwt from
 	 edu/uiuc/ncsa/security/delegation/ncsa-security-oauth-2.0 -->
     <dependency>
