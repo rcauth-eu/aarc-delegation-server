@@ -411,7 +411,7 @@ caption {
 	background-image: linear-gradient(#fcfcfc, #eee);
 	text-align: center;
 	padding: 5px;
-	cursor: hand;
+/*	cursor: hand;*/
 }
 
 .btn:hover, .btnaddonright:hover {

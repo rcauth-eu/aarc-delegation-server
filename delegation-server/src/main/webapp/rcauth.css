@@ -69,14 +69,14 @@ img				{border:0px;}
 #logoHolder			{ background-color:#FFFFFF;}
 
 ul.submenuLvl1			{ vertical-align: top;  list-style-type: none;  margin: 0px;  padding: 0px;}
-//.submenuLvl1 a		{ color:white;  font-weight:bold;  text-decoration:none;  line-height:18px;  font-size : 11px;  display:block;    text-indent: 1em;}
+/*.submenuLvl1 a		{ color:white;  font-weight:bold;  text-decoration:none;  line-height:18px;  font-size : 11px;  display:block;    text-indent: 1em;}*/
 .submenuLvl1 a			{ color:white;  font-weight:bold;  text-decoration:none;  line-height:18px;  font-size : 11px;  display:block;    padding-left: 1em;}
 .submenuLvl1On			{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right 0.15em;}
 
 ul.submenuLvl1 h2 		{color:white;display:block;font-size:11px;font-weight:bold;line-height:18px;padding-left:1em;text-decoration:none;}
 
 ul.submenuLvl2 			{ vertical-align: top;  list-style-type: none;  margin: 0px;  padding: 0px;}
-//.submenuLvl2 a			{ color:black;  text-decoration:none;  display:block;  font-size : 10px;  text-indent: 1.5em;}
+/*.submenuLvl2 a			{ color:black;  text-decoration:none;  display:block;  font-size : 10px;  text-indent: 1.5em;}*/
 .submenuLvl2 a			{ color:black;  text-decoration:none;  display:block;  font-size : 10px;  padding-left: 1.5em;}
 .submenuLvl2 a:hover		{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right center;}
 .submenuLvl2On a 		{ background-image: url(arrow.gif);  background-attachment: scroll;  background-repeat: no-repeat;  background-position: right center;}
