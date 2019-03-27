@@ -1,163 +1,220 @@
-<?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>nikhef.oa4mp.oauth2</groupId>
-  <artifactId>delegation-server</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>${packaging.type}</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <properties>
-       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+    <modelVersion>4.0.0</modelVersion>
 
-  <name>Delegation Server (OA4MP) with Traceability (CILogon)</name>
+    <groupId>eu.rcauth.delegationserver</groupId>
+    <artifactId>delegation-server</artifactId>
+    <version>${revision}</version>
+    <name>RCauth Delegation Server</name>
+    <packaging>${packaging.type}</packaging>
+    <url>https://wiki.nikhef.nl/grid/AARC_Pilot</url>
 
-  <dependencies>
+    <licenses>
+        <license>
+            <name>Apache license</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-    <dependency>
-      <groupId>edu.uiuc.ncsa.myproxy</groupId>
-      <artifactId>oa4mp-server-oauth2</artifactId>
-      <!--version>3.2.1</version-->
-      <version>3.4-SNAPSHOT</version>
-      <type>war</type>
-      <scope>runtime</scope>
-    </dependency>
+    <developers>
+        <developer>
+            <name>Tamas Balogh</name>
+            <email>tamasb@nikhef.nl</email>
+        </developer>
+        <developer>
+            <name>Mischa Sallé</name>
+            <email>msalle@nikhef.nl</email>
+        </developer>
+    </developers>
 
-    <dependency>
-      <groupId>edu.uiuc.ncsa.myproxy</groupId>
-      <artifactId>oa4mp-server-loader-oauth2</artifactId>
-      <!--version>3.2.1</version-->
-      <version>3.4-SNAPSHOT</version>
-    </dependency>
+    <properties>
+        <revision>0.2.0-SNAPSHOT</revision>
+        <oa4mpVersion>4.1.2-RCauth</oa4mpVersion>
+        <seclibVersion>4.1.2-RCauth</seclibVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
-    <!-- Ideally next one should only be used for cli. Not clear how we can do
-         separate source files with profiles -->
-    <dependency>
-      <groupId>edu.uiuc.ncsa.myproxy</groupId>
-      <artifactId>oa4mp-server-admin-oauth2</artifactId>
-      <!--version>3.2.1</version-->
-      <version>3.4-SNAPSHOT</version>
-    </dependency>
+    <dependencies>
 
-    <!-- Used to come via nimbus-jose-jwt from
-	 edu/uiuc/ncsa/security/delegation/ncsa-security-oauth-2.0 -->
-    <dependency>
-	<groupId>net.minidev</groupId>
-	<artifactId>json-smart</artifactId>
-	<version>1.1.1</version>
-    </dependency>
-    <!-- comes normally from cANL in security-lib from us -->
-    <dependency>
-	<groupId>org.bouncycastle</groupId>
-	<artifactId>bcprov-jdk15on</artifactId>
-	<version>1.52</version>
-    </dependency>
+        <dependency>
+            <groupId>edu.uiuc.ncsa.myproxy</groupId>
+            <artifactId>oa4mp-server-oauth2</artifactId>
+            <version>${oa4mpVersion}</version>
+            <type>war</type>
+            <scope>runtime</scope>
+        </dependency>
 
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
-      <scope>provided</scope>
-    </dependency>
+        <dependency>
+            <groupId>edu.uiuc.ncsa.myproxy</groupId>
+            <artifactId>oa4mp-server-loader-oauth2</artifactId>
+            <version>${oa4mpVersion}</version>
+        </dependency>
 
-    <!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
-    <dependency>
-	<groupId>com.ibm.icu</groupId>
-	<artifactId>icu4j</artifactId>
-	<version>59.1</version>
-    </dependency>
+        <!-- Used to come via nimbus-jose-jwt from
+             edu/uiuc/ncsa/security/delegation/ncsa-security-oauth-2.0 -->
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>1.1.1</version>
+        </dependency>
 
+        <!-- comes normally from cANL in security-lib from us -->
+        <!--dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.52</version>
+        </dependency-->
 
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
 
-  </dependencies>
+        <!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>59.1</version>
+        </dependency>
 
-  <build>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
 
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-        <version>2.3.2</version>
-      </plugin>
-    </plugins>
+    </dependencies>
 
-    <finalName>oauth2</finalName>
+    <build>
+        <plugins>
+            <!-- make sure jar file's MANIFEST.MF will contain the version -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+                <version>3.5.1</version>
+            </plugin>
+            <!-- update revision properties -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <configuration>
+                    <!-- also keep name -->
+                    <pomElements><name/></pomElements>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-  </build>
+        </plugins>
+        <finalName>oauth2</finalName>
+    </build>
 
-  <profiles>
-  
-    <!-- default profile (it builds a war file) -->
-    <profile>
-        <id>webapp</id>
-        
-        <activation>
-            <activeByDefault>true</activeByDefault>
-        </activation>
-        <properties>
-            <packaging.type>war</packaging.type>
-        </properties>
-    </profile>
-  
-  
-    <!-- cli profile (it builds a jar files) -->
-    <profile>
-    
-      <!--
-        Using the 'cli' profile you can build the oa2-cli.jar tool, that
-        can be used for client approvals. You need to build this tool 
-        here if you're planning to use it with the Delegation Server!
-        To build the cli execute: mvn clean package -P cli   
-      -->    
-      <id>cli</id>
+    <profiles>
 
-      <properties>
-          <packaging.type>jar</packaging.type>
-      </properties>
+        <!-- default profile (it builds a war file) -->
+        <profile>
+            <id>webapp</id>
 
-      <build>
-	    <plugins>
-		<plugin>
-		    <artifactId>maven-assembly-plugin</artifactId>
-		    <configuration>
-			<archive>
-			    <manifest>
-				<addClasspath>true</addClasspath>
-				<mainClass>edu.uiuc.ncsa.myproxy.oauth2.tools.OA2Commands</mainClass>
-			    </manifest>
-			</archive>
-			<descriptorRefs>
-			    <descriptorRef>jar-with-dependencies</descriptorRef>
-			</descriptorRefs>
-			<appendAssemblyId>false</appendAssemblyId>
-			<attach>false</attach>
-			<finalName>oa2-cli</finalName>
-		    </configuration>
-		    <executions>
-			<execution>
-			    <id>make-my-jar-with-dependencies</id>
-			    <phase>package</phase>
-			    <goals>
-				<goal>single</goal>
-			    </goals>
-			</execution>
-		    </executions>
-		</plugin>
-	    </plugins>
-      </build>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <packaging.type>war</packaging.type>
+            </properties>
+        </profile>
 
-    </profile>
-    
-  </profiles>
+        <!-- cli profile (it builds a jar files) -->
+        <profile>
+            <!--
+                Using the 'cli' profile you can build the oa2-cli.jar tool, that
+                can be used for client approvals. You need to build this tool
+                here if you're planning to use it with the Delegation Server!
+                To build the cli execute: mvn clean package -P cli
+            -->
+            <id>cli</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>edu.uiuc.ncsa.myproxy</groupId>
+                    <artifactId>oa4mp-server-admin-oauth2</artifactId>
+                    <version>${oa4mpVersion}</version>
+                </dependency>
+            </dependencies>
+
+            <properties>
+                <packaging.type>jar</packaging.type>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                    <mainClass>edu.uiuc.ncsa.myproxy.oauth2.tools.OA2Commands</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <attach>false</attach>
+                            <finalName>oa2-cli</finalName>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-my-jar-with-dependencies</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
 
 </project>
