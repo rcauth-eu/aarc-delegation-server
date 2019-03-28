@@ -33,7 +33,7 @@
     <servlet>
         <servlet-name>initiate</servlet-name>
         <!-- <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet</servlet-class> -->
-        <servlet-class>org.delegserver.oauth2.servlet.DSOA2AuthorizedServlet</servlet-class>
+        <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSOA2AuthorizedServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>initiate</servlet-name>
@@ -54,7 +54,7 @@
     <servlet>
         <servlet-name>getCert</servlet-name>
         <!-- <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2CertServlet</servlet-class> -->
-        <servlet-class>org.delegserver.oauth2.servlet.DSOA2CertServlet</servlet-class>
+        <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSOA2CertServlet</servlet-class>
 
     </servlet>
     <servlet-mapping>
@@ -73,7 +73,7 @@
 
     <servlet>
         <servlet-name>authorize</servlet-name>
-        <servlet-class>org.delegserver.oauth2.servlet.DSOA2AuthorizationServer</servlet-class>
+        <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSOA2AuthorizationServer</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>authorize</servlet-name>
@@ -83,7 +83,7 @@
 
     <servlet>
         <servlet-name>clientVetting</servlet-name>
-        <servlet-class>org.delegserver.oauth2.servlet.DSOA2RegistrationServlet</servlet-class>
+        <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSOA2RegistrationServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
@@ -108,7 +108,7 @@
 
     <servlet>
         <servlet-name>userInfo</servlet-name>
-        <servlet-class>org.delegserver.oauth2.servlet.DSUserInfoServlet</servlet-class> 
+        <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSUserInfoServlet</servlet-class> 
         <!-- <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.UserInfoServlet</servlet-class> -->
     </servlet>
     <servlet-mapping>
@@ -169,7 +169,7 @@
     </resource-ref>
 
     <listener>
-        <listener-class>org.delegserver.oauth2.loader.DSOA2Bootstrapper</listener-class>
+        <listener-class>eu.rcauth.delegserver.oauth2.loader.DSOA2Bootstrapper</listener-class>
 
     </listener>
 
