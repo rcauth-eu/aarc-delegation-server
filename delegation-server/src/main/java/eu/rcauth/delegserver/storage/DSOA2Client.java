@@ -22,16 +22,10 @@ public class DSOA2Client extends OA2Client {
     @Override
     public DSOA2Client clone() {
         DSOA2Client client = new DSOA2Client(getIdentifier());
-        client.setName(getName());
-        client.setHomeUri(getHomeUri());
-        client.setErrorUri(getErrorUri());
-        client.setEmail(getEmail());
-        client.setProxyLimited(isProxyLimited());
-        client.setRtLifetime(getRtLifetime());
-        client.setCallbackURIs(getCallbackURIs());
-        client.setCreationTS(getCreationTS());
-        client.setSecret(getSecret());
+        super.populateClone(client);
         client.setDescription( this.description );
+        // TODO Seems the next one is missing in OA2Client or any of its parents
+//        client.setPublicClient(isPublicClient());
 
         return client;
     }

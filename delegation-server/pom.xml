@@ -190,7 +190,7 @@
                             <archive>
                                 <manifest>
                                     <addClasspath>true</addClasspath>
-                                    <mainClass>edu.uiuc.ncsa.myproxy.oauth2.tools.OA2Commands</mainClass>
+                                    <mainClass>eu.rcauth.delegserver.oauth2.cli.DSOA2Commands</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
