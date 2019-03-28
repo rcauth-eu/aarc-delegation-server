@@ -1,11 +1,7 @@
 package eu.rcauth.delegserver.oauth2.servlet;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -58,6 +54,17 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
     public static final String CERT_SUBJECT_ATTR = "X509_CERT_SUBJECT";
 
     /* OVERRIDEN METHODS */
+
+    /* NOTE: ensures that the transaction which is being used is a
+     * MPOA2ServiceTransaction instance instead of a OA2ServiceTransaction.
+     * Hence MPOA2AuthorizedServletUtil only overrides createNewTransaction().
+     * We need MPOA2ServiceTransaction to handle keeping state between the
+     * mp-client and mp-server via the MPClientSessionIdentifier.
+     */
+    @Override
+    protected DSOA2AuthorizedServletUtil getInitUtil() {
+        return new DSOA2AuthorizedServletUtil(this);
+    }
 
     @Override
     public void prepare(PresentableState state) throws Throwable {
@@ -119,9 +126,12 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
     protected void generateClaims(AuthorizedState state) {
 
         DSOA2ServiceTransaction serviceTransaction = ((DSOA2ServiceTransaction) state.getTransaction());
+        Collection<String> scopes = serviceTransaction.getScopes();
+        Map<String, Object> userAttributes = serviceTransaction.getUserAttributes();
+        DSOA2ServiceEnvironment se = (DSOA2ServiceEnvironment) getServiceEnvironment();
 
         //handle the 'edu.uiuc.ncsa.myproxy.getcert' scope in a special way
-        if ( serviceTransaction.getScopes().contains( OA2Scopes.SCOPE_MYPROXY ) ) {
+        if ( scopes.contains( OA2Scopes.SCOPE_MYPROXY ) ) {
             generateTraceRecord( serviceTransaction );
         }
 
@@ -130,11 +140,11 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         Map<String, Object> claims = new HashMap<String, Object>();
 
         // iterate through the list of accepted scopes sent by the client
-        for (String scope : serviceTransaction.getScopes()) {
+        for (String scope : scopes) {
 
             // get the configuration claimMap in order to decide which
             // claims to extract for this specific scope
-            Map<String, String> claimMap = ((DSOA2ServiceEnvironment) getServiceEnvironment()).getClaimsMap(scope);
+            Map<String, String> claimMap = se.getClaimsMap(scope);
 
             if (claimMap != null) {
                 // we need to add some claims
@@ -144,7 +154,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
                     String attribute = claimMap.get(claim);
 
                     //Object value = ShibHeaderExtractor.getRequestAttrs(state.getRequest(), attribute);
-                    Object value = serviceTransaction.getUserAttributes().get( attribute );
+                    Object value = userAttributes.get( attribute );
 
                     if (value != null) {
                         claims.put(claim, value);
@@ -154,7 +164,6 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         }
 
         // set claims
-        // TODO verify that this goes right!!
         serviceTransaction.setClaims(JSONObject.fromObject(claims));
     }
 
@@ -162,7 +171,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
      * Generate a TraceRecord from the user attributes under the current transaction.
      * This method will search for an already existing TraceRecord for the user or create
      * a new one. The resulting TraceRecord, the generated user DN (saved as a custom
-     * attribute under {@link CERT_SUBJECT_ATTR}) and the MyProxy USERNAME will be saved
+     * attribute under {@link #CERT_SUBJECT_ATTR}) and the MyProxy USERNAME will be saved
      * into the current transaction.
      * <p>
      * Moreover, this method also generates the final user DN which will be passed along to the
@@ -176,11 +185,12 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         DNGenerator dnGenerator = se.getDnGenerator();
         TraceRecordGenerator generator = se.getTraceRecordGenerator();
         CertExtensionGenerator certExtGenerator = se.getCertExtGenerator();
+        Map<String, Object> userAttributes = trans.getUserAttributes();
 
         // 1. GET TRACE RECORD FOR THIS TRANSACTION
         traceDebug("6.a.1  Get trace record for current transaction");
 
-        TraceRecord traceRecord =  generator.generate( trans.getUserAttributes() );
+        TraceRecord traceRecord =  generator.generate( userAttributes );
 
         // by now we should already have a trace record. if not we shouldn't continue!
         if ( traceRecord == null ) {
@@ -212,7 +222,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         traceDebug("6.a.4 The generated user DN is: " + trans.getMyproxyUsername());
 
         //complete the USERNAME parameter with extensions
-        String additionalInfo = certExtGenerator.getCertificateExtensions( trans.getUserAttributes() );
+        String additionalInfo = certExtGenerator.getCertificateExtensions( userAttributes );
 
         if ( additionalInfo != null && !additionalInfo.isEmpty()) {
             trans.setMyproxyUsername( trans.getMyproxyUsername() + " " + additionalInfo );
@@ -229,7 +239,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         trans.setTraceRecord( traceRecord.getCnHash() );
 
         // save the generated full user DN as a user attribute
-        trans.getUserAttributes().put(dnGenerator.getAttributeName() , dnGenerator.formatFullDN( orgRDN.getElement() ,
+        userAttributes.put(dnGenerator.getAttributeName() , dnGenerator.formatFullDN( orgRDN.getElement() ,
                                                                                                  cnRDN.getElement() ,
                                                                                                  cnRDNseqNr ));
         se.getTransactionStore().save(trans);
