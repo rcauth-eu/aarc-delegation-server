@@ -8,20 +8,19 @@ import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 
 /**
  * Custom Authorized Servlet implementation (/authorized). 
- * 
+ *
  * @author "Tamás Balogh"
+ * @author "Mischa Sall&eacute;"
  *
  */
 public class DSOA2AuthorizedServlet extends OA2AuthorizedServlet {
 
-	/**
-	 *  Create a custom Service Transaction {@link DSOA2ServiceTransaction} from a grant.
-	 * 
-	 *  @param grant The Authorization Grant (code) 
-	 */
-	@Override
-	protected OA2ServiceTransaction createNewTransaction(AuthorizationGrant grant) {
-		return new DSOA2ServiceTransaction(grant);
-	}
-	
+    @Override
+    public DSOA2AuthorizedServletUtil getInitUtil(){
+        if (initUtil == null) {
+            initUtil = new DSOA2AuthorizedServletUtil(this);
+        }
+        return (DSOA2AuthorizedServletUtil)initUtil;
+    }
+
 }

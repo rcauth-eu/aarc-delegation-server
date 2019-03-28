@@ -2,7 +2,7 @@ package org.delegserver.storage.sql.table;
 
 import org.delegserver.storage.DSOA2ClientKeys;
 
-import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2ClientTable;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2ClientTable;
 import edu.uiuc.ncsa.security.storage.sql.internals.ColumnDescriptorEntry;
 
 import static java.sql.Types.LONGVARCHAR;

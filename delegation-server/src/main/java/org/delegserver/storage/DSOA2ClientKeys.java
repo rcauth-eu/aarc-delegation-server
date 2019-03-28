@@ -1,6 +1,6 @@
 package org.delegserver.storage;
 
-import edu.uiuc.ncsa.security.oauth_2_0.OA2ClientKeys;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2ClientKeys;
 
 public class DSOA2ClientKeys extends OA2ClientKeys {
 

@@ -1,7 +1,7 @@
 package org.delegserver.storage;
 
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2ClientConverter;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2ClientConverter;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
 
@@ -18,14 +18,15 @@ public class DSOA2ClientConverter<V extends DSOA2Client> extends OA2ClientConver
     protected DSOA2ClientKeys getDSCK() {
     	return (DSOA2ClientKeys) keys;
     }
-    
+
     @Override
     public void toMap(V client, ConversionMap<String, Object> map) {
-    	super.toMap(client, map);
-    	
+        super.toMap(client, map);
+
     	map.put(getDSCK().description, client.getDescription());
     }
-    
+
+
     @Override
     public V fromMap(ConversionMap<String, Object> map, V v) {
     	V client =  super.fromMap(map, v);

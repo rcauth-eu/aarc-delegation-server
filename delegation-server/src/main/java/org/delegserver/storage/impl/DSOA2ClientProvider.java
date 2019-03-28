@@ -4,7 +4,7 @@ import org.delegserver.storage.DSOA2Client;
 
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.util.IdentifierProvider;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2ClientProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2ClientProvider;
 
 public class DSOA2ClientProvider<V extends DSOA2Client> extends OA2ClientProvider<V> {
 

@@ -52,6 +52,13 @@
             <version>${oa4mpVersion}</version>
         </dependency>
 
+        <!-- Note: only needed for sources in cli profile, but we always compile all -->
+        <dependency>
+            <groupId>edu.uiuc.ncsa.myproxy</groupId>
+            <artifactId>oa4mp-server-admin-oauth2</artifactId>
+            <version>${oa4mpVersion}</version>
+        </dependency>
+
         <!-- Used to come via nimbus-jose-jwt from
              edu/uiuc/ncsa/security/delegation/ncsa-security-oauth-2.0 -->
         <dependency>
@@ -170,14 +177,6 @@
                 To build the cli execute: mvn clean package -P cli
             -->
             <id>cli</id>
-
-            <dependencies>
-                <dependency>
-                    <groupId>edu.uiuc.ncsa.myproxy</groupId>
-                    <artifactId>oa4mp-server-admin-oauth2</artifactId>
-                    <version>${oa4mpVersion}</version>
-                </dependency>
-            </dependencies>
 
             <properties>
                 <packaging.type>jar</packaging.type>

@@ -1,26 +1,26 @@
 package org.delegserver.storage;
 
 import edu.uiuc.ncsa.security.core.Identifier;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2Client;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2Client;
 
 public class DSOA2Client extends OA2Client {
 
-	protected String description;
-	
-	public DSOA2Client(Identifier identifier) {
-		super(identifier);
-	}
+    protected String description;
 
-	public String getDescription() {
-		return description;
-	}
-	
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public DSOA2Client(Identifier identifier) {
+        super(identifier);
+    }
 
-	@Override
-	public DSOA2Client clone() {
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public DSOA2Client clone() {
         DSOA2Client client = new DSOA2Client(getIdentifier());
         client.setName(getName());
         client.setHomeUri(getHomeUri());
@@ -31,24 +31,24 @@ public class DSOA2Client extends OA2Client {
         client.setCallbackURIs(getCallbackURIs());
         client.setCreationTS(getCreationTS());
         client.setSecret(getSecret());
-		client.setDescription( this.description );
-		
-		return client;
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		boolean superEquals = super.equals(obj);
-		if ( !superEquals ) {
-			return false;
-		}
-		
-		DSOA2Client c = (DSOA2Client) obj;
-		if (!getDescription().equals(c.getDescription())) {
-			return false;
-		}
-		
-		return true;
-	}
-	
+        client.setDescription( this.description );
+
+        return client;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        boolean superEquals = super.equals(obj);
+        if ( !superEquals ) {
+            return false;
+        }
+
+        DSOA2Client c = (DSOA2Client) obj;
+        if (!getDescription().equals(c.getDescription())) {
+            return false;
+        }
+
+        return true;
+    }
+
 }
