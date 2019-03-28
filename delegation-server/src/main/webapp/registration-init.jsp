@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <html>
 
@@ -25,7 +26,7 @@
     <h2>Welcome to the RCAuth Client Registration Page</h2>
 
     <p>This page allows you to register your client with the
-        MyProxy delegation service that supports the OIDC/OAuth 2. To get your client approved,
+        RCauth delegation service that supports the OIDC/OAuth 2. To get your client approved,
         please fill out the form below. Your request will be evaluated for approval. For more information,
         please make sure you read the
         <a href="http://grid.ncsa.illinois.edu/myproxy/oauth/client/manuals/registering-with-an-oauth2-server.xhtml"
@@ -54,7 +55,7 @@
             <td><input type="text" size="25" name="${clientHomeUrl}" value="${clientHomeUrlValue}"/></td>
         </tr>
 
-        <tr>
+<%--    <tr>
             <td ${rtFieldVisible}>Refresh Token lifetime:</td>
             <td ${rtFieldVisible}><input type="text" size="25" name="${rtLifetime}" value="${rtLifetimeValue}"/>(in seconds - leave blank for no refresh tokens.)</td>
         </tr>
@@ -62,7 +63,7 @@
             <td></td>
             <td><input type="hidden" name="${clientProxyLimited}" ${clientProxyLimitedValue} />
             </td>
-        </tr>
+        </tr>--%>
 
 
         <tr style="vertical-align: top">
@@ -70,6 +71,14 @@
             <td>
                 <textarea id="${callbackURI}" rows="10" cols="80"
                           name="${callbackURI}">${callbackURIValue}</textarea>
+            </td>
+        </tr>
+        <tr style="vertical-align: top">
+            <td>Scopes:</td>
+            <td><c:forEach items="${scopes}" var="scope">
+                    <input type="checkbox"
+                           name="chkScopes"
+                           value="${scope}"<c:set var="xxx" scope="session" value="${scope}"/><c:if test="${xxx == 'openid'}"> checked="checked"</c:if>>${scope}<br></c:forEach>
             </td>
         </tr>
         <tr>
