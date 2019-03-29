@@ -18,283 +18,285 @@ import static eu.rcauth.delegserver.oauth2.DSConfigTags.*;
 
 public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 
-	/* SCOPES AND CLAIMS */
-	
-	// The key set of the outer map is the list of supported scopes
-	// The inner maps contain the relevant claims for each scope and their
-	// source mapping to the SAML attributes
-	protected static Map<String, Map<String, String>> scopesMap = null;
+    /* SCOPES AND CLAIMS */
 
-	// In case custom scopes configuration is available don't rely on hardcoded
-	// scopes.
-	public static Map<String, Map<String, String>> getScopesMap(ConfigurationNode cn)
-			throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-		if (scopesMap == null) {
-			scopesMap = new HashMap<String, Map<String, String>>();
+    // The key set of the outer map is the list of supported scopes
+    // The inner maps contain the relevant claims for each scope and their
+    // source mapping to the SAML attributes
+    protected static Map<String, Map<String, String>> scopesMap = null;
 
-			// Get the scopes configured in the configuration file
-			// The scope names are no longer declared as
-			// <scope>scope_name</scope>
-			// Instead we use <scope name="scope_name"></scope>
-			if (0 < cn.getChildrenCount(SCOPES)) {
+    // In case custom scopes configuration is available don't rely on hardcoded
+    // scopes.
+    public static Map<String, Map<String, String>> getScopesMap(ConfigurationNode cn)
+            throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if (scopesMap == null) {
+            scopesMap = new HashMap<String, Map<String, String>>();
 
-				// we have custom scopes defined
-				ConfigurationNode scopesNode = Configurations.getFirstNode(cn, SCOPES);
-				for (Object nodeI : scopesNode.getChildren(SCOPE)) {
+            // Get the scopes configured in the configuration file
+            // The scope names are no longer declared as
+            // <scope>scope_name</scope>
+            // Instead we use <scope name="scope_name"></scope>
+            if (0 < cn.getChildrenCount(SCOPES)) {
 
-					// extract scope name
-					ConfigurationNode scopeNode = (ConfigurationNode) nodeI;
-					String currentScope = Configurations.getFirstAttribute(scopeNode, SCOPE_NAME);
+                // we have custom scopes defined
+                ConfigurationNode scopesNode = Configurations.getFirstNode(cn, SCOPES);
+                for (Object nodeI : scopesNode.getChildren(SCOPE)) {
 
-					Map<String, String> claims = null;
-					if (0 < scopeNode.getChildrenCount(SCOPE_CLAIM)) {
+                    // extract scope name
+                    ConfigurationNode scopeNode = (ConfigurationNode) nodeI;
+                    String currentScope = Configurations.getFirstAttribute(scopeNode, SCOPE_NAME);
 
-						// we have claims belonging to the current scope
-						claims = new HashMap<String, String>();
-						for (Object nodeJ : scopeNode.getChildren(SCOPE_CLAIM)) {
-							ConfigurationNode claimNode = (ConfigurationNode) nodeJ;
-							String currentClaim = Configurations.getFirstAttribute(claimNode, CLAIM_NAME);
-							String currentClaimAttr = (String) claimNode.getValue();
-							claims.put(currentClaim, currentClaimAttr);
-						}
-					}
+                    Map<String, String> claims = null;
+                    if (0 < scopeNode.getChildrenCount(SCOPE_CLAIM)) {
 
-					// save scope and claims
-					scopesMap.put(currentScope, claims);
-				}
+                        // we have claims belonging to the current scope
+                        claims = new HashMap<String, String>();
+                        for (Object nodeJ : scopeNode.getChildren(SCOPE_CLAIM)) {
+                            ConfigurationNode claimNode = (ConfigurationNode) nodeJ;
+                            String currentClaim = Configurations.getFirstAttribute(claimNode, CLAIM_NAME);
+                            String currentClaimAttr = (String) claimNode.getValue();
+                            claims.put(currentClaim, currentClaimAttr);
+                        }
+                    }
 
-			} else {
+                    // save scope and claims
+                    scopesMap.put(currentScope, claims);
+                }
 
-				// default to hardcoded scopes with no claim mapping
-				for (String s : OA2Scopes.basicScopes) {
-					scopesMap.put(s, null);
-				}
+            } else {
 
-			}
-		}
-		return scopesMap;
-	}
-	
-	/* DN GENERATOR */
+                // default to hardcoded scopes with no claim mapping
+                for (String s : OA2Scopes.basicScopes) {
+                    scopesMap.put(s, null);
+                }
 
-	protected static Object[] cnNameSources = null; 
-	protected static Object[] cnUniqueIDSources = null;
-	protected static Object[] orgSources = null;
-	
-	public static Object[] getCnNameSources(ConfigurationNode cn) {
-		
-		if ( cnNameSources == null ) {
-			//parse config file for CN Name sources first
-			cnNameSources = parseDnGenerator(cn, DN_GENERATOR_CN_NAME);
-		} 
-		if ( cnNameSources == null ) {
-			//fall back on default
-			cnNameSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
-		}
-		
-		return cnNameSources;
-	}
-	
-	public static Object[] getCnUniqueIDSources(ConfigurationNode cn) {
-		
-		if ( cnUniqueIDSources == null ) {
-			//parse config file for CN Unique ID sources first
-			cnUniqueIDSources = parseDnGenerator(cn, DN_GENERATOR_CN_UNIQUE_ID);
-		}
-		if ( cnUniqueIDSources == null ) {
-			//fall back on default
-			cnUniqueIDSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
-		}
-		
-		return cnUniqueIDSources;
-	}	
-	
-	public static Object[] getOrgSources(ConfigurationNode cn) {
-		
-		if ( orgSources == null ) {
-			//parse config file for CN Unique ID sources first
-			orgSources = parseDnGenerator(cn, DN_GENERATOR_ORGANISATION);
-		}
-		if ( orgSources == null ) { 
-			//fall back on default
-			orgSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
-		}
-		
-		return orgSources;
-	}		
-	
-	public static Map<String,String> getExtensionSources(ConfigurationNode cn) {
+            }
+        }
+        return scopesMap;
+    }
 
-		Map<String,String> sources  = new HashMap<String,String>();
-		if (0 < cn.getChildrenCount( DN_GENERATOR )) {
-			
-			// we have a dnGenerator tag!
-			ConfigurationNode dnGenratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
-			if (0 < dnGenratorNode.getChildrenCount( DN_GENERATOR_EXTENSIONS )) {
-				
-				// we have a dn component tag!
-				ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGenratorNode, DN_GENERATOR_EXTENSIONS);
-				int sourceCount = cnNameNode.getChildrenCount( DN_GENERATOR_SOURCE );
-				if (0 < sourceCount) {
-					
-					for ( int i=0 ; i<sourceCount ; i++ ) {
-						
-						ConfigurationNode sourceNode = (ConfigurationNode) cnNameNode.getChild(i);
-						String sourceName = (String) Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_NAME);
-						String source = (String) sourceNode.getValue();
-						
-						sources.put(sourceName, source);
-					}
-				}
-			}
-		}	
-		
-		if ( sources.isEmpty() ) {
-			return null;
-		}
-		
-		return sources;
-		
-	}
-	
-	/* private method for extracting DN sources */
-	
-	protected static String DN_SOURCE_SEPARATOR = "+";
-	
-	protected static Object[] parseDnGenerator(ConfigurationNode cn, String dnComponent) {
-		
-		Object[] sources  = null;
-		if (0 < cn.getChildrenCount( DN_GENERATOR )) {
-			
-			// we have a dnGenerator tag!
-			ConfigurationNode dnGenratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
-			if (0 < dnGenratorNode.getChildrenCount( dnComponent )) {
-				
-				// we have a dn component tag!
-				ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGenratorNode, dnComponent);
-				int sourceCount = cnNameNode.getChildrenCount( DN_GENERATOR_SOURCE );
-				if (0 < sourceCount) {
-				
-					sources = new Object[sourceCount];
-					for ( int i=0 ; i<sourceCount ; i++ ) {
-						
-						ConfigurationNode sourceNode = (ConfigurationNode) cnNameNode.getChild(i);
-						String source = (String) sourceNode.getValue();
-						
-						//look out for multi-values separated with a + sign
-						if ( source.contains(DN_SOURCE_SEPARATOR) ) {
-							sources[i] = source.split("\\" + DN_SOURCE_SEPARATOR);
-						} else {
-							sources[i] = source;
-						}
-						
-						// complete the attribute filter map with any filter declared for the source
-						String sourceFilter =  Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_FILTER);
-						if ( sourceFilter != null && ! sourceFilter.isEmpty() ) {
-							
-							// get the actual filter object 
-							ShibAttributeFilter filterObject = getFilters(cn).get(sourceFilter);
-							
-							if ( filterObject == null ) {
-								throw new GeneralException("No instance of the filter referenced by the name '" + sourceFilter + "' found!");
-							}
-							
-							// save the filter indexed by its source name. 
-							if ( sources[i] instanceof String ) {
-								attributeFilters.put( ((String) sources[i]) , filterObject); 
-							} else {
-								String[] combinedSources = (String[]) sources[i];
-								for ( String src : combinedSources ) {
-									attributeFilters.put( src , filterObject); 
-								}
-							}
-						}
-						
-					}
-				}
-			}
-		}
-		return sources;
-	}
-	
-	/* ATTRIBUTE FILTERS */
+    /* DN GENERATOR */
 
-	// indexed by the source attribute to which the filter applies.
-	// the same filter can re-appear multiple times under different keys.
-	protected static Map<String,ShibAttributeFilter> attributeFilters = new HashMap<String,ShibAttributeFilter>();
-	
-	// indexed by the filter name. filters appear only once here
-	protected static Map<String,ShibAttributeFilter> filters = null;
-	
-	public static Map<String, ShibAttributeFilter> getAttributeFilters(ConfigurationNode cn) {
-		
-		// in case the a DN source attributes have not been loaded yet, it is time to load them
-		// otherwise we don't know which filter to apply to which source.
-		if ( cnNameSources == null ) {
-			getCnNameSources(cn);
-		}
-		if ( cnUniqueIDSources == null ) {
-			getCnUniqueIDSources(cn);
-		}
-		if ( orgSources == null ) {
-			getOrgSources(cn);
-		}
-		
-		return attributeFilters;
-	}
-	
-	/**
-	 * Loads the attribute filters from the configuration file
-	 * 
-	 * @param cn The top configuration node
-	 * @return A map consisting of filters indexed by their names
-	 */
-	protected static Map<String,ShibAttributeFilter> getFilters(ConfigurationNode cn)  {
-		
-		if ( filters == null ) {
-		
-			filters = new HashMap<String,ShibAttributeFilter>();
-			
-			if (0 < cn.getChildrenCount(ATTR_FILTERS)) {
-				
-				//we got the main attribute filters tag 
-				ConfigurationNode filtersNode = Configurations.getFirstNode(cn, ATTR_FILTERS);
-				int filterCount = filtersNode.getChildrenCount( ATTR_FILTER );
-				if (0 < filterCount) {	
-					
-					// go through all the filters
-					for ( int i=0 ; i<filterCount ; i++ ) {
-						
-						// extract name and class
-						ConfigurationNode filterNode = (ConfigurationNode) filtersNode.getChild(i);
-						String filterClass = (String) filterNode.getValue();
-						String filterName = Configurations.getFirstAttribute(filterNode, ATTR_FILTER_NAME);
-						
-						// try to create an instance of the filter class
-						Object x = null;
-						try {
-		                    Class<?> k = Class.forName(filterClass);
-		                    x = k.newInstance();
-						} catch (Exception e) { 
-	                    	throw new GeneralException("Erro creating filter class '" + filterClass + "'",e);
-	                    }
-	                    
-	                    // fail if it doesn't implement the right interface!
-	                    if (!(x instanceof ShibAttributeFilter)) {
-	                        throw new GeneralException("The attribute filter specified by the class name \"" +
-	                        		filterClass + "\" does not extend the ShibAttributeFilter " +
-	                                "interface and therefore cannot be used to filter attributes.");
-	                    }
-	                    
-	                    // save filter
-	                    filters.put( filterName , (ShibAttributeFilter) x);
-					}
-				}
-			}
-		}
-		
-		return filters;
-		
-	}
-	
+    protected static Object[] cnNameSources = null;
+    protected static Object[] cnUniqueIDSources = null;
+    protected static Object[] orgSources = null;
+
+    public static Object[] getCnNameSources(ConfigurationNode cn) {
+
+        if ( cnNameSources == null ) {
+            //parse config file for CN Name sources first
+            cnNameSources = parseDnGenerator(cn, DN_GENERATOR_CN_NAME);
+        }
+        if ( cnNameSources == null ) {
+            //fall back on default
+            cnNameSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
+        }
+
+        return cnNameSources;
+    }
+
+    public static Object[] getCnUniqueIDSources(ConfigurationNode cn) {
+
+        if ( cnUniqueIDSources == null ) {
+            //parse config file for CN Unique ID sources first
+            cnUniqueIDSources = parseDnGenerator(cn, DN_GENERATOR_CN_UNIQUE_ID);
+        }
+        if ( cnUniqueIDSources == null ) {
+            //fall back on default
+            cnUniqueIDSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
+        }
+
+        return cnUniqueIDSources;
+    }
+
+    public static Object[] getOrgSources(ConfigurationNode cn) {
+
+        if ( orgSources == null ) {
+            //parse config file for CN Unique ID sources first
+            orgSources = parseDnGenerator(cn, DN_GENERATOR_ORGANISATION);
+        }
+        if ( orgSources == null ) {
+            //fall back on default
+            orgSources = DSDefaultDNGeneratorConfiguration.getDefaultCnNameCandidates();
+        }
+
+        return orgSources;
+    }
+
+    public static Map<String,String> getExtensionSources(ConfigurationNode cn) {
+
+        Map<String,String> sources  = new HashMap<String,String>();
+        if (0 < cn.getChildrenCount( DN_GENERATOR )) {
+
+            // we have a dnGenerator tag!
+            ConfigurationNode dnGenratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
+            if (0 < dnGenratorNode.getChildrenCount( DN_GENERATOR_EXTENSIONS )) {
+
+                // we have a dn component tag!
+                ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGenratorNode, DN_GENERATOR_EXTENSIONS);
+                int sourceCount = cnNameNode.getChildrenCount( DN_GENERATOR_SOURCE );
+                if (0 < sourceCount) {
+
+                    for ( int i=0 ; i<sourceCount ; i++ ) {
+
+                        ConfigurationNode sourceNode = (ConfigurationNode) cnNameNode.getChild(i);
+                        String sourceName = (String) Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_NAME);
+                        String source = (String) sourceNode.getValue();
+
+                        sources.put(sourceName, source);
+                    }
+                }
+            }
+        }
+
+        if ( sources.isEmpty() ) {
+            return null;
+        }
+
+        return sources;
+
+    }
+
+    /* private method for extracting DN sources */
+
+    protected static String DN_SOURCE_SEPARATOR = "+";
+
+    protected static Object[] parseDnGenerator(ConfigurationNode cn, String dnComponent) {
+
+        Object[] sources  = null;
+        if (0 < cn.getChildrenCount( DN_GENERATOR )) {
+
+            // we have a dnGenerator tag!
+            ConfigurationNode dnGenratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
+            if (0 < dnGenratorNode.getChildrenCount( dnComponent )) {
+
+                // we have a dn component tag!
+                ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGenratorNode, dnComponent);
+                int sourceCount = cnNameNode.getChildrenCount( DN_GENERATOR_SOURCE );
+                if (0 < sourceCount) {
+
+                    sources = new Object[sourceCount];
+                    for ( int i=0 ; i<sourceCount ; i++ ) {
+
+                        ConfigurationNode sourceNode = (ConfigurationNode) cnNameNode.getChild(i);
+                        String source = (String) sourceNode.getValue();
+
+                        //look out for multi-values separated with a + sign
+                        if ( source.contains(DN_SOURCE_SEPARATOR) ) {
+                            sources[i] = source.split("\\" + DN_SOURCE_SEPARATOR);
+                        } else {
+                            sources[i] = source;
+                        }
+
+                        // complete the attribute filter map with any filter declared for the source
+                        String sourceFilter =  Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_FILTER);
+                        if ( sourceFilter != null && ! sourceFilter.isEmpty() ) {
+
+                            // get the actual filter object
+                            ShibAttributeFilter filterObject = getFilters(cn).get(sourceFilter);
+
+                            if ( filterObject == null ) {
+                                throw new GeneralException("No instance of the filter referenced by the name '" + sourceFilter + "' found!");
+                            }
+
+                            // save the filter indexed by its source name.
+                            if ( sources[i] instanceof String ) {
+                                attributeFilters.put( ((String) sources[i]) , filterObject);
+                            } else {
+                                String[] combinedSources = (String[]) sources[i];
+                                for ( String src : combinedSources ) {
+                                    attributeFilters.put( src , filterObject);
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+        return sources;
+    }
+
+    /* ATTRIBUTE FILTERS */
+
+    // indexed by the source attribute to which the filter applies.
+    // the same filter can re-appear multiple times under different keys.
+    protected static Map<String,ShibAttributeFilter> attributeFilters = new HashMap<String,ShibAttributeFilter>();
+
+    // indexed by the filter name. filters appear only once here
+    protected static Map<String,ShibAttributeFilter> filters = null;
+
+    public static Map<String, ShibAttributeFilter> getAttributeFilters(ConfigurationNode cn) {
+
+        // in case the a DN source attributes have not been loaded yet, it is time to load them
+        // otherwise we don't know which filter to apply to which source.
+        if ( cnNameSources == null ) {
+            getCnNameSources(cn);
+        }
+        if ( cnUniqueIDSources == null ) {
+            getCnUniqueIDSources(cn);
+        }
+        if ( orgSources == null ) {
+            getOrgSources(cn);
+        }
+
+        return attributeFilters;
+    }
+
+    /**
+     * Loads the attribute filters from the configuration file
+     *
+     * @param cn The top configuration node
+     * @return A map consisting of filters indexed by their names
+     */
+    protected static Map<String,ShibAttributeFilter> getFilters(ConfigurationNode cn)  {
+
+        if ( filters == null ) {
+
+            filters = new HashMap<String,ShibAttributeFilter>();
+
+            if (0 < cn.getChildrenCount(ATTR_FILTERS)) {
+
+                //we got the main attribute filters tag
+                ConfigurationNode filtersNode = Configurations.getFirstNode(cn, ATTR_FILTERS);
+                int filterCount = filtersNode.getChildrenCount( ATTR_FILTER );
+                if (0 < filterCount) {
+
+                    // go through all the filters
+                    for ( int i=0 ; i<filterCount ; i++ ) {
+
+                        // extract name and class
+                        ConfigurationNode filterNode = (ConfigurationNode) filtersNode.getChild(i);
+                        String filterClass = (String) filterNode.getValue();
+                        String filterName = Configurations.getFirstAttribute(filterNode, ATTR_FILTER_NAME);
+
+                        // try to create an instance of the filter class
+                        Object x = null;
+                        try {
+                            Class<?> k = Class.forName(filterClass);
+                            // Note that the different filters typically have no special constructor,
+                            // so we can use the default constructor without arguments
+                            x = k.getDeclaredConstructor().newInstance();
+                        } catch (Exception e) {
+                            throw new GeneralException("Erro creating filter class '" + filterClass + "'",e);
+                        }
+
+                        // fail if it doesn't implement the right interface!
+                        if (!(x instanceof ShibAttributeFilter)) {
+                            throw new GeneralException("The attribute filter specified by the class name \"" +
+                                    filterClass + "\" does not extend the ShibAttributeFilter " +
+                                    "interface and therefore cannot be used to filter attributes.");
+                        }
+
+                        // save filter
+                        filters.put( filterName , (ShibAttributeFilter) x);
+                    }
+                }
+            }
+        }
+
+        return filters;
+
+    }
+
 }

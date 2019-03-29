@@ -1,10 +1,16 @@
 package eu.rcauth.delegserver.oauth2.servlet;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.http.HttpHeaders;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceEnvironment;
@@ -14,7 +20,6 @@ import eu.rcauth.delegserver.oauth2.generator.DNGenerator;
 import eu.rcauth.delegserver.oauth2.generator.TraceRecordGenerator;
 import eu.rcauth.delegserver.oauth2.shib.ShibAssertionRetriever;
 import eu.rcauth.delegserver.oauth2.shib.ShibHeaderExtractor;
-import eu.rcauth.delegserver.oauth2.util.JSONConverter;
 import eu.rcauth.delegserver.storage.DSOA2Client;
 import eu.rcauth.delegserver.storage.RDNElement;
 import eu.rcauth.delegserver.storage.RDNElementPart;
@@ -137,6 +142,8 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
         // build a claim map based in the incoming scope set in the
         // transaction and the attributes given in the request
+        // Note: probably don't want to use a JSONObject directly, probably more
+        // efficient to first make the Map and only then convert.
         Map<String, Object> claims = new HashMap<String, Object>();
 
         // iterate through the list of accepted scopes sent by the client
@@ -286,7 +293,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
                             }
                             if (!nonEmptyValues.isEmpty()) {
                                 traceDebug(
-                                        " " + key + " = " + JSONConverter.toJSONArray(nonEmptyValues).toJSONString());
+                                        " " + key + " = " + JSONArray.fromObject(nonEmptyValues).toString());
                             }
                         }
                     }
