@@ -52,20 +52,14 @@
             <version>${oa4mpVersion}</version>
         </dependency>
 
-        <!-- Note: only needed for sources in cli profile, but we always compile all
-	     This also pulls in the necessary mysql-connector-java -->
+        <!-- Note: pulled in by oa4mp-server-admin-oauth2 but that's only there
+             at run-time for the cli, not the war. Saver to specify it since
+             it's a dependency in any case -->
         <dependency>
-            <groupId>edu.uiuc.ncsa.myproxy</groupId>
-            <artifactId>oa4mp-server-admin-oauth2</artifactId>
-            <version>${oa4mpVersion}</version>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.11</version>
         </dependency>
-
-        <!-- comes normally from cANL in security-lib from us -->
-        <!--dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.52</version>
-        </dependency-->
 
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -154,6 +148,21 @@
         <profile>
             <id>webapp</id>
 
+            <!-- Note: only needed for sources in cli profile, but we always
+                 compile all, hence use provided. Note that this would also pull
+                 in the necessary mysql-connector-java, so add that manually.
+                 We must not always include it, since it would pull in
+                 javax.mail which should be provided by the system, see note in
+                 security-lib's ServletMailUtil about cannot cast ... -->
+            <dependencies>
+                <dependency>
+                    <groupId>edu.uiuc.ncsa.myproxy</groupId>
+                    <artifactId>oa4mp-server-admin-oauth2</artifactId>
+                    <version>${oa4mpVersion}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -171,6 +180,15 @@
                 To build the cli execute: mvn clean package -P cli
             -->
             <id>cli</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>edu.uiuc.ncsa.myproxy</groupId>
+                    <artifactId>oa4mp-server-admin-oauth2</artifactId>
+                    <version>${oa4mpVersion}</version>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
 
             <properties>
                 <packaging.type>jar</packaging.type>
