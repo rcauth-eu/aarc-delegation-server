@@ -137,6 +137,38 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <use>false</use>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Next flag does not work for Java 8 -->
+                            <additionalOptions>-html5</additionalOptions>
+                            <!-- next flag is usefulif there are issues with the
+                                 javadoc such as empty javadoc tags -->
+                            <!--doclint>none</doclint-->
+                            <!-- enable links to Java's own javadoc -->
+                            <detectJavaApiLink>true</detectJavaApiLink>
+                            <!-- Note: javax.servlet does not provide proper
+                                 link for detectLinks, hence specify manually -->
+                            <additionalJOptions>
+                                <additionalJOption>-link</additionalJOption>
+                                <additionalJOption>https://javaee.github.io/javaee-spec/javadocs/</additionalJOption>
+                            </additionalJOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
         </plugins>
         <finalName>oauth2</finalName>

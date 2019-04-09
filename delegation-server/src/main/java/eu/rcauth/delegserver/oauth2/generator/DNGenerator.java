@@ -50,7 +50,7 @@ public class DNGenerator {
     // get Armenian right. Still need Any-Latin for certain chars in Hebrew
     // which otherwise don't get transliterated
     private final static Transliterator trans =
-            Transliterator.getInstance(	"Russian-Latin/BGN;"+
+            Transliterator.getInstance("Russian-Latin/BGN;"+
                     "Serbian-Latin/BGN;"+
                     "Greek-Latin/UNGEGN;"+
                     "nfd; [:Nonspacing Mark:] remove; nfc;"+
@@ -66,7 +66,7 @@ public class DNGenerator {
     public static String RDN_TRUNCATE_SIGN = "...";
 
     public static int RDN_MAX_SIZE = 64;
-    public static int CN_DISPAY_NAME_MAX_SIZE = 43;
+    public static int CN_DISPLAY_NAME_MAX_SIZE = 43;
     public static int CN_UNIQUE_ID_MAX_SIZE = 16;
     public static int CN_MAX_SEQUENCE_NR = 999;
 
@@ -98,12 +98,12 @@ public class DNGenerator {
     protected Charset defaultCharset = null;
     protected Logable logger = null;
 
-    /* CONSTUCTOR */
+    /* CONSTRUCTOR */
 
     /**
      * Creates a DN Generator object from the DN Generator source configuration. The provided
      * parameters are expected to be lists of {@link Object}s with elements being either a single
-     * {@link String} source or a array {@link String[]} of sources. Single attributes are simply user as-is
+     * {@link String} source or a array {@link String}[] of sources. Single attributes are simply user as-is
      * ,while an array of attribute sources will produce a concatenated list of attribute values.
      *
      * @param cnNameSources Attribute source list for {cnName}
@@ -249,13 +249,13 @@ public class DNGenerator {
         logger.debug("GENERATING CN");
 
         // First deal with the display name part of the common name
-        RDNElementPart diplayName = getCommonNameDisplayPart(attributeMap);
+        RDNElementPart displayName = getCommonNameDisplayPart(attributeMap);
 
         // Now deal with the uniqueness part of the CN
         RDNElementPart uniqueID = getCommonNameUniquePart(attributeMap);
 
         // the combination returned here should always be <= 64
-        String cn = diplayName.getElement() + CN_DELIMITER + uniqueID.getElement();
+        String cn = displayName.getElement() + CN_DELIMITER + uniqueID.getElement();
 
         logger.debug("	- Generated Common Name (CN): '" + cn + "'");
 
@@ -265,7 +265,7 @@ public class DNGenerator {
         }
 
         RDNElement commonName = new RDNElement(cn);
-        commonName.addRDNElementPart(diplayName);
+        commonName.addRDNElementPart(displayName);
         commonName.addRDNElementPart(uniqueID);
 
         return commonName;
@@ -323,7 +323,7 @@ public class DNGenerator {
 
         // First deal with the display name part of the common name. This will be the same for every
         // CN constructed below.
-        RDNElementPart diplayName = getCommonNameDisplayPart(attributeMap);
+        RDNElementPart displayName = getCommonNameDisplayPart(attributeMap);
 
         // Take every unique ID attribute source and construct a single CN
         for(Object obj : cnUniqueIDSources) {
@@ -375,7 +375,7 @@ public class DNGenerator {
             logger.debug("	- Unique ID Attribute Value (after USR conversion): '" + uniqueID + "'");
 
             // the combination returned here should always be <= 64
-            String cn = diplayName.getElement() + CN_DELIMITER + uniqueID;
+            String cn = displayName.getElement() + CN_DELIMITER + uniqueID;
 
             logger.debug("	- Generated Common Name (CN): '" + cn + "'");
 
@@ -386,7 +386,7 @@ public class DNGenerator {
 
             RDNElementPart uniquePart = new RDNElementPart(uniqueID, origUniqueID, getConcatenatedStrings(uniqueIDSourceAttr));
             RDNElement commonName = new RDNElement(cn);
-            commonName.addRDNElementPart(diplayName);
+            commonName.addRDNElementPart(displayName);
             commonName.addRDNElementPart(uniquePart);
 
             cns.add(commonName);
@@ -440,17 +440,17 @@ public class DNGenerator {
 
         // convert to printable string
 
-        String diplayName = getPrintableString(origDisplayName);
+        String displayName = getPrintableString(origDisplayName);
 
-        logger.debug("	- Display Name Attribute Value (after printable string conversion): '" + diplayName + "'");
+        logger.debug("	- Display Name Attribute Value (after printable string conversion): '" + displayName + "'");
 
         // truncate to the right size
 
-        diplayName = truncate(diplayName,CN_DISPAY_NAME_MAX_SIZE);
+        displayName = truncate(displayName,CN_DISPLAY_NAME_MAX_SIZE);
 
-        logger.debug("	- Display Name Attribute Value (after truncating): '" + diplayName + "'");
+        logger.debug("	- Display Name Attribute Value (after truncating): '" + displayName + "'");
 
-        return new RDNElementPart(diplayName, origDisplayName, getConcatenatedStrings(cnNameSourceAttr));
+        return new RDNElementPart(displayName, origDisplayName, getConcatenatedStrings(cnNameSourceAttr));
     }
 
     /**
@@ -498,7 +498,7 @@ public class DNGenerator {
 
     /* DN FORMATTING METHODS */
 
-    public String formatDNSufix(String org,String cn) {
+    public String formatDNSuffix(String org,String cn) {
         String dn =  String.format(DN_OPENSSL_FORMAT, org, cn);
 
         logger.debug("	- Generated Distinguished Name (DN): '" + dn + "'");
@@ -506,12 +506,12 @@ public class DNGenerator {
         return dn;
     }
 
-    public String formatDNSufix(String org, String cn, int sequenceNr) {
+    public String formatDNSuffix(String org, String cn, int sequenceNr) {
 
         validateSequenceNr(sequenceNr);
 
         if ( sequenceNr == 0 ) {
-            return formatDNSufix(org, cn);
+            return formatDNSuffix(org, cn);
         }
 
         String dn =  String.format(DN_OPENSSL_FORMAT, org, cn + CN_DELIMITER + sequenceNr);
@@ -528,9 +528,9 @@ public class DNGenerator {
         }
 
         if ( baseDNOpenSSL.endsWith("/") ) {
-            return baseDNOpenSSL + formatDNSufix(org, cn, sequenceNr).substring(1);
+            return baseDNOpenSSL + formatDNSuffix(org, cn, sequenceNr).substring(1);
         } else {
-            return baseDNOpenSSL + formatDNSufix(org, cn, sequenceNr);
+            return baseDNOpenSSL + formatDNSuffix(org, cn, sequenceNr);
         }
 
     }
@@ -606,8 +606,8 @@ public class DNGenerator {
 
         // PrintableString == \\p{Lower}\\p{Upper}\\p{Digit} '()+,-./:=?
         // Remove /:= from set of PrintableString to prevent collisions with
-        // e.g. htaccess files and openssl strings. Do add @ for e.g. the
-        // igtf proxy which adds the ePPN to the displayName
+        // e.g. .htaccess files and openssl strings. Do add @ for e.g. the
+        // IGTF-to-eduGAIN proxy which adds the ePPN to the displayName
         String normalizedOutput = output1.replaceAll("[^\\p{Lower}\\p{Upper}\\p{Digit} '()+,-.?@]", "X");
 
         logger.debug("		- Printable String Equivalent: '" + normalizedOutput + "'");
@@ -706,6 +706,7 @@ public class DNGenerator {
      * @param attributeKey Attribute Key from the attributeMap
      * @return The value of attributeKey from attributeMap after processing
      */
+    @SuppressWarnings("unchecked") // need to cast Object attr to List<String>
     protected String getProcessedAttr(Map<String,Object> attributeMap, String attributeKey) {
 
         if ( attributeMap == null || attributeKey == null || ! attributeMap.containsKey(attributeKey) ) {

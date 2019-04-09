@@ -210,7 +210,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
         // 4. GENERATE USER DN FOR TRANSACTION AND SAVE TRANSACTION
         traceDebug("6.a.4 Generating user DN for transaction...");
-        //the DN sufix should be taken from the trace record retrieved/created above!!!
+        //the DN suffix should be taken from the trace record retrieved/created above!!!
         //if you recreate the CN at this point using DnGenerator you might end up
         //creating a new CN for an already existing user in the system.
         RDNElement orgRDN = traceRecord.getOrganization();
@@ -219,9 +219,9 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
         //append the sequence number where applicable
         if ( cnRDNseqNr > 0 ) {
-            trans.setMyproxyUsername( dnGenerator.formatDNSufix( orgRDN.getElement() , cnRDN.getElement(), cnRDNseqNr ) );
+            trans.setMyproxyUsername( dnGenerator.formatDNSuffix( orgRDN.getElement() , cnRDN.getElement(), cnRDNseqNr ) );
         } else {
-            trans.setMyproxyUsername( dnGenerator.formatDNSufix( orgRDN.getElement() , cnRDN.getElement() ) );
+            trans.setMyproxyUsername( dnGenerator.formatDNSuffix( orgRDN.getElement() , cnRDN.getElement() ) );
         }
 
         //log the final trace record elements and their origin
