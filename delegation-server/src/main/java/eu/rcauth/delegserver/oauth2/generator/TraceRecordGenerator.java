@@ -15,7 +15,6 @@ import eu.rcauth.delegserver.storage.TraceRecord;
 import eu.rcauth.delegserver.storage.TraceRecordIdentifier;
 import eu.rcauth.delegserver.storage.TraceRecordStore;
 
-import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.Logable;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 
@@ -49,7 +48,7 @@ public class TraceRecordGenerator {
 	 * based on the passed user attributes.
 	 * 
 	 * @param attributeMap The user attributes 
-	 * @returns The TraceRecord generated
+	 * @return TraceRecord the generated trace record
 	 */
 	public TraceRecord generate(Map<String,Object> attributeMap) {
 		
@@ -57,7 +56,7 @@ public class TraceRecordGenerator {
 		
 		try {
 			
-			// 2. TRY TO RETRIVE ALREADY EXISTING TRACE RECORD BASED ON CURRENT TRANSACTION
+			// 2. TRY TO RETRIEVE ALREADY EXISTING TRACE RECORD BASED ON CURRENT TRANSACTION
 			logger.debug("6.a.2  Look for an already existing trace record");
 			traceRecord = getTraceRecord( attributeMap );
 			logger.debug("6.a.2  Trace Record FOUND!");
@@ -80,7 +79,7 @@ public class TraceRecordGenerator {
 			
 		} catch ( NoTraceRecordException e ) {
 			
-			// 2.b CREATE NEW TRACE RECORD WITH SEQUNCE NUMBER 0
+			// 2.b CREATE NEW TRACE RECORD WITH SEQUENCE NUMBER 0
 			logger.debug("6.a.2 NoTraceRecordException! Trace record not found. Creating new Trace Record without a sequence number");
 			
 			// new user! register new trace record
@@ -117,7 +116,7 @@ public class TraceRecordGenerator {
 		// 1. GENERATE EVERY POSSIBLE CN HASH
 		
 		// keep a reverse mapping between the original CNs (inside a RDNElement) and their hashes 
-		Map<TraceRecordIdentifier, RDNElement> cnHashAlternatives = new HashMap<TraceRecordIdentifier, RDNElement>();
+		Map<TraceRecordIdentifier, RDNElement> cnHashAlternatives = new HashMap<>();
 		
 		for ( RDNElement cn : dnGenerator.getCommonNames(attributeMap) ) {
 			// hash possible CNs and then to the lookup list.
@@ -129,7 +128,7 @@ public class TraceRecordGenerator {
 		// 2. LOOKUP TRACE RECORDS WITH THE ABOVE GENERATES CN HASHES
 		logger.debug("Executing lookup for trace records...");
 		// execute the lookup based on the set of CN hashes (reverse map keys)
-		List<TraceRecord> traceRecords = traceRecordStore.getAll( new ArrayList<Identifier>( cnHashAlternatives.keySet() ) );
+		List<TraceRecord> traceRecords = traceRecordStore.getAll(new ArrayList<>(cnHashAlternatives.keySet()) );
 		
 		if ( traceRecords == null || traceRecords.size() == 0 ) {
 			// 2.a NO TRACE RECORDS

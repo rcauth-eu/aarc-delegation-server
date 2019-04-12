@@ -7,7 +7,7 @@ import edu.uiuc.ncsa.security.core.Store;
 
 public interface TraceRecordStore<V extends TraceRecord> extends Store<V> {
 
-	public List<V> getAll(List<Identifier> identifiers);
+	List<V> getAll(List<Identifier> identifiers);
 	
-	public int getNextSequenceNumber(Identifier identifier);
+	int getNextSequenceNumber(Identifier identifier);
 }

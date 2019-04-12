@@ -12,8 +12,8 @@
     
     function autoSubmit()  {
 
-    	// only redirect autmatically if request succeeded without an error
-    	// this is needed to prevent infinately redirecting error loops
+    	// only redirect automatically if request succeeded without an error
+    	// this is needed to prevent infinitely redirecting error loops
     	if ( ! "${retryMessage}" ) {
 	
     		document.getElementById("showRedirectWait").style.display = "inline";

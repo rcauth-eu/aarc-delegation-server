@@ -36,11 +36,11 @@ public class ThreadsafeTraceLogger implements Logable {
 	 */
 	private TraceLoggingFacade originalLogger = null;
 	
-	/* CONSTUCTORS */
+	/* CONSTRUCTORS */
 	
 	public ThreadsafeTraceLogger(TraceLoggingFacade originalLogger) {
 		this.originalLogger = originalLogger;
-		this.sessionLoggers = new ConcurrentHashMap<String,TraceLoggingFacade>();
+		this.sessionLoggers = new ConcurrentHashMap<>();
 	}
 	
 	/* SESSION KEEPING LOGS */
@@ -63,7 +63,7 @@ public class ThreadsafeTraceLogger implements Logable {
 	 * thread.
 	 * <p>
 	 * DO NOT FORGET! You should clean up the session specific logger 
-	 * when the session ends using the {@link #destroySessionLogger()} 
+	 * when the session ends using the this
 	 * method. If you fail to do so, you will end up hoarding logger of 
 	 * expired sessions!
 	 */

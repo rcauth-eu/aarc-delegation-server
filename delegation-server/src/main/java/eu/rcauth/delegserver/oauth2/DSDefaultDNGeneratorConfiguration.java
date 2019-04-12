@@ -14,26 +14,26 @@ public class DSDefaultDNGeneratorConfiguration {
 	
 	private static Object[] defaultCnNameCandidates = null;
 	
-	public static String DEFAULT_DISPLAY_NAME="displayName";
-	public static String DEFAULT_GIVEN_NAME="givenName";
-	public static String DEFAULT_SN="sn";
-	public static String DEFAULT_CN="cn";
+	public static final String DEFAULT_DISPLAY_NAME="displayName";
+	public static final String DEFAULT_GIVEN_NAME="givenName";
+	public static final String DEFAULT_SN="sn";
+	public static final String DEFAULT_CN="cn";
 
 	/* Default CN Unique ID candidates */
 	
 	private static Object[] defaultCnUniqueIDCandidates = null;
 	
-	public static String DEFAULT_EPUID="epuid";
-	public static String DEFAULT_EPPN="eppn";
-	public static String DEFAULT_EPTID="eptid";
+	public static final String DEFAULT_EPUID="epuid";
+	public static final String DEFAULT_EPPN="eppn";
+	public static final String DEFAULT_EPTID="eptid";
 	
 	/* Default Organization candidates */
 	
 	private static Object[] defaultOrgCandidates = null;
 	
-	public static String DEFAULT_SCHAC_HOME_ORG="schacHomeOrganisation";
-	public static String DEFAULT_ORG_DISPLAY_NAME="organisationDisplayName";
-	public static String DEFAULT_ENTITY_ID="entityID";
+	public static final String DEFAULT_SCHAC_HOME_ORG="schacHomeOrganisation";
+	public static final String DEFAULT_ORG_DISPLAY_NAME="organisationDisplayName";
+	public static final String DEFAULT_ENTITY_ID="entityID";
 
 	
 	public static Object[] getDefaultCnNameCandidates() {

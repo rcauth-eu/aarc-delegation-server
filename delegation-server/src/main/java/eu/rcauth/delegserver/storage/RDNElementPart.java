@@ -12,10 +12,10 @@ public class RDNElementPart {
 	public RDNElementPart() {
 	}
 	
-	public RDNElementPart(String element, String elementOrig, String elementSrource) {
+	public RDNElementPart(String element, String elementOrig, String elementSource) {
 		this.element = element;
 		this.elementOrig = elementOrig;
-		this.elementSource = elementSrource;
+		this.elementSource = elementSource;
 	}
 	
 	public void setElement(String element) {

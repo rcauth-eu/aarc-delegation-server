@@ -1,5 +1,6 @@
 package eu.rcauth.delegserver.oauth2.loader;
 
+import eu.rcauth.delegserver.storage.*;
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceEnvironment;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceTransaction;
@@ -9,13 +10,6 @@ import eu.rcauth.delegserver.oauth2.logging.ThreadsafeTraceLogger;
 import eu.rcauth.delegserver.oauth2.logging.TraceLoggingFacade;
 import eu.rcauth.delegserver.oauth2.logging.TraceRecordLoggerProvider;
 import eu.rcauth.delegserver.oauth2.util.DSOA2ConfigurationLoaderUtils;
-import eu.rcauth.delegserver.storage.TraceRecordKeys;
-import eu.rcauth.delegserver.storage.TraceRecordStore;
-import eu.rcauth.delegserver.storage.DSOA2ClientConverter;
-import eu.rcauth.delegserver.storage.DSOA2TConverter;
-import eu.rcauth.delegserver.storage.DSOA2TransactionKeys;
-import eu.rcauth.delegserver.storage.TraceRecordConverter;
-import eu.rcauth.delegserver.storage.TraceRecordIdentifierProvider;
 import eu.rcauth.delegserver.storage.impl.TraceRecordProvider;
 import eu.rcauth.delegserver.storage.impl.DSOA2ClientProvider;
 import eu.rcauth.delegserver.storage.impl.MultiTraceRecordStoreProvider;
@@ -25,7 +19,6 @@ import eu.rcauth.delegserver.storage.sql.SQLTraceRecordStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.claims.BasicClaimsSourceImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
-import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2ClientSQLStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.OA2SQLTransactionStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.DSTransactionProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
@@ -88,8 +81,10 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T createInstance() {
         try {
+            // Note we suppress an unchecked cast to T
             T se = (T) new DSOA2ServiceEnvironment(loggerProvider.get(),
                     getTraceRecordStoreProvider(),
                     getTransactionStoreProvider(),
@@ -108,8 +103,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getAuthorizationServletConfig(),
                     getUsernameTransformer(),
                     getPingable(),
-                    getMpp(),   // see OA2ConfigurationLoader
-                    getMacp(),  // see OA2ConfigurationLoader
+                    getMpp(),   // see OA2ConfigurationLoader, we suppress an unchecked assignment
+                    getMacp(),  // see OA2ConfigurationLoader, we suppress an unchecked assignment
                     getClientSecretLength(),
                     getScopesMap(),
                     getClaimSource(),
@@ -135,23 +130,25 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 
     /* Configure backend provider for TraceRecords */
 
-    protected MultiTraceRecordStoreProvider traceRecordSP;
+    protected MultiTraceRecordStoreProvider<TraceRecord> traceRecordSP;
 
-    public Provider<TraceRecordStore> getTraceRecordStoreProvider() {
+    public Provider<TraceRecordStore<TraceRecord>> getTraceRecordStoreProvider() {
         if ( traceRecordSP == null ) {
-            traceRecordSP = new MultiTraceRecordStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null);
+            traceRecordSP = new MultiTraceRecordStoreProvider<>(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null);
 
-            TraceRecordIdentifierProvider identifier = new TraceRecordIdentifierProvider();
-            TraceRecordProvider provider = new TraceRecordProvider( identifier );
-            TraceRecordConverter converter = new TraceRecordConverter( new TraceRecordKeys(), provider);
+            TraceRecordIdentifierProvider<Identifier> idProv = new TraceRecordIdentifierProvider<>();
 
-            traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
+            TraceRecordProvider<TraceRecord> provider = new TraceRecordProvider<>( idProv );
+            TraceRecordKeys keys = new TraceRecordKeys();
+            TraceRecordConverter<TraceRecord> converter = new TraceRecordConverter<>( keys, provider);
+
+            traceRecordSP.addListener( new SQLTraceRecordStoreProvider<>(cn,
                     getMySQLConnectionPoolProvider(),
                     OA4MPConfigTags.MYSQL_STORE,
                     converter,
                     provider) );
 
-            traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
+            traceRecordSP.addListener( new SQLTraceRecordStoreProvider<>(cn,
                     getMariaDBConnectionPoolProvider(),
                     OA4MPConfigTags.MARIADB_STORE,
                     converter,
@@ -189,8 +186,13 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 
     @Override
     protected Provider<TransactionStore> getTSP() {
-        IdentifiableProvider tp = new DSST2Provider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, TRANSACTION_ID, false));
+        IdentifierProvider idProv = new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, TRANSACTION_ID, false);
+        // Note we suppress an unchecked assignment since OA4MPIdentifierProvider does not use generics
+        @SuppressWarnings("unchecked")
+        IdentifiableProvider tp = new DSST2Provider( idProv );
         DSOA2TransactionKeys keys = new DSOA2TransactionKeys();
+        // Note we suppress an uncheck assignment in the 2nd and 4th parameters
+        @SuppressWarnings("unchecked")
         DSOA2TConverter<DSOA2ServiceTransaction> tc = new DSOA2TConverter<DSOA2ServiceTransaction>(keys, tp, getTokenForgeProvider().get(), getClientStoreProvider().get());
         return getTSP(tp,  tc);
     }
@@ -203,7 +205,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                                                           Provider<? extends OA2ServiceTransaction> tp,
                                                           Provider<TokenForge> tfp,
                                                           MapConverter converter){
-        return new DSOA2SQLTransactionStoreProvider(config,cpp,type,clientStoreProvider,tp,tfp,converter);
+        return new DSOA2SQLTransactionStoreProvider<>(config,cpp,type,clientStoreProvider,tp,tfp,converter);
     }
 
     /* Configure the use of custom Client implementation */
@@ -211,17 +213,22 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     @Override
     protected MultiDSClientStoreProvider getCSP() {
         if (csp == null) {
-            DSOA2ClientConverter converter = new DSOA2ClientConverter(getClientProvider());
-            csp = new MultiDSClientStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null, getClientProvider());
+            MapConverter<? extends Client> dsoa2ClientConverter = new DSOA2ClientConverter<>(getClientProvider());
+
+            // Note we need a bare MapConverter as argument to DSFSClientStoreProvider()
+            @SuppressWarnings("unchecked")
+            MapConverter<Client> converter = (MapConverter<Client>)dsoa2ClientConverter;
+
+            csp = new MultiDSClientStoreProvider<>(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null, getClientProvider());
 
             csp.addListener(new DSFSClientStoreProvider(cn, converter, getClientProvider()));
-            csp.addListener(new DSOA2ClientSQLStoreProvider(getMySQLConnectionPoolProvider(),
+            csp.addListener(new DSOA2ClientSQLStoreProvider<>(getMySQLConnectionPoolProvider(),
                     OA4MPConfigTags.MYSQL_STORE,
                     converter, getClientProvider()));
-            csp.addListener(new DSOA2ClientSQLStoreProvider(getMariaDBConnectionPoolProvider(),
+            csp.addListener(new DSOA2ClientSQLStoreProvider<>(getMariaDBConnectionPoolProvider(),
                     OA4MPConfigTags.MARIADB_STORE,
                     converter, getClientProvider()));
-            csp.addListener(new DSOA2ClientSQLStoreProvider(getPgConnectionPoolProvider(),
+            csp.addListener(new DSOA2ClientSQLStoreProvider<>(getPgConnectionPoolProvider(),
                     OA4MPConfigTags.POSTGRESQL_STORE,
                     converter, getClientProvider()));
             csp.addListener(new TypedProvider<ClientStore>(cn, OA4MPConfigTags.MEMORY_STORE, OA4MPConfigTags.CLIENTS_STORE) {
@@ -236,7 +243,7 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 
                 @Override
                 public ClientStore get() {
-                    return new ClientMemoryStore(getClientProvider());
+                    return new ClientMemoryStore<>(getClientProvider());
                 }
             });
         }
@@ -244,15 +251,19 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     }
 
     @Override
-    public IdentifiableProvider<? extends Client> getClientProvider() {
-        return new DSOA2ClientProvider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, OA2Constants.CLIENT_ID, false));
+    public IdentifiableProvider<? extends DSOA2Client> getClientProvider() {
+        IdentifierProvider idp = new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, OA2Constants.CLIENT_ID, false);
+        // Note we suppress an unchecked assignment since OA4MPIdentifierProvider does not use generics
+        @SuppressWarnings("unchecked")
+        DSOA2ClientProvider<DSOA2Client> cp = new DSOA2ClientProvider<DSOA2Client>(idp);
+        return cp;
     }
 
     /* Load scope configuration with claim mapping */
 
     protected Map<String,Map<String,String>> scopes = null;
 
-    public Map<String,Map<String,String>> getScopesMap() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public Map<String,Map<String,String>> getScopesMap() {
         if (scopes == null) {
             scopes = DSOA2ConfigurationLoaderUtils.getScopesMap(cn);
         }

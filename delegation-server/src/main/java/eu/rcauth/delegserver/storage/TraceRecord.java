@@ -91,28 +91,22 @@ public class TraceRecord extends IdentifiableImpl {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (!super.equals(obj)) {
-			return false;
-		} else {
-			if ( obj instanceof TraceRecord) {
-				TraceRecord rec = (TraceRecord) obj;
-				if ( ! checkEquals(getCnHash(), rec.getCnHash()) ) return false;
-				if ( this.getSequenceNr() != rec.getSequenceNr() ) return false;
-				if ( ! checkEquals(getAttrHash(), rec.getAttrHash()) ) return false;
-				if ( ! checkEquals(getAttrSalt(), rec.getAttrSalt()) ) return false;
-				//if ( ! checkEquals(getAttrNames(), rec.getAttrNames()) ) return false;
-				return true;				
-			} else {
-				return false;
-			}
+		if (super.equals(obj) && obj instanceof TraceRecord) {
+			TraceRecord rec = (TraceRecord) obj;
+			return checkEquals(getCnHash(), rec.getCnHash()) &&
+					this.getSequenceNr() == rec.getSequenceNr() &&
+					checkEquals(getAttrHash(), rec.getAttrHash()) &&
+					//checkEquals(getAttrNames(), rec.getAttrNames()) &&
+					checkEquals(getAttrSalt(), rec.getAttrSalt());
 		}
+		return false;
 	}
 	
 	@Override
 	public String toString() {
 		return "TraceRecord: \n" + 
 			   "	cnHash=" + getIdentifierString() + "\n" +
-			   "	sequnceNr=" + sequenceNr + "\n" +
+			   "	sequenceNr=" + sequenceNr + "\n" +
 	           "	attrHash=" + attrHash + "\n" + 
 	           "	attrSalt=" + attrSalt + "\n" +   
 			   "	attributeNames=" + attrNames + "\n";

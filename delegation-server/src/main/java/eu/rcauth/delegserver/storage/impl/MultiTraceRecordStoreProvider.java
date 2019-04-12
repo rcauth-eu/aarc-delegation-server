@@ -1,12 +1,9 @@
 package eu.rcauth.delegserver.storage.impl;
 
-import java.util.List;
-
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import eu.rcauth.delegserver.storage.TraceRecord;
 import eu.rcauth.delegserver.storage.TraceRecordStore;
 
-import edu.uiuc.ncsa.security.core.configuration.provider.CfgEvent;
 import edu.uiuc.ncsa.security.core.exceptions.NotImplementedException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 

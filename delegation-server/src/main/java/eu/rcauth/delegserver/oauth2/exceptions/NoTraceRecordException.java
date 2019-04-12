@@ -2,7 +2,7 @@ package eu.rcauth.delegserver.oauth2.exceptions;
 
 
 /**
- * Exceptions thrown whne there is no trace record found for a user.
+ * Exceptions thrown when there is no trace record found for a user.
  * 
  * @author "Tamás Balogh"
  *

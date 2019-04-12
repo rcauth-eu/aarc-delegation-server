@@ -9,12 +9,11 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
-import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.util.ssl.MyTrustManager;
 
 /**
  * The motivation for this class is to be able to create https connections to 'localhost'
- * when 'localhost' is not explicitly listed in the server cHttpsURLConnectionertificate
+ * when 'localhost' is not explicitly listed in the server HttpsURLConnection certificate
  * as an altSubjectName.
  *
  * @author "Tamás Balogh"
@@ -28,11 +27,7 @@ public class UnverifiedConnectionFactory {
 
         @Override
         public boolean verify(String hostname, SSLSession session) {
-            if ( hostname.equals("localhost") ) {
-                return true;
-            } else {
-                return false;
-            }
+            return hostname.equals("localhost");
         }
 
     }
@@ -67,24 +62,24 @@ public class UnverifiedConnectionFactory {
             // create custom hostname verifier
             hostnameVerifier = new DSHostnameVerifier();
         } catch (Exception e) {
-            throw new Exception("Faild to initialize SSL Context for Shibboleth Assertion retriaval" ,e);
+            throw new Exception("Failed to initialize SSL Context for Shibboleth Assertion retrieval" ,e);
         }
 
     }
 
     /**
-     * Convert a regular {@link HttpsURLConnection} into a more unsecure connection. What
+     * Convert a regular {@link HttpsURLConnection} into a less secure connection. What
      * this method does will disable the hostname verification of the server certificate
      * against the request url, but it will keep the certificate verification itself against
      * the trust anchors configured in /etc/grid-security/certificates. The motivation for this
      * method is to be able to create https connections to 'localhost' when 'localhost' is not
-     * explicitly listed in the server cHttpsURLConnectionertificate as an altSubjectName.
+     * explicitly listed in the server HttpsURLConnection certificate as an altSubjectName.
      * <p>
      * ONLY USE THIS FOR CONNECTIONS MADE TO 'localhost' THAT YOU TRUST! DO NOT USE THIS FOR
      * ANY REMOTE CONNECTION BECAUSE IT WILL DISABLE HOSTNAME VERIFICATION!
      *
      * @param connection The connection you want to disable hostname verification on
-     * @return the same connection, but with a different SSLContext and HostnameVarifier
+     * @return the same connection, but with a different SSLContext and HostnameVerifier
      */
     public HttpsURLConnection getUnverifiedConnection(HttpsURLConnection connection) {
         // add our custom ssl context to the connection

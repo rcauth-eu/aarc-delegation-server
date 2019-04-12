@@ -12,13 +12,13 @@ import javax.servlet.http.HttpServletRequest;
 
 public class ShibAssertionRetriever {
 
-	public static String SHIB_ASSERTION_COUNT="Shib-Assertion-Count";
-	public static String SHIB_ASSERTION="Shib-Assertion-";
+	public static final String SHIB_ASSERTION_COUNT="Shib-Assertion-Count";
+	public static final String SHIB_ASSERTION="Shib-Assertion-";
 
 	/**
 	 * Log the SAML Assertions belonging to the current request into the transaction logs.
 	 * This method will create an {@link UnverifiedConnectionFactory} to the Shibboleth SP
-	 * running on 'localhost' to ask for the SAML Assertions via the {@link SHIB_ASSERTION} 
+	 * running on 'localhost' to ask for the SAML Assertions via the {@link #SHIB_ASSERTION}
 	 * links set in the request header.
 	 *  
 	 * @param request The original request
@@ -88,7 +88,7 @@ public class ShibAssertionRetriever {
 					}
 					
 				} else {
-					throw new Exception("Shibboleth Assertion URL " + assUrlHeaderName + " is empty! Ingoring..." );
+					throw new Exception("Shibboleth Assertion URL " + assUrlHeaderName + " is empty! Ignoring..." );
 				}
 				
 			}

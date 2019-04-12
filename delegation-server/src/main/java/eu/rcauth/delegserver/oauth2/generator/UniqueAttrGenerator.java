@@ -27,7 +27,7 @@ import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
  */
 public class UniqueAttrGenerator {
 
-    public static String ATTRIBUTE_SEPARATOR = ",";
+    public static final String ATTRIBUTE_SEPARATOR = ",";
 
     protected String[] uniqueAttrSources = null;
     protected String uniqueAttrSourceList = ""; // Only used for converting to String
@@ -64,7 +64,7 @@ public class UniqueAttrGenerator {
      * Match user with a trace record. The user here is identified by the attribute map attributeMap.
      * <p>
      * An attribute list if build from the user attributeMap, taking only the attributes which
-     * were saved in the traceRecrod. This attribute list is then salted (with the salt from traceRecord)
+     * were saved in the traceRecord. This attribute list is then salted (with the salt from traceRecord)
      * and hashed. The resulting hash is compared with the attribute hash stored under the traceRecord.
      * In case these hashes match, this method returns true, otherwise it returns false.
      *
@@ -81,14 +81,14 @@ public class UniqueAttrGenerator {
 
         // build attribute list using the attribute names in the traceRecords previously stored
 
-        String attrList = null;
+        StringBuilder attrList = new StringBuilder();
         for (String attrSource : traceRecord.getAttrNames()) {
             if ( attributeMap.containsKey(attrSource) ) {
 
-                if ( attrList == null ) {
-                    attrList = getProcessedAttr(attributeMap, attrSource);
+                if ( attrList.length() == 0 ) {
+                    attrList.append(getProcessedAttr(attributeMap, attrSource));
                 } else {
-                    attrList += ATTRIBUTE_SEPARATOR + getProcessedAttr(attributeMap, attrSource);
+                    attrList.append(ATTRIBUTE_SEPARATOR).append(getProcessedAttr(attributeMap, attrSource));
                 }
 
             } else {
@@ -111,7 +111,7 @@ public class UniqueAttrGenerator {
 
         logger.debug( "	- Salt (RAW) Extracted for Attribute List Hash : '" + traceRecord.getAttrSalt()  + "'");
 
-        String attrHash = HashingUtils.getInstance().saltedHashToBase64( attrList , salt );
+        String attrHash = HashingUtils.getInstance().saltedHashToBase64( attrList.toString() , salt );
 
         logger.debug( "	- Attribute Hash Computed : '" + attrHash + "'");
 
@@ -151,22 +151,22 @@ public class UniqueAttrGenerator {
      */
     public String getUniqueAttributes(Map<String,Object> attributeMap) {
 
-        String attrList = null;
+        StringBuilder attrList = new StringBuilder();
 
         // iterate over the source attributes
         for (String attrSource : uniqueAttrSources) {
             if ( attributeMap.containsKey(attrSource) ) {
                 // if an attribute is present in the user map, add it to the list
-                if ( attrList == null ) {
-                    attrList = getProcessedAttr(attributeMap, attrSource);
+                if ( attrList.length() == 0 ) {
+                    attrList.append(getProcessedAttr(attributeMap, attrSource));
                 } else {
-                    attrList += ATTRIBUTE_SEPARATOR + getProcessedAttr(attributeMap, attrSource);;
+                    attrList.append(ATTRIBUTE_SEPARATOR).append(getProcessedAttr(attributeMap, attrSource));
                 }
             }
             // if an attribute is missing from the map we simply ignore it
         }
 
-        return attrList;
+        return attrList.toString();
     }
 
     protected String getProcessedAttr(Map<String,Object> attributeMap, String attributeKey) {
@@ -177,6 +177,8 @@ public class UniqueAttrGenerator {
             attribute = (String) attr;
         } else if ( attr instanceof List ) {
             logger.warn("Unexpected multiple values for attribute " + attributeKey);
+            // suppress since attr can be either String or List<String>
+            @SuppressWarnings("unchecked")
             List<String> attrs = ((List<String>)attr);
             attribute = ShibAttrParser.combineMultiValuedAttr( attrs );
         } else {
@@ -200,7 +202,7 @@ public class UniqueAttrGenerator {
      */
     public List<String> getUniqueAttributeNames(Map<String,Object> attributeMap) {
 
-        List<String> attrNames = new ArrayList<String>();
+        List<String> attrNames = new ArrayList<>();
         for (String attrSource : uniqueAttrSources) {
             if ( attributeMap.containsKey(attrSource) ) {
                 attrNames.add(attrSource);

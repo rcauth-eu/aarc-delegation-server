@@ -37,7 +37,10 @@ public class TraceRecordIdentifier implements Identifier {
 	
 	@Override
 	public boolean equals(Object obj) {
-		return cnHash.equals(obj.toString());
+		if (obj instanceof TraceRecordIdentifier)
+            return cnHash.equals(obj.toString());
+		else
+			return false;
 	}
 
 	@Override

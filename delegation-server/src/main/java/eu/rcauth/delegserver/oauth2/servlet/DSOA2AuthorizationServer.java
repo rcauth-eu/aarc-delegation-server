@@ -10,6 +10,7 @@ import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
+import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.http.HttpHeaders;
@@ -58,7 +59,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
      */
     public static final String CERT_SUBJECT_ATTR = "X509_CERT_SUBJECT";
 
-    /* OVERRIDEN METHODS */
+    /* OVERRIDDEN METHODS */
 
     /* NOTE: ensures that the transaction which is being used is a
      * MPOA2ServiceTransaction instance instead of a OA2ServiceTransaction.
@@ -95,7 +96,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
             // set user attributes
             // TODO: Should attributes be passed in headers by shibboleth? Can't we do better?
-            // Update: AbstractAuthorizationServl.et hardcodes the use of headers and fails
+            // Update: AbstractAuthorizationServl.et hard-codes the use of headers and fails
             // if UseHeader are not enabled. Ask Jim?
             serviceTransaction.setUserAttributes(ShibHeaderExtractor.getAttrMap(state.getRequest()));
 
@@ -103,7 +104,10 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
             generateClaims(authorizedState);
 
             // save transaction
-            getTransactionStore().save(serviceTransaction);
+            // Note: suppress unchecked since getTransactionStore returns non-generic TransactionStore
+            @SuppressWarnings("unchecked")
+            TransactionStore<DSOA2ServiceTransaction> store=getTransactionStore();
+            store.save(serviceTransaction);
 
             // set the claims as an attribute so that the consent JSP can then
             // display them
@@ -144,7 +148,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         // transaction and the attributes given in the request
         // Note: probably don't want to use a JSONObject directly, probably more
         // efficient to first make the Map and only then convert.
-        Map<String, Object> claims = new HashMap<String, Object>();
+        Map<String, Object> claims = new HashMap<>();
 
         // iterate through the list of accepted scopes sent by the client
         for (String scope : scopes) {
@@ -241,7 +245,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         // log the final DN (with extension) to INFO
         traceInfo("Full MyProxy username: " + trans.getMyproxyUsername());
 
-        // save the trace_recrod reference to the transaction
+        // save the trace record reference to the transaction
         // TODO: Do we need this for anything?
         trans.setTraceRecord( traceRecord.getCnHash() );
 
@@ -275,8 +279,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
             } else {
                 for (Object key : request.getParameterMap().keySet()) {
                     String[] values = request.getParameterValues(key.toString());
-                    if (values == null || values.length == 0) {
-                    } else {
+                    if (values != null && values.length > 0) {
 
                         if (values.length == 1) {
 
@@ -285,7 +288,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
                             }
 
                         } else {
-                            List<String> nonEmptyValues = new ArrayList<String>();
+                            List<String> nonEmptyValues = new ArrayList<>();
                             for (String x : values) {
                                 if (x != null && !x.isEmpty()) {
                                     nonEmptyValues.add(x);
@@ -392,14 +395,10 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
     public void logTraceRecordElement(RDNElement element) {
         for ( RDNElementPart rdnPart : element.getElementParts() ) {
 
-            StringBuilder orgTrace = new StringBuilder();
-
-            orgTrace.append("RDN : '" + rdnPart.getElement() + "' ");
-            orgTrace.append("(" + rdnPart.getElementSource() + " = ");
-            orgTrace.append("'" + rdnPart.getElementOrig() + "')");
-
-
-            traceInfo(orgTrace.toString());
+            String orgTrace = "RDN : '" + rdnPart.getElement() + "' " +
+                    "(" + rdnPart.getElementSource() + " = " +
+                    "'" + rdnPart.getElementOrig() + "')";
+            traceInfo(orgTrace);
         }
     }
 

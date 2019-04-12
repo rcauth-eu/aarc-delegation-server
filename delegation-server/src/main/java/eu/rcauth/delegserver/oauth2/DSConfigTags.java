@@ -11,35 +11,35 @@ public interface DSConfigTags extends OA4MPConfigTags {
 	/* TRACEABILITY */
 	
 	// DN generator tags used to specify DN sources 
-	public static final String DN_GENERATOR = "dnGenerator";
-	public static final String DN_GENERATOR_ATTRIBUTE = "attributeName";
-	public static final String DN_GENERATOR_TYPE = "type";
-	public static final String DN_GENERATOR_BASE_DN = "baseDN";
+	String DN_GENERATOR = "dnGenerator";
+	String DN_GENERATOR_ATTRIBUTE = "attributeName";
+	String DN_GENERATOR_TYPE = "type";
+	String DN_GENERATOR_BASE_DN = "baseDN";
 	
-	public static final String DN_GENERATOR_CN_NAME = "cnName";
-	public static final String DN_GENERATOR_CN_UNIQUE_ID = "cnUniqueId";
-	public static final String DN_GENERATOR_ORGANISATION = "organisation";
-	public static final String DN_GENERATOR_EXTENSIONS = "extensions";
+	String DN_GENERATOR_CN_NAME = "cnName";
+	String DN_GENERATOR_CN_UNIQUE_ID = "cnUniqueId";
+	String DN_GENERATOR_ORGANISATION = "organisation";
+	String DN_GENERATOR_EXTENSIONS = "extensions";
 
-	public static final String DN_GENERATOR_SOURCE = "source";
-	public static final String DN_GENERATOR_SOURCE_NAME = "name";
-	public static final String DN_GENERATOR_SOURCE_FILTER = "filter";
+	String DN_GENERATOR_SOURCE = "source";
+	String DN_GENERATOR_SOURCE_NAME = "name";
+	String DN_GENERATOR_SOURCE_FILTER = "filter";
 	
 	// attribute filter tags
-	public static final String ATTR_FILTERS = "attributeFilters";
-	public static final String ATTR_FILTER = "filter";
-	public static final String ATTR_FILTER_NAME = "name";
+	String ATTR_FILTERS = "attributeFilters";
+	String ATTR_FILTER = "filter";
+	String ATTR_FILTER_NAME = "name";
 	
 	// the name of the trace_records store backend
-	public static final String TRACE_RECORD_STORE = "traceRecords";
+	String TRACE_RECORD_STORE = "traceRecords";
 
 	/* SCOPES AND CLAIMS */
 	
 	// this is an attribute of the <scope> tag 
-	public static final String SCOPE_NAME = "name";
-	public static final String CLAIM_NAME = "name";
+	String SCOPE_NAME = "name";
+	String CLAIM_NAME = "name";
 	
 	// a claim belonging to a scope 
-	public static final String SCOPE_CLAIM = "claim";
+	String SCOPE_CLAIM = "claim";
 	
 }

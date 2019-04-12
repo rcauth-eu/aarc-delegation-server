@@ -8,7 +8,8 @@
     <version>${revision}</version>
     <name>RCauth Delegation Server</name>
     <packaging>${packaging.type}</packaging>
-    <url>https://wiki.nikhef.nl/grid/AARC_Pilot</url>
+    <description>RCauth Delegation Server</description>
+    <url>https://github.com/rcauth-eu/aarc-delegation-server</url>
 
     <licenses>
         <license>
@@ -85,6 +86,7 @@
     </dependencies>
 
     <build>
+
         <plugins>
             <!-- make sure jar file's MANIFEST.MF will contain the version -->
             <plugin>
@@ -100,6 +102,7 @@
                     </archive>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -107,9 +110,11 @@
                     <source>1.8</source>
                     <target>1.8</target>
                     <!--compilerArgument>-Xlint:deprecation,unchecked</compilerArgument-->
+                    <compilerArgument>-Xlint:all</compilerArgument>
                 </configuration>
                 <version>3.5.1</version>
             </plugin>
+
             <!-- update revision properties -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -137,12 +142,12 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.1.0</version>
                 <configuration>
-                    <aggregate>true</aggregate>
                     <use>false</use>
                 </configuration>
                 <executions>
@@ -152,25 +157,20 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <!-- Next flag does not work for Java 8 -->
+                            <!-- Note: for Java <10 comment out next one -->
                             <additionalOptions>-html5</additionalOptions>
-                            <!-- next flag is usefulif there are issues with the
+                            <!-- next flag is useful if there are issues with the
                                  javadoc such as empty javadoc tags -->
                             <!--doclint>none</doclint-->
                             <!-- enable links to Java's own javadoc -->
                             <detectJavaApiLink>true</detectJavaApiLink>
-                            <!-- Note: javax.servlet does not provide proper
-                                 link for detectLinks, hence specify manually -->
-                            <additionalJOptions>
-                                <additionalJOption>-link</additionalJOption>
-                                <additionalJOption>https://javaee.github.io/javaee-spec/javadocs/</additionalJOption>
-                            </additionalJOptions>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
         </plugins>
+
         <finalName>oauth2</finalName>
     </build>
 

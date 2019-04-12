@@ -13,7 +13,7 @@ import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
  * for every session. Thus making it possible to set stateful information
  * such as the session ID.
  * <p>
- * This logger logs according to the {@link LOG_FORMAT} format, which 
+ * This logger logs according to the {@link #LOG_FORMAT} format, which
  * prepends the calling class name and the session identifier in front
  * of the original message.  
  * 
@@ -22,8 +22,8 @@ import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
  */
 public class TraceLoggingFacade extends MyLoggingFacade {
 
-	protected static String MARK = "=============================================================================================================================================";
-	protected static String LOG_FORMAT = "%20.20s [%s] %s"; 
+	protected static final String MARK = "=============================================================================================================================================";
+	protected static final String LOG_FORMAT = "%20.20s [%s] %s";
 	
     public TraceLoggingFacade(Logger logger) {
         super(logger);
@@ -64,7 +64,7 @@ public class TraceLoggingFacade extends MyLoggingFacade {
     	return clone;
     }
     
-    /* OVERRIDEN METHODS */
+    /* OVERRIDDEN METHODS */
     
     @Override
     public void setDebugOn(boolean debugOn) {
@@ -112,13 +112,13 @@ public class TraceLoggingFacade extends MyLoggingFacade {
     }
     
     /**
-     * Format message before outputing it to the underlying logger.
+     * Format message before output-ing it to the underlying logger.
      * <p>
      * This method will append 2 additional elements in front of the
      * original log message:
      * <ul>
      * <li> 
-     * The calling class name. This is calculated from the current exection
+     * The calling class name. This is calculated from the current execution
      * stack taking into account the wrapper method from {@link ThreadsafeTraceLogger}.
      * The formatting might break if you use this class without its intended wrapper
      * class.
@@ -131,7 +131,7 @@ public class TraceLoggingFacade extends MyLoggingFacade {
      * </ul>
      * 
      * @param msg The original log message
-     * @return Formated message
+     * @return Formatted message
      */
     protected String getFormattedMsg(String msg) {
 
@@ -144,7 +144,7 @@ public class TraceLoggingFacade extends MyLoggingFacade {
 		String callingClassName = null;
 		String[] callingClass = fullClassName.split("\\.");
 	
-		if ( callingClass == null || callingClass.length == 0 ) {
+		if (callingClass.length == 0) {
 			callingClassName = "";
 		} else {
 			callingClassName = callingClass[ callingClass.length - 1 ];

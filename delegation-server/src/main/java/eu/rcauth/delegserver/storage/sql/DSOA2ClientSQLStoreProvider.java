@@ -22,8 +22,10 @@ public class DSOA2ClientSQLStoreProvider<V extends SQLClientStore> extends OA2Cl
     }
 	
     @Override
+    // Note we cannot prevent unchecked cast to V. Also suppresses warning about the cast in clientProvider
+    @SuppressWarnings("unchecked")
     public V newInstance(Table table) {
-        return (V) new SQLClientStore<DSOA2Client>(getConnectionPool(), table, (Provider<DSOA2Client>) clientProvider, converter);
+        return (V) new SQLClientStore<>(getConnectionPool(), table, (Provider<DSOA2Client>) clientProvider, converter);
     }
     
     @Override

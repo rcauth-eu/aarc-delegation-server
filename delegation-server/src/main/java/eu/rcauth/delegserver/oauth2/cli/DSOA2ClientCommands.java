@@ -30,7 +30,7 @@ public class DSOA2ClientCommands extends OA2ClientCommands {
 
         DSOA2Client client = (DSOA2Client) identifiable;
 
-        // ask for the description when updateing / creating the client
+        // ask for the description when updating / creating the client
 
         client.setDescription(getInput("enter description", client.getDescription()));
     }

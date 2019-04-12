@@ -33,13 +33,13 @@ public class SQLTraceRecordStore extends SQLStore<TraceRecord> implements TraceR
     public SQLTraceRecordStore(ConnectionPool connectionPool,
             Table table,
             Provider<TraceRecord> identifiableProvider,
-            MapConverter converter) {
+            MapConverter<TraceRecord> converter) {
     	super(connectionPool, table, identifiableProvider, converter);
     }
 	
 	public int getNextSequenceNumber(Identifier identifier) {
 		
-		List<Identifier> ids = new ArrayList<Identifier>();
+		List<Identifier> ids = new ArrayList<>();
 		ids.add(identifier);
 		
 		List<TraceRecord> traceRecords = getAll(ids);
@@ -54,7 +54,7 @@ public class SQLTraceRecordStore extends SQLStore<TraceRecord> implements TraceR
 	public List<TraceRecord> getAll(List<Identifier> ids) {
 		
         Connection c = getConnection();
-        List<TraceRecord> resultSet = new ArrayList<TraceRecord>(); 
+        List<TraceRecord> resultSet = new ArrayList<>();
         try {
         	
         	if ( !(getTable() instanceof TraceRecordTable) ) {

@@ -27,42 +27,42 @@ public class TraceRecordTable extends Table {
     
     public String createMultiSelectStatement(int count){
         
-    	String select =  "SELECT * FROM " + getFQTablename() + " WHERE ";
+    	StringBuilder select = new StringBuilder("SELECT * FROM " + getFQTablename() + " WHERE ");
     	
     	if ( count > 0 ) {
-    		select += getPrimaryKeyColumnName() + " =?";
+    		select.append(getPrimaryKeyColumnName()).append(" =?");
     	}
     	
         for ( int i=1 ; i<count ; i++ ) {
-        	select += "OR " + getPrimaryKeyColumnName() + " =?";
+        	select.append("OR ").append(getPrimaryKeyColumnName()).append(" =?");
         }
         
-        select += " ORDER BY last_seen DESC";
+        select.append(" ORDER BY last_seen DESC");
         
-        return select;
+        return select.toString();
     }    
     
 	@Override
 	public String createUpdateStatement() {
-        String update = "UPDATE " + getFQTablename() + " SET ";
+        StringBuilder update = new StringBuilder("UPDATE " + getFQTablename() + " SET ");
         boolean isFirst = true;
         for (ColumnDescriptorEntry cde : getColumnDescriptor()) {
             
         	if (!cde.isPrimaryKey()) {
-        		update = update + (isFirst ? "" : ", ") + cde.getName() + "=?";
+        		update.append(isFirst ? "" : ", ").append(cde.getName()).append("=?");
                 if (isFirst) {
                     isFirst = false;
                 }   
             }        	
         }
 
-        update += ", last_seen=CURRENT_TIMESTAMP";
+        update.append(", last_seen=CURRENT_TIMESTAMP");
         
         TraceRecordKeys x =  (TraceRecordKeys) keys;
-        String where = " WHERE " + x.cn_hash() + "=?" + " AND " + x.sequence_nr() + "=?";
+        update.append(" WHERE ").append(x.cn_hash()).append("=?").append(" AND ").append(x.sequence_nr()).append("=?");
         
         // finally, add in the primary key.
-        return update + where;
+        return update.toString();
 	}
 
     public String createMultiKeySelectStatement(){
@@ -72,15 +72,12 @@ public class TraceRecordTable extends Table {
     
     @Override
     public String createInsertStatement() {
-        String out = "insert into " + getFQTablename() + "(" + createRegisterStatement() + ", last_seen" + ") values (" ;
-        String qmarks = "";
+        StringBuilder out = new StringBuilder("insert into " + getFQTablename() + "(" + createRegisterStatement() + ", last_seen" + ") values (" );
         for (int i = 0; i < getColumnDescriptor().size(); i++) {
-            qmarks = qmarks + "?" + (i + 1 == getColumnDescriptor().size() ? "" : ", ");
+            out.append("?").append(i + 1 == getColumnDescriptor().size() ? "" : ", ");
         }
-        qmarks += ",CURRENT_TIMESTAMP";
-        
-        out = out + qmarks + ")";
-        return out;
+        out.append(",CURRENT_TIMESTAMP)");
+        return out.toString();
     }
     
 }

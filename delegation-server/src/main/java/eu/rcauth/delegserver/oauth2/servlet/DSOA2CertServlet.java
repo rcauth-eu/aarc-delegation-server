@@ -18,7 +18,7 @@ import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
  */
 public class DSOA2CertServlet extends OA2CertServlet {
 
-	/* OVERRIDEN METHODS */
+	/* OVERRIDDEN METHODS */
 	
 	@Override
 	protected void doRealCertRequest(ServiceTransaction transaction, String statusString) throws Throwable {		
@@ -34,7 +34,7 @@ public class DSOA2CertServlet extends OA2CertServlet {
 		String username = trans.getMyproxyUsername();
 		if ( username == null || username.isEmpty() ) {
 			se.getTraceLogger().error("MyProxy USERNAME not set for current transaction! Make sure that the MyProxy USERNAME is created and"
-					+ "saved in the current trasaction before calling /getcert!");
+					+ "saved in the current transaction before calling /getcert!");
 			throw new GeneralException("MyProxy USERNAME not set for current transaction!");
 		} 
 		

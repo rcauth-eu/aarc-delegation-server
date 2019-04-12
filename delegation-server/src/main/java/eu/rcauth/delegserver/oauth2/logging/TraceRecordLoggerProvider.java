@@ -16,7 +16,7 @@ import java.util.logging.LogRecord;
 public class TraceRecordLoggerProvider extends LoggerProvider {
 
 	protected TraceLoggingFacade logger;
-	protected ConfigurationNode configurationNode;
+//	protected ConfigurationNode configurationNode;
 
 	public static final String TRACE_LOGGING_COMPONENT = "traceLogging";
 
@@ -53,10 +53,12 @@ public class TraceRecordLoggerProvider extends LoggerProvider {
 		basicLogger.getLogger().removeHandler(logHandler);
 		
 		logger = new TraceLoggingFacade(loggerName, basicLogger.isDebugOn());
-		logger.getLogger().addHandler(logHandler);
-		logger.getLogger().setUseParentHandlers(false);
-		
-		
+		if (logHandler != null) {
+			logger.getLogger().addHandler(logHandler);
+			logger.getLogger().setUseParentHandlers(false);
+		}
+
+
         return logger;
 		
 	}

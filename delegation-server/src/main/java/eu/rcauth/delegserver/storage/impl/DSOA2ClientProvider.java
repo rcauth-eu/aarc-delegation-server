@@ -13,6 +13,8 @@ public class DSOA2ClientProvider<V extends DSOA2Client> extends OA2ClientProvide
     }
     
     @Override
+    // Note we cannot prevent unchecked cast to V
+    @SuppressWarnings("unchecked")
     protected V newClient(boolean createNewIdentifier) {
        return (V) new DSOA2Client(createNewId(createNewIdentifier));
     }

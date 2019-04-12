@@ -9,7 +9,7 @@ public class ShibAttrParser {
 	 *  Shibboleth separates multi valued variables with a special delimiter. We have to account for this 
 	 *  in order to support multi valued claims! See https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPAttributeAccess
 	 */
-	public static String SHIB_MULTI_VAL_DELIMITED = ";";	
+	public static final String SHIB_MULTI_VAL_DELIMITED = ";";
 	
     /**
      * Parse a potentially multi valued attribute. In case of single valued attributes it will simply return
@@ -34,9 +34,10 @@ public class ShibAttrParser {
 		
 			// split with negative lookbehind
 			String[] subAttrs = attr.split("(?<!\\\\)" + SHIB_MULTI_VAL_DELIMITED);
-			List<String> tmpValues = new ArrayList<String>();
+			List<String> tmpValues = new ArrayList<>();
 			
 			// put every single attribute in the result set
+			// Note: don't replace with for(...:...) since that's less efficient for an array
 			for (int i=0 ; i<subAttrs.length; i++) {
 				// unescape any previously escaped attribute
 				String v = subAttrs[i].replaceAll("\\\\;", ";");
@@ -47,7 +48,7 @@ public class ShibAttrParser {
 				}
 			}
 			
-			values = tmpValues.toArray(new String[tmpValues.size()]);
+			values = tmpValues.toArray(new String[0]);
 			
 		} else {
 			
@@ -65,16 +66,16 @@ public class ShibAttrParser {
 	
 	public static String combineMultiValuedAttr(List<String> attr) {
 		
-		String value = "";
+		StringBuilder value = new StringBuilder();
 		
 		for( String v : attr ) {
 			// escape any delimiter that is in the attribute originally
 			// so that it wouldn't become a delimiter itself 
 			v = v.replaceAll(SHIB_MULTI_VAL_DELIMITED, "\\\\" + SHIB_MULTI_VAL_DELIMITED);
-			value += (value.isEmpty()) ? v : SHIB_MULTI_VAL_DELIMITED + v;
+			value.append((value.length() == 0) ? v : SHIB_MULTI_VAL_DELIMITED + v);
 		}
 		
-		return value;
+		return value.toString();
 		
 	}
 	

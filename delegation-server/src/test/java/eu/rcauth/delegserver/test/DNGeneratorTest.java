@@ -82,7 +82,7 @@ public class DNGeneratorTest extends DNGenerator {
 	
 	@Test
 	public void testIdentifierMap() {
-		Map<TraceRecordIdentifier, String> cnHashAlternatives = new HashMap<TraceRecordIdentifier, String>();
+		Map<TraceRecordIdentifier, String> cnHashAlternatives = new HashMap<>();
 		
 		HashingUtils hasher = HashingUtils.getInstance();
 		

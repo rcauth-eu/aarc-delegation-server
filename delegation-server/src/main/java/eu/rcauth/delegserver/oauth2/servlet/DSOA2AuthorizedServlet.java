@@ -1,10 +1,7 @@
 package eu.rcauth.delegserver.oauth2.servlet;
 
-import eu.rcauth.delegserver.oauth2.DSOA2ServiceTransaction;
 
-import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet;
-import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 
 /**
  * Custom Authorized Servlet implementation (/authorized). 

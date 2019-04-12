@@ -69,18 +69,19 @@ public class ShibHeaderExtractor {
         
         if ( header != null ) {
         	
-        	List<String> headerValues = new ArrayList<String>();
+        	List<String> headerValues = new ArrayList<>();
         	
 	        while ( header.hasMoreElements() ) {
 	        	String value = header.nextElement().toString();
 	        	
 	            // convert into the right encoding 
-	        	value = converHeader(value);
-	        	
-	        	if ( value != null && ! value.isEmpty() ) {
+	        	value = convertHeader(value);
+
+	        	// Note value cannot be null
+	        	if ( ! value.isEmpty() ) {
 		            String[] values = ShibAttrParser.parseMultiValuedAttr( value );
 		            
-		            if (  values != null && ! value.isEmpty()) {
+		            if (  values != null && values.length > 0) {
 		            	headerValues.addAll( Arrays.asList(values) );
 		            }
 	        	}
@@ -117,7 +118,7 @@ public class ShibHeaderExtractor {
 		String value = request.getHeader(key);
 		
 		if ( value != null && ! value.isEmpty() ) {
-			return converHeader(value);
+			return convertHeader(value);
 		}
 		
 		return null;
@@ -132,7 +133,7 @@ public class ShibHeaderExtractor {
 	 */
 	public static Map<String, Object> getAttrMap(HttpServletRequest request) {
 
-		Map<String,Object> map = new HashMap<String,Object>();
+		Map<String,Object> map = new HashMap<>();
 		
 		// iterate over headers 
         Enumeration e = request.getHeaderNames();
@@ -153,7 +154,9 @@ public class ShibHeaderExtractor {
             		}
             		
             	} else {
-            	
+
+            		// suppress since header can be either String or List<String>
+            		@SuppressWarnings("unchecked")
 		            List<String> values = (List<String>) header;
 		            
 		            if ( values.size() == 1 ) {
@@ -177,7 +180,7 @@ public class ShibHeaderExtractor {
 	 * @param value Header value in ISO-8859-1 encoding 
 	 * @return Header value in UTF-8 encoding
 	 */
-	protected static String converHeader(String value) {
+	protected static String convertHeader(String value) {
 		// IMPORTANT !!! Map the header parameters with the right encoding 
 		Charset isoCharset = Charset.forName("ISO-8859-1");
 		Charset utf8Charset = Charset.forName("UTF-8");		

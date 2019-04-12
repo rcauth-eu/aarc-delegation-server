@@ -8,6 +8,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
+import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
 import eu.rcauth.delegserver.oauth2.shib.ShibHeaderExtractor;
 import eu.rcauth.delegserver.oauth2.util.HashingUtils;
 
@@ -35,24 +37,24 @@ public class ConsentAwareOA2AuthServer extends OA2AuthorizationServer {
 	/**
 	 * Prefix the consent remembering cookie with a static value
 	 */
-	public static String OA4MP_CONSENT_COOKIE_NAME_PREFIX = "consent_";
+	public static final String OA4MP_CONSENT_COOKIE_NAME_PREFIX = "consent_";
 	/**
 	 * The value of the consent remembering cookie
 	 */
-	public static String OA4MP_CONSENT_COOKIE_VALUE = "true";
+	public static final String OA4MP_CONSENT_COOKIE_VALUE = "true";
 	/**
 	 * The age of the consent remembering cookie
 	 */
-	public static int OA4MP_CONSENT_COOKIE_MAX_AGE = 90;
+	public static final int OA4MP_CONSENT_COOKIE_MAX_AGE = 90;
 
 	/**
 	 *  Endpoints
 	 */
-	public static String AUTHORIZE_ENDPOINT = "/authorize";
-	public static String REMOTE_USER_REDIRECT_PAGE = "/authorize-remote-user-redirect.jsp";
+	public static final String AUTHORIZE_ENDPOINT = "/authorize";
+	public static final String REMOTE_USER_REDIRECT_PAGE = "/authorize-remote-user-redirect.jsp";
 
 	
-	/* OVERRIDEN METHODS */
+	/* OVERRIDDEN METHODS */
 
 	@Override
 	public void prepare(PresentableState state) throws Throwable {
@@ -92,13 +94,18 @@ public class ConsentAwareOA2AuthServer extends OA2AuthorizationServer {
                     );
                 }
                 
-                throw new GeneralException("Unable to extact REMOTE_USER from the current authorization session!");
+                throw new GeneralException("Unable to extract REMOTE_USER from the current authorization session!");
             }
 
 			// saving the username 
 			aState.getTransaction().setUsername(username);
 			info("*** storing user name = " + username);
-			getTransactionStore().save(aState.getTransaction());
+			// getTransactionStore() returns non-generic
+			// Note: store typically a OA2SQLTStore and trans DSOA2ServiceTransaction
+			@SuppressWarnings("unchecked")
+			TransactionStore<OA2ServiceTransaction> store = getTransactionStore();
+			OA2ServiceTransaction trans = (OA2ServiceTransaction)aState.getTransaction();
+			store.save(trans);
 
 			if ( ! checkConsentCookie(aState) ) {
 

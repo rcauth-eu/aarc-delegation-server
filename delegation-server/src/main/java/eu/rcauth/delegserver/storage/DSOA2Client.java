@@ -38,11 +38,8 @@ public class DSOA2Client extends OA2Client {
         }
 
         DSOA2Client c = (DSOA2Client) obj;
-        if (!getDescription().equals(c.getDescription())) {
-            return false;
-        }
+        return getDescription().equals(c.getDescription());
 
-        return true;
     }
 
 }

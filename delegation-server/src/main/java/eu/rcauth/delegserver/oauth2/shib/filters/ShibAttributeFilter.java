@@ -18,6 +18,6 @@ public interface ShibAttributeFilter {
 	 * @param value The original value
 	 * @return The processed value
 	 */
-	public String process(String value);
+	String process(String value);
 	
 }

@@ -4,13 +4,9 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
-import org.bouncycastle.util.encoders.Base64Encoder;
 import org.bouncycastle.util.encoders.Hex;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -18,7 +14,7 @@ import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 public class HashingUtils {
 
 	protected MessageDigest defaultMessageDigest = null;
-	protected SecureRandom defualtRandomGenerator = null;
+	protected SecureRandom defaultRandomGenerator = null;
 	protected Charset defaultCharset = null;
 	
 	/* SINGLETON */
@@ -31,7 +27,7 @@ public class HashingUtils {
 		try {
 			
 			defaultCharset = Charset.forName("UTF-8");
-			defualtRandomGenerator = SecureRandom.getInstance("SHA1PRNG");
+			defaultRandomGenerator = SecureRandom.getInstance("SHA1PRNG");
 			defaultMessageDigest = MessageDigest.getInstance("SHA-256");
 			
 		} catch (NoSuchAlgorithmException e) {
@@ -114,7 +110,7 @@ public class HashingUtils {
 		
 		// generate salt
 		byte[] salt = new byte[32];
-		defualtRandomGenerator.nextBytes(salt);
+		defaultRandomGenerator.nextBytes(salt);
 		
 		return salt;
 	}

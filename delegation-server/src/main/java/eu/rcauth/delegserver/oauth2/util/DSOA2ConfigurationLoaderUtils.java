@@ -27,10 +27,9 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 
     // In case custom scopes configuration is available don't rely on hardcoded
     // scopes.
-    public static Map<String, Map<String, String>> getScopesMap(ConfigurationNode cn)
-            throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public static Map<String, Map<String, String>> getScopesMap(ConfigurationNode cn) {
         if (scopesMap == null) {
-            scopesMap = new HashMap<String, Map<String, String>>();
+            scopesMap = new HashMap<>();
 
             // Get the scopes configured in the configuration file
             // The scope names are no longer declared as
@@ -50,7 +49,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
                     if (0 < scopeNode.getChildrenCount(SCOPE_CLAIM)) {
 
                         // we have claims belonging to the current scope
-                        claims = new HashMap<String, String>();
+                        claims = new HashMap<>();
                         for (Object nodeJ : scopeNode.getChildren(SCOPE_CLAIM)) {
                             ConfigurationNode claimNode = (ConfigurationNode) nodeJ;
                             String currentClaim = Configurations.getFirstAttribute(claimNode, CLAIM_NAME);
@@ -125,22 +124,22 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 
     public static Map<String,String> getExtensionSources(ConfigurationNode cn) {
 
-        Map<String,String> sources  = new HashMap<String,String>();
+        Map<String,String> sources  = new HashMap<>();
         if (0 < cn.getChildrenCount( DN_GENERATOR )) {
 
             // we have a dnGenerator tag!
-            ConfigurationNode dnGenratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
-            if (0 < dnGenratorNode.getChildrenCount( DN_GENERATOR_EXTENSIONS )) {
+            ConfigurationNode dnGeneratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
+            if (0 < dnGeneratorNode.getChildrenCount( DN_GENERATOR_EXTENSIONS )) {
 
                 // we have a dn component tag!
-                ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGenratorNode, DN_GENERATOR_EXTENSIONS);
+                ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGeneratorNode, DN_GENERATOR_EXTENSIONS);
                 int sourceCount = cnNameNode.getChildrenCount( DN_GENERATOR_SOURCE );
                 if (0 < sourceCount) {
 
                     for ( int i=0 ; i<sourceCount ; i++ ) {
 
-                        ConfigurationNode sourceNode = (ConfigurationNode) cnNameNode.getChild(i);
-                        String sourceName = (String) Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_NAME);
+                        ConfigurationNode sourceNode = cnNameNode.getChild(i);
+                        String sourceName = Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_NAME);
                         String source = (String) sourceNode.getValue();
 
                         sources.put(sourceName, source);
@@ -159,7 +158,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 
     /* private method for extracting DN sources */
 
-    protected static String DN_SOURCE_SEPARATOR = "+";
+    protected static final String DN_SOURCE_SEPARATOR = "+";
 
     protected static Object[] parseDnGenerator(ConfigurationNode cn, String dnComponent) {
 
@@ -167,18 +166,18 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
         if (0 < cn.getChildrenCount( DN_GENERATOR )) {
 
             // we have a dnGenerator tag!
-            ConfigurationNode dnGenratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
-            if (0 < dnGenratorNode.getChildrenCount( dnComponent )) {
+            ConfigurationNode dnGeneratorNode = Configurations.getFirstNode(cn, DN_GENERATOR);
+            if (0 < dnGeneratorNode.getChildrenCount( dnComponent )) {
 
                 // we have a dn component tag!
-                ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGenratorNode, dnComponent);
+                ConfigurationNode cnNameNode = Configurations.getFirstNode(dnGeneratorNode, dnComponent);
                 int sourceCount = cnNameNode.getChildrenCount( DN_GENERATOR_SOURCE );
                 if (0 < sourceCount) {
 
                     sources = new Object[sourceCount];
                     for ( int i=0 ; i<sourceCount ; i++ ) {
 
-                        ConfigurationNode sourceNode = (ConfigurationNode) cnNameNode.getChild(i);
+                        ConfigurationNode sourceNode = cnNameNode.getChild(i);
                         String source = (String) sourceNode.getValue();
 
                         //look out for multi-values separated with a + sign
@@ -221,7 +220,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 
     // indexed by the source attribute to which the filter applies.
     // the same filter can re-appear multiple times under different keys.
-    protected static Map<String,ShibAttributeFilter> attributeFilters = new HashMap<String,ShibAttributeFilter>();
+    protected static final Map<String,ShibAttributeFilter> attributeFilters = new HashMap<>();
 
     // indexed by the filter name. filters appear only once here
     protected static Map<String,ShibAttributeFilter> filters = null;
@@ -253,7 +252,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 
         if ( filters == null ) {
 
-            filters = new HashMap<String,ShibAttributeFilter>();
+            filters = new HashMap<>();
 
             if (0 < cn.getChildrenCount(ATTR_FILTERS)) {
 
@@ -266,7 +265,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
                     for ( int i=0 ; i<filterCount ; i++ ) {
 
                         // extract name and class
-                        ConfigurationNode filterNode = (ConfigurationNode) filtersNode.getChild(i);
+                        ConfigurationNode filterNode = filtersNode.getChild(i);
                         String filterClass = (String) filterNode.getValue();
                         String filterName = Configurations.getFirstAttribute(filterNode, ATTR_FILTER_NAME);
 
@@ -278,7 +277,7 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
                             // so we can use the default constructor without arguments
                             x = k.getDeclaredConstructor().newInstance();
                         } catch (Exception e) {
-                            throw new GeneralException("Erro creating filter class '" + filterClass + "'",e);
+                            throw new GeneralException("Error creating filter class '" + filterClass + "'",e);
                         }
 
                         // fail if it doesn't implement the right interface!

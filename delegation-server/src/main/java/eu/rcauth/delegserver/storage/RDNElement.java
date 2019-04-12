@@ -7,10 +7,10 @@ public class RDNElement {
 
 	/* A single RDN element. This is the full RDN */
 	protected String element;
-	protected List<RDNElementPart> elementParts;
+	protected final List<RDNElementPart> elementParts;
 	
 	public RDNElement() {
-		elementParts = new ArrayList<RDNElementPart>();
+		elementParts = new ArrayList<>();
 	}
 	
 	public RDNElement(String element) {

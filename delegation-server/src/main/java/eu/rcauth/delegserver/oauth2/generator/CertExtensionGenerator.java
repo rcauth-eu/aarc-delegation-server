@@ -7,11 +7,11 @@ import edu.uiuc.ncsa.security.core.Logable;
 
 public class CertExtensionGenerator {
 
-	protected static String EMAIL_EXTENSION = "email";
+	protected static final String EMAIL_EXTENSION = "email";
 	
-	protected Map<String, String> extensionSources;
+	protected final Map<String, String> extensionSources;
 
-	protected Logable logger;
+	protected final Logable logger;
 	
 	public CertExtensionGenerator(Map<String, String> extensionSources, Logable logger) {
 		this.extensionSources = extensionSources;
@@ -30,15 +30,17 @@ public class CertExtensionGenerator {
 	 * The behavior of this method is configurable through the {@code <extensions>} section
 	 * of the configuration file.
 	 * 
-	 * @param attributeMap The attribute map contaning user attributes
+	 * @param attributeMap The attribute map containing user attributes
 	 * @return The extensions that will be requested
 	 */
+	// Since ext can be either String or List<String> we cannot prevent an unchecked cast from ext to List<String>
+	@SuppressWarnings("unchecked")
 	public String getCertificateExtensions(Map<String, Object> attributeMap) {
 		
 		// collection of info extensions separated with comma (',')
-		String infoExtensions = "";
+		StringBuilder infoExtensions = new StringBuilder();
 		// collection of email extension separated with whitespace (' ')
-		String emailExtension = "";
+		StringBuilder emailExtension = new StringBuilder();
 
 		logger.debug("GENERATING CERTIFICATE EXTENSIONS");
 		
@@ -61,23 +63,23 @@ public class CertExtensionGenerator {
 					
 					// distinguish between EMAIL and INFO extensions
 					if ( extName.equals(EMAIL_EXTENSION) ) {
-						emailExtension +=  (emailExtension.isEmpty()) ?  extName + "=" + ((String) ext) : " " + extName + "=" + ((String) ext);						 
+						emailExtension.append((emailExtension.length() == 0) ? extName + "=" + ext : " " + extName + "=" + ext);
 					} else {
-						infoExtensions +=  (infoExtensions.isEmpty()) ?  extName + "=" + ((String) ext) : "," + extName + "=" + ((String) ext);
+						infoExtensions.append((infoExtensions.length() == 0) ? extName + "=" + ext : "," + extName + "=" + ext);
 					}
 					
 					i++;
 					
 				} else if ( ext instanceof List ) {
-					// the extension value can be multi-valued. 
+					// the extension value can be multi-valued.
 					List<String> attrList = ((List<String>)ext);
 					for ( String v : attrList ) {
 						
 						// distinguish between EMAIL and INFO extensions
 						if ( extName.equals(EMAIL_EXTENSION) ) {
-							emailExtension +=  (emailExtension.isEmpty()) ?  extName + "=" + v : " " + extName + "=" + v;						 
+							emailExtension.append((emailExtension.length() == 0) ? extName + "=" + v : " " + extName + "=" + v);
 						} else {
-							infoExtensions +=  (infoExtensions.isEmpty()) ?  extName + "=" + v : "," + extName + "=" + v;
+							infoExtensions.append((infoExtensions.length() == 0) ? extName + "=" + v : "," + extName + "=" + v);
 						}
 						
 						i++;
@@ -94,15 +96,11 @@ public class CertExtensionGenerator {
 		}
 		
 		// combine the extensions into a single line
-		String extensions = "";
-		if ( ! emailExtension.isEmpty() ) {
-			extensions += emailExtension;
-		}
-		if ( ! infoExtensions.isEmpty() ) {
-			extensions += " info:" + infoExtensions; 
+		if (infoExtensions.length() > 0) {
+			emailExtension.append(" info:").append(infoExtensions.toString());
 		}
 		
-		return extensions;
+		return emailExtension.toString();
 	}
 	
 

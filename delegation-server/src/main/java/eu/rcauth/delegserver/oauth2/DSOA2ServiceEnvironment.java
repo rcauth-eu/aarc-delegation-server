@@ -50,10 +50,14 @@ import edu.uiuc.ncsa.security.util.jwk.JSONWebKeys;
  * @author Tamás Balogh
  *
  */
+// Note: OA2SE super ServiceEnvironmentImpl.getClientApprovalStore() returns a
+// non-templated ClientApprovalStore and likewise for getClientStore().
+// Somehow this produces a warning here, hence suppress the unchecked warning.
+@SuppressWarnings("unchecked")
 public class DSOA2ServiceEnvironment extends OA2SE {
 
     public DSOA2ServiceEnvironment(MyLoggingFacade logger,
-                                   Provider<TraceRecordStore> trsp,
+                                   Provider<TraceRecordStore<TraceRecord>> trsp,
                                    Provider<TransactionStore> tsp,
                                    Provider<ClientStore> csp,
                                    int maxAllowedNewClientRequests,
@@ -130,7 +134,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
     /**
      *  The scopes to claims mapping extracted from the configuration
      */
-    protected Map<String,Map<String,String>> scopesMap;
+    protected final Map<String,Map<String,String>> scopesMap;
 
     /**
      * Returns the complete scopes to claims mapping
@@ -218,7 +222,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
 
         if ( uniqueAttrSources == null ) {
 
-            List<String> attr = new ArrayList<String>();
+            List<String> attr = new ArrayList<>();
 
 
 
@@ -248,7 +252,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
                 }
             }
 
-            uniqueAttrSources = attr.toArray(new String[attr.size()]);
+            uniqueAttrSources = attr.toArray(new String[0]);
         }
 
         return uniqueAttrSources;
@@ -275,7 +279,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
     /**
      * {@link eu.rcauth.delegserver.storage.TraceRecord} Store Provider creating TraceRecord Stores
      */
-    protected Provider<TraceRecordStore> traceRecordSP;
+    protected final Provider<TraceRecordStore<TraceRecord>> traceRecordSP;
 
     /**
      * {@link eu.rcauth.delegserver.storage.TraceRecord} store
@@ -286,6 +290,7 @@ public class DSOA2ServiceEnvironment extends OA2SE {
      * Returns the {@link eu.rcauth.delegserver.storage.TraceRecord} store
      * @return {@link eu.rcauth.delegserver.storage.TraceRecord} store
      */
+    // Note get() returns a non-generic TraceRecordStore
     public TraceRecordStore<TraceRecord> getTraceRecordStore() {
         if ( traceRecordStore == null ) {
             traceRecordStore = traceRecordSP.get();

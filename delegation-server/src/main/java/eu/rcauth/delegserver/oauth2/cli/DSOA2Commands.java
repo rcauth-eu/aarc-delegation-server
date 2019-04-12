@@ -5,7 +5,6 @@ import edu.uiuc.ncsa.myproxy.oauth2.tools.OA2Commands;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceEnvironment;
 import eu.rcauth.delegserver.oauth2.loader.DSOA2ConfigurationLoader;
 
-import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ClientStoreCommands;
 import edu.uiuc.ncsa.security.core.util.AbstractEnvironment;
 import edu.uiuc.ncsa.security.core.util.ConfigurationLoader;
@@ -23,7 +22,7 @@ public class DSOA2Commands extends OA2Commands {
      * Do the same as the super class, but create an instance of
      * {@link DSOA2Commands} instead of {@link OA2Commands}
      *
-     * @param args
+     * @param args command line arguments
      */
     public static void main(String[] args) {
         try {
