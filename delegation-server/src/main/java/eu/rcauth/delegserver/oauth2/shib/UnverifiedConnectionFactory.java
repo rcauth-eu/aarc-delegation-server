@@ -86,6 +86,7 @@ public class UnverifiedConnectionFactory {
         connection.setSSLSocketFactory(sslContext.getSocketFactory());
         // add null host verifier
         connection.setHostnameVerifier(hostnameVerifier);
+
         return connection;
     }
 

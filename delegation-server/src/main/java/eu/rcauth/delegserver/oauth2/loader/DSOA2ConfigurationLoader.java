@@ -1,7 +1,6 @@
 package eu.rcauth.delegserver.oauth2.loader;
 
 import eu.rcauth.delegserver.storage.*;
-import org.apache.commons.configuration.tree.ConfigurationNode;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceEnvironment;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceTransaction;
 import eu.rcauth.delegserver.oauth2.generator.CertExtensionGenerator;
@@ -16,6 +15,7 @@ import eu.rcauth.delegserver.storage.impl.MultiTraceRecordStoreProvider;
 import eu.rcauth.delegserver.storage.sql.DSOA2ClientSQLStoreProvider;
 import eu.rcauth.delegserver.storage.sql.DSOA2SQLTransactionStoreProvider;
 import eu.rcauth.delegserver.storage.sql.SQLTraceRecordStoreProvider;
+
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.claims.BasicClaimsSourceImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.OA2ConfigurationLoader;
@@ -26,6 +26,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.OA4MPIdentifierProvider;
+
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
@@ -44,14 +45,17 @@ import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPool;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPoolProvider;
 
+import org.apache.commons.configuration.tree.ConfigurationNode;
+
+import java.util.Map;
 import javax.inject.Provider;
 
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME;
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME_SPECIFIC_PART;
-import static eu.rcauth.delegserver.oauth2.DSConfigTags.*;
 import static edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.OA4MPIdentifierProvider.TRANSACTION_ID;
 
-import java.util.Map;
+import static eu.rcauth.delegserver.oauth2.DSConfigTags.*;
+
 
 /**
  * Custom Configuration Loader. This has been extended with the following functions:
@@ -232,12 +236,10 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     OA4MPConfigTags.POSTGRESQL_STORE,
                     converter, getClientProvider()));
             csp.addListener(new TypedProvider<ClientStore>(cn, OA4MPConfigTags.MEMORY_STORE, OA4MPConfigTags.CLIENTS_STORE) {
-
                 @Override
                 public Object componentFound(CfgEvent configurationEvent) {
-                    if (checkEvent(configurationEvent)) {
+                    if (checkEvent(configurationEvent))
                         return get();
-                    }
                     return null;
                 }
 
@@ -264,9 +266,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
     protected Map<String,Map<String,String>> scopes = null;
 
     public Map<String,Map<String,String>> getScopesMap() {
-        if (scopes == null) {
+        if (scopes == null)
             scopes = DSOA2ConfigurationLoaderUtils.getScopesMap(cn);
-        }
         return scopes;
     }
 
@@ -292,9 +293,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                 String baseDN = Configurations.getFirstAttribute(dnGeneratorNode, DN_GENERATOR_BASE_DN );
                 String attr = Configurations.getFirstAttribute(dnGeneratorNode, DN_GENERATOR_ATTRIBUTE );
 
-                if ( attr == null ) {
+                if ( attr == null )
                     throw new GeneralException("Missing mandatory attribute 'attributeName' from the DN Generator");
-                }
 
                 dnGenerator.setAttributeName(attr);
 
@@ -343,9 +343,8 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
 
     protected ThreadsafeTraceLogger getThreadsafeTraceLogger() {
 
-        if ( threadsafeTraceLogger == null ) {
+        if ( threadsafeTraceLogger == null )
             threadsafeTraceLogger =  new ThreadsafeTraceLogger( getTraceLogger() );
-        }
 
         return threadsafeTraceLogger;
     }

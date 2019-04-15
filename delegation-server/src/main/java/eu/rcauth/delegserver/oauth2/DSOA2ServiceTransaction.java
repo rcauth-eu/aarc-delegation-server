@@ -10,19 +10,19 @@ import edu.uiuc.ncsa.security.core.Identifier;
 /**
  * Custom Service Transaction extension containing:
  * <p>
- * {@link #userAttributes}: The set of attributes coming from the user IdP (mapped by the SP in front of 
+ * {@link #userAttributes}: The set of attributes coming from the user IdP (mapped by the SP in front of
  * this server). This attribute set has to be part of a transaction so that it can be taken up
  * by subsequent /getcert request.
  * <p>
  * {@link #traceRecord}: The key of the trace record entry linked with this transaction. This field is
- * used to link transactions with trace records. Note that a transaction only has a linked trace record 
+ * used to link transactions with trace records. Note that a transaction only has a linked trace record
  * in case a /getcert call.
  * <p>
  * TODO: traceRecord (cnHash) alone does not link to single trace record on its own. You need cnHash+seqnr for this.
- * Or maybe this field is redundant altogether since you can simple derive a cnHash as well as seqnr from the certificate. 
+ * Or maybe this field is redundant altogether since you can simple derive a cnHash as well as seqnr from the certificate.
  * <p>
  * {@link OA4MPServiceTransaction}#myproxyUsername: This is an already existing attribute that has been repurposed in this
- * implementation. It contains the user DN (O+CN) created for a user based on his attributes. 
+ * implementation. It contains the user DN (O+CN) created for a user based on his attributes.
  *
  * @author "Tamás Balogh"
  *

@@ -19,5 +19,5 @@ public class DSOA2ClientTable extends OA2ClientTable {
         DSOA2ClientKeys k = (DSOA2ClientKeys)keys;
         getColumnDescriptor().add(new ColumnDescriptorEntry(k.description(), LONGVARCHAR));
     }
-	
+
 }

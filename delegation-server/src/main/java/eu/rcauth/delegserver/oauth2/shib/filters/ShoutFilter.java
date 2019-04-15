@@ -2,9 +2,9 @@ package eu.rcauth.delegserver.oauth2.shib.filters;
 
 public class ShoutFilter implements ShibAttributeFilter {
 
-	@Override
-	public String process(String value) {
-		return value.toUpperCase();
-	}
+    @Override
+    public String process(String value) {
+        return value.toUpperCase();
+    }
 
 }

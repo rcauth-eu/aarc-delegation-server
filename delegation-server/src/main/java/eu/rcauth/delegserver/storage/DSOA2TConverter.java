@@ -25,9 +25,8 @@ public class DSOA2TConverter<V extends DSOA2ServiceTransaction> extends OA2TConv
         DSOA2TransactionKeys tck = (DSOA2TransactionKeys) getTCK();
 
         String jsonClaims = map.getString(tck.claims);
-        if ( jsonClaims != null && !jsonClaims.isEmpty() ) {
+        if ( jsonClaims != null && !jsonClaims.isEmpty() )
             st.setClaims( JSONObject.fromObject(jsonClaims) );
-        }
 
         String jsonAttributes = map.getString(tck.user_attributes);
         if ( jsonAttributes != null && ! jsonAttributes.isEmpty() ) {

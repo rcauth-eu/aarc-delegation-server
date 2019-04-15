@@ -108,7 +108,7 @@
 
     <servlet>
         <servlet-name>userInfo</servlet-name>
-        <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSUserInfoServlet</servlet-class> 
+        <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSUserInfoServlet</servlet-class>
         <!-- <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.UserInfoServlet</servlet-class> -->
     </servlet>
     <servlet-mapping>

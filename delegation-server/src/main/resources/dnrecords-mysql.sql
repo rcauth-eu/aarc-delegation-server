@@ -1,6 +1,6 @@
-/* 
+/*
   This assumes you already executed the script provided with standard OA4MP
-  which creates the necessary user and database for you. 
+  which creates the necessary user and database for you.
 */
 
 USE oa2server;

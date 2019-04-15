@@ -9,7 +9,7 @@ import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 public abstract class TraceRecordStoreProvider<T extends TraceRecordStore> extends MultiTypeProvider<T> {
 
     public TraceRecordStoreProvider(ConfigurationNode config, boolean disableDefaultStore, MyLoggingFacade logger, String type, String target) {
-    	super(config, disableDefaultStore, logger, type, target);
+        super(config, disableDefaultStore, logger, type, target);
     }
-	
+
 }

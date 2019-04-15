@@ -38,6 +38,7 @@ public class TraceRecordConverter<V extends TraceRecord> extends MapConverter<V>
         // Unfortunately JSONArray does not understand generics/templating
         // hence this gives an unchecked cast warning.
         v.setAttrNames( new ArrayList<String>(JSONArray.toCollection(jsonArray, String.class)) );
+
         return v;
     }
 
@@ -57,9 +58,9 @@ public class TraceRecordConverter<V extends TraceRecord> extends MapConverter<V>
 
     private int parseInt(ConversionMap<String, Object> map, String key) {
         Object obj = map.get(key);
-        if(obj instanceof Integer){
+        if(obj instanceof Integer)
             return (Integer) obj;
-        }
+
         return Integer.parseUnsignedInt(obj.toString());
     }
 

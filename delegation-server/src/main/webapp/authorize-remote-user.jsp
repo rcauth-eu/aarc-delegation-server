@@ -32,7 +32,7 @@
 <div id="logoHolder">
     <div class="topLeft">
         <div id="topLogo" class="topLogo"><img src="RCauth-eu-logo-150.gif"><br/></div>
-        <div id="topText" class="topText">The white-label Research and Collaboration Authentication CA Service for Europe</div>				
+        <div id="topText" class="topText">The white-label Research and Collaboration Authentication CA Service for Europe</div>
     </div>
 </div>
 <div class="clear"></div>
@@ -99,18 +99,16 @@ For further information on the CA see the
 <h4>Information that will be sent to the Master Portal:</h4>
 
 <table>
-	<tr style="height: 2.0em;">
-                <td><i style="margin-right: 1.5em;">sub :</i>
-                <td>${userName}
-        </tr>
+    <tr style="height: 2.0em;">
+        <td><i style="margin-right: 1.5em;">sub :</i>
+        <td>${userName}
+    </tr>
 
 <c:forEach items="${authClaims}" var="claim">
-	
-	<tr style="height: 2.0em;">
-		<td><i style="margin-right: 1.5em;">${claim.key} :</i>
-		<td>${claim.value}
-	</tr>
-
+    <tr style="height: 2.0em;">
+        <td><i style="margin-right: 1.5em;">${claim.key} :</i>
+        <td>${claim.value}
+    </tr>
 </c:forEach>
 </table>
 

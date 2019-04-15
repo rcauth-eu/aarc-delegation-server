@@ -7,8 +7,9 @@ public class DSOA2ClientKeys extends OA2ClientKeys {
     String description = "description";
 
     public String description(String... x) {
-        if (0 < x.length) description = x[0];
+        if (0 < x.length)
+            description = x[0];
         return description;
     }
-	
+
 }

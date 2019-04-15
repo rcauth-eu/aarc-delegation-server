@@ -14,26 +14,26 @@ public class DSOA2ClientConverter<V extends DSOA2Client> extends OA2ClientConver
     public DSOA2ClientConverter(SerializationKeys keys, IdentifiableProvider<V> identifiableProvider) {
         super(keys, identifiableProvider);
     }
-	
+
     protected DSOA2ClientKeys getDSCK() {
-    	return (DSOA2ClientKeys) keys;
+        return (DSOA2ClientKeys) keys;
     }
 
     @Override
     public void toMap(V client, ConversionMap<String, Object> map) {
         super.toMap(client, map);
 
-    	map.put(getDSCK().description, client.getDescription());
+        map.put(getDSCK().description, client.getDescription());
     }
 
 
     @Override
     public V fromMap(ConversionMap<String, Object> map, V v) {
-    	V client =  super.fromMap(map, v);
-    	
-    	client.setDescription( map.getString( getDSCK().description ) );
-    	
-    	return client;
+        V client =  super.fromMap(map, v);
+
+        client.setDescription( map.getString( getDSCK().description ) );
+
+        return client;
     }
-    
+
 }

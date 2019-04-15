@@ -15,51 +15,48 @@ import java.util.logging.LogRecord;
 
 public class TraceRecordLoggerProvider extends LoggerProvider {
 
-	protected TraceLoggingFacade logger;
-//	protected ConfigurationNode configurationNode;
+    protected TraceLoggingFacade logger;
 
-	public static final String TRACE_LOGGING_COMPONENT = "traceLogging";
+    public static final String TRACE_LOGGING_COMPONENT = "traceLogging";
 
-	public static final String TRACE_LOGGING_FORMAT = "[%s] %7.7s %s" + System.getProperty("line.separator");
+    public static final String TRACE_LOGGING_FORMAT = "[%s] %7.7s %s" + System.getProperty("line.separator");
 
-	
-	public TraceRecordLoggerProvider(ConfigurationNode configurationNode) {
-		super(getFirstNode(configurationNode, TRACE_LOGGING_COMPONENT));
-	}
 
-	@Override
-	public MyLoggingFacade get() {
-		MyLoggingFacade basicLogger = super.get();
+    public TraceRecordLoggerProvider(ConfigurationNode configurationNode) {
+        super(getFirstNode(configurationNode, TRACE_LOGGING_COMPONENT));
+    }
 
-		String loggerName = basicLogger.getLogger().getName();
-		FileHandler logHandler = null;
-		
-		for (Handler h : basicLogger.getLogger().getHandlers() ) {
-			if ( h instanceof FileHandler ) {
-				logHandler = (FileHandler) h;
-				logHandler.setFormatter(new Formatter() {
-					
-					@Override
-					public String format(LogRecord rec) {
-					
-						return String.format(TRACE_LOGGING_FORMAT, (new Date()).toString(), 
-																	rec.getLevel(),
-																	formatMessage(rec));
-					}
-				});
-				break;
-			}
-		}
-		basicLogger.getLogger().removeHandler(logHandler);
-		
-		logger = new TraceLoggingFacade(loggerName, basicLogger.isDebugOn());
-		if (logHandler != null) {
-			logger.getLogger().addHandler(logHandler);
-			logger.getLogger().setUseParentHandlers(false);
-		}
+    @Override
+    public MyLoggingFacade get() {
+        MyLoggingFacade basicLogger = super.get();
+
+        String loggerName = basicLogger.getLogger().getName();
+        FileHandler logHandler = null;
+
+        for (Handler h : basicLogger.getLogger().getHandlers() ) {
+            if ( h instanceof FileHandler ) {
+                logHandler = (FileHandler) h;
+                logHandler.setFormatter(new Formatter() {
+                    @Override
+                    public String format(LogRecord rec) {
+                        return String.format(TRACE_LOGGING_FORMAT, (new Date()).toString(),
+                                                                   rec.getLevel(),
+                                                                   formatMessage(rec));
+                    }
+                });
+                break;
+            }
+        }
+        basicLogger.getLogger().removeHandler(logHandler);
+
+        logger = new TraceLoggingFacade(loggerName, basicLogger.isDebugOn());
+        if (logHandler != null) {
+            logger.getLogger().addHandler(logHandler);
+            logger.getLogger().setUseParentHandlers(false);
+        }
 
 
         return logger;
-		
-	}
+
+    }
 }

@@ -33,9 +33,8 @@ public class DSOA2Client extends OA2Client {
     @Override
     public boolean equals(Object obj) {
         boolean superEquals = super.equals(obj);
-        if ( !superEquals ) {
+        if ( !superEquals )
             return false;
-        }
 
         DSOA2Client c = (DSOA2Client) obj;
         return getDescription().equals(c.getDescription());

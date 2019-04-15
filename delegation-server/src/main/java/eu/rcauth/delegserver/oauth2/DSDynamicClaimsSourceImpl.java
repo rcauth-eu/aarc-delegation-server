@@ -12,7 +12,6 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2DiscoveryServlet;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.ClaimSourceConfiguration;
 import eu.rcauth.delegserver.oauth2.servlet.DSOA2AuthorizationServer;
 
-// TODO add imports for javadoc
 
 /**
  * Custom ClaimsSourceImpl that adds the list of supported claims into the UserInfo.
@@ -69,6 +68,7 @@ public class DSDynamicClaimsSourceImpl extends BasicClaimsSourceImpl    {
         // iterate of scope -> claimsMap
         for (Map.Entry<String,Map<String,String>> entry : scopesMap.entrySet()) {
             Map<String,String> claimsMap = entry.getValue();
+
             // some scopes can be without claims
             if (claimsMap == null)  {
                 dsoa2se.info("Skipping scope with no claims: "+entry.getKey());
@@ -77,6 +77,7 @@ public class DSDynamicClaimsSourceImpl extends BasicClaimsSourceImpl    {
                 claims.addAll(claimsMap.keySet());
             }
         }
+
         return claims;
     }
 }

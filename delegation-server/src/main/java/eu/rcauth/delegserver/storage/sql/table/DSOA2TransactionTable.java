@@ -13,15 +13,15 @@ public class DSOA2TransactionTable extends OA2TransactionTable {
     public DSOA2TransactionTable(OA2TransactionKeys keys, String schema, String tablenamePrefix, String tablename) {
         super(keys, schema, tablenamePrefix, tablename);
     }
-	
+
     @Override
     public void createColumnDescriptors() {
-    	super.createColumnDescriptors();
-    	getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).claims(), 
-    														 Types.LONGVARCHAR));
-    	getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).user_attributes(), 
-				 											 Types.LONGVARCHAR));
-    	getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).trace_record() , 
-				 											 Types.LONGVARCHAR));    	
+        super.createColumnDescriptors();
+        getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).claims(),
+                                                             Types.LONGVARCHAR));
+        getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).user_attributes(),
+                                                             Types.LONGVARCHAR));
+        getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).trace_record() ,
+                                                             Types.LONGVARCHAR));
     }
 }

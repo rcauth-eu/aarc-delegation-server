@@ -16,7 +16,7 @@
   <div id="logoHolder">
     <div class="topLeft">
         <div id="topLogo" class="topLogo"><img src="RCauth-eu-logo-150.gif"><br/></div>
-        <div id="topText" class="topText">The white-label Research and Collaboration Authentication CA Service for Europe</div>                         
+        <div id="topText" class="topText">The white-label Research and Collaboration Authentication CA Service for Europe</div>
     </div>
   </div>
 

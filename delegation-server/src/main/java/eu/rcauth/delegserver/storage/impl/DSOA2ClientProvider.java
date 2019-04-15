@@ -11,7 +11,7 @@ public class DSOA2ClientProvider<V extends DSOA2Client> extends OA2ClientProvide
     public DSOA2ClientProvider(IdentifierProvider<Identifier> idProvider) {
         super(idProvider);
     }
-    
+
     @Override
     // Note we cannot prevent unchecked cast to V
     @SuppressWarnings("unchecked")

@@ -5,9 +5,10 @@ import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 
-import org.apache.commons.configuration.tree.ConfigurationNode;
 import eu.rcauth.delegserver.oauth2.DSDefaultDNGeneratorConfiguration;
 import eu.rcauth.delegserver.oauth2.shib.filters.ShibAttributeFilter;
+
+import org.apache.commons.configuration.tree.ConfigurationNode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -181,11 +182,10 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
                         String source = (String) sourceNode.getValue();
 
                         //look out for multi-values separated with a + sign
-                        if ( source.contains(DN_SOURCE_SEPARATOR) ) {
+                        if ( source.contains(DN_SOURCE_SEPARATOR) )
                             sources[i] = source.split("\\" + DN_SOURCE_SEPARATOR);
-                        } else {
+                        else
                             sources[i] = source;
-                        }
 
                         // complete the attribute filter map with any filter declared for the source
                         String sourceFilter =  Configurations.getFirstAttribute(sourceNode, DN_GENERATOR_SOURCE_FILTER);
@@ -194,9 +194,8 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
                             // get the actual filter object
                             ShibAttributeFilter filterObject = getFilters(cn).get(sourceFilter);
 
-                            if ( filterObject == null ) {
+                            if ( filterObject == null )
                                 throw new GeneralException("No instance of the filter referenced by the name '" + sourceFilter + "' found!");
-                            }
 
                             // save the filter indexed by its source name.
                             if ( sources[i] instanceof String ) {
@@ -229,15 +228,14 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
 
         // in case the a DN source attributes have not been loaded yet, it is time to load them
         // otherwise we don't know which filter to apply to which source.
-        if ( cnNameSources == null ) {
+        if ( cnNameSources == null )
             getCnNameSources(cn);
-        }
-        if ( cnUniqueIDSources == null ) {
+
+        if ( cnUniqueIDSources == null )
             getCnUniqueIDSources(cn);
-        }
-        if ( orgSources == null ) {
+
+        if ( orgSources == null )
             getOrgSources(cn);
-        }
 
         return attributeFilters;
     }
@@ -281,11 +279,10 @@ public class DSOA2ConfigurationLoaderUtils extends OA2ConfigurationLoaderUtils {
                         }
 
                         // fail if it doesn't implement the right interface!
-                        if (!(x instanceof ShibAttributeFilter)) {
+                        if (!(x instanceof ShibAttributeFilter))
                             throw new GeneralException("The attribute filter specified by the class name \"" +
                                     filterClass + "\" does not extend the ShibAttributeFilter " +
                                     "interface and therefore cannot be used to filter attributes.");
-                        }
 
                         // save filter
                         filters.put( filterName , (ShibAttributeFilter) x);

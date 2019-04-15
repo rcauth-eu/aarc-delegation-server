@@ -250,9 +250,8 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         trans.setTraceRecord( traceRecord.getCnHash() );
 
         // save the generated full user DN as a user attribute
-        userAttributes.put(dnGenerator.getAttributeName() , dnGenerator.formatFullDN( orgRDN.getElement() ,
-                                                                                                 cnRDN.getElement() ,
-                                                                                                 cnRDNseqNr ));
+        userAttributes.put(dnGenerator.getAttributeName(),
+                           dnGenerator.formatFullDN( orgRDN.getElement(), cnRDN.getElement(), cnRDNseqNr ));
         se.getTransactionStore().save(trans);
 
     }
@@ -280,13 +279,10 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
                 for (Object key : request.getParameterMap().keySet()) {
                     String[] values = request.getParameterValues(key.toString());
                     if (values != null && values.length > 0) {
-
                         if (values.length == 1) {
-
                             if (values[0] != null && !values[0].isEmpty()) {
                                 traceDebug(" " + key + " = " + values[0]);
                             }
-
                         } else {
                             List<String> nonEmptyValues = new ArrayList<>();
                             for (String x : values) {
@@ -295,8 +291,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
                                 }
                             }
                             if (!nonEmptyValues.isEmpty()) {
-                                traceDebug(
-                                        " " + key + " = " + JSONArray.fromObject(nonEmptyValues).toString());
+                                traceDebug(" " + key + " = " + JSONArray.fromObject(nonEmptyValues).toString());
                             }
                         }
                     }
@@ -319,7 +314,6 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
             if (!e.hasMoreElements()) {
                 traceDebug(" (none)");
             } else {
-
                 // IMPORTANT !!! Map the header parameters with the right encoding
                 Charset isoCharset = Charset.forName("ISO-8859-1");
                 Charset utf8Charset = Charset.forName("UTF-8");
@@ -328,7 +322,6 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
                     String name = e.nextElement().toString();
                     String header = request.getHeader(name);
                     if (header != null && !header.isEmpty()) {
-
                         byte[] v = header.getBytes(isoCharset);
                         traceDebug(" " + name + " = " + new String(v, utf8Charset));
                     }
@@ -371,20 +364,16 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
     }
 
     private void logAssertions(HttpServletRequest request) {
-
         try {
-
             String assertions = ShibAssertionRetriever.getShibAssertions(request);
 
             traceDebug("SAML Assertions Received :");
             traceInfo(assertions);
-
         } catch (Throwable e) {
             this.warn("Error Requesting Shibboleth Assertion");
             this.warn(e.getMessage());
             e.printStackTrace();
         }
-
     }
 
     public void logTraceRecord(TraceRecord traceRecord) {
@@ -394,7 +383,6 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
     public void logTraceRecordElement(RDNElement element) {
         for ( RDNElementPart rdnPart : element.getElementParts() ) {
-
             String orgTrace = "RDN : '" + rdnPart.getElement() + "' " +
                     "(" + rdnPart.getElementSource() + " = " +
                     "'" + rdnPart.getElementOrig() + "')";

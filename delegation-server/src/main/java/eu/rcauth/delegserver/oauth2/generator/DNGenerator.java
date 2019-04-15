@@ -24,15 +24,15 @@ import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import com.ibm.icu.text.Transliterator;
 
 /**
- * Utility class for generating partial user DNs. The parts of the user DN being created 
+ * Utility class for generating partial user DNs. The parts of the user DN being created
  * by this are the O (Organisation) and the CN (Common Name) RDNs. A resulting partial DN
  * has the following form:
  * <p>
  *  /O={organisation}/CN={cnName} {cnUniqueId} {cnSeqNr}
  * <p>
  * This utility class works according to the DN Generator sources provided in the configuration.
- * The RDN components {organisation},{cnName} and {cnUniqueId} each have a set of source 
- * attributes which are taken in sequential order of preference. Once an attribute is found 
+ * The RDN components {organisation},{cnName} and {cnUniqueId} each have a set of source
+ * attributes which are taken in sequential order of preference. Once an attribute is found
  * from a ordered preference list it is then used.
  * <p>
  * For more details on how DNs are constructed consult the RCauth Policy Document
@@ -199,11 +199,10 @@ public class DNGenerator {
 
         StringBuilder origOrganisation = new StringBuilder();
         for (String source : orgSourceAttrs) {
-            if ( origOrganisation.length() == 0 ) {
+            if ( origOrganisation.length() == 0 )
                 origOrganisation.append(getProcessedAttr(attributeMap, source));
-            } else {
+            else
                 origOrganisation.append(O_DELIMITER).append(getProcessedAttr(attributeMap, source));
-            }
         }
 
         logger.debug("	- Attribute Value: '" + origOrganisation + "'");
@@ -283,10 +282,9 @@ public class DNGenerator {
         logger.debug("GENERATING CN WITH SEQUENCE NR");
 
         // check if the sequence number is in a valid range.
-        if ( sequenceNr <= 0 || sequenceNr > CN_MAX_SEQUENCE_NR ) {
-            throw new GeneralException("The index " + sequenceNr + " is not an acceptable value! Sequence number"
-                    + "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
-        }
+        if ( sequenceNr <= 0 || sequenceNr > CN_MAX_SEQUENCE_NR )
+            throw new GeneralException("The index " + sequenceNr + " is not an acceptable value! " +
+                                       "Sequence number out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )");
 
         logger.debug("	- Appending sequence number: '" + sequenceNr + "'");
 
@@ -297,9 +295,8 @@ public class DNGenerator {
         logger.debug("	- Generated Common Name (CN): '" + cn + "'");
 
         // do a last size check to see that the length is within the allowed RDN size
-        if ( cn.getBytes().length > RDN_MAX_SIZE ) {
+        if ( cn.getBytes().length > RDN_MAX_SIZE )
             throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE= " + RDN_MAX_SIZE);
-        }
 
         return commonName;
     }
@@ -351,18 +348,16 @@ public class DNGenerator {
                 }
 
                 // construct a concatenated list of attribute values
-                if ( origUniqueID.length() == 0 ) {
+                if ( origUniqueID.length() == 0 )
                     origUniqueID.append(getProcessedAttr(attributeMap, source));
-                } else {
+                else
                     origUniqueID.append(CN_DELIMITER).append(getProcessedAttr(attributeMap, source));
-                }
             }
 
             // in case the unique id is empty (one of its source attributes was missing from the user attribute map)
             // simply move on to the next set of sources.
-            if ( origUniqueID.length() == 0 ) {
+            if ( origUniqueID.length() == 0 )
                 continue;
-            }
 
             // postprocess CN
 
@@ -379,9 +374,8 @@ public class DNGenerator {
             logger.debug("	- Generated Common Name (CN): '" + cn + "'");
 
             // do a last size check to see that the length is within the allowed RDN size
-            if ( cn.getBytes().length > RDN_MAX_SIZE ) {
+            if ( cn.getBytes().length > RDN_MAX_SIZE )
                 throw new GeneralException("CommonName exceeds the RDN_MAX_SIZE= " + RDN_MAX_SIZE);
-            }
 
             RDNElementPart uniquePart = new RDNElementPart(uniqueID, origUniqueID.toString(), getConcatenatedStrings(uniqueIDSourceAttr));
             RDNElement commonName = new RDNElement(cn);
@@ -389,15 +383,13 @@ public class DNGenerator {
             commonName.addRDNElementPart(uniquePart);
 
             cns.add(commonName);
-
         }
 
         logger.debug("	- Possible Common Names (CNs) generated: " + cns.size());
 
         // check if we got any CNs at all.
-        if ( cns.isEmpty() ) {
+        if ( cns.isEmpty() )
             throw new GeneralException("Could not build ANY CNs! Check that you attribute sources are correct!");
-        }
 
         return cns;
     }
@@ -415,9 +407,8 @@ public class DNGenerator {
         // choose the first set of sources from an ordered list of preference which is
         // present in the provided user attributes.
         String[] cnNameSourceAttr = chooseAttrSource(cnNameSources,attributeMap);
-        if ( cnNameSourceAttr == null ) {
+        if ( cnNameSourceAttr == null )
             throw new GeneralException("No suitable attribute found for building the Display Name part of the 'CommonName' attribute!");
-        }
 
         logger.debug("	- Display Name Attribute Sources: '" + getConcatenatedStrings(cnNameSourceAttr) + "'");
 
@@ -426,11 +417,10 @@ public class DNGenerator {
 
         StringBuilder origDisplayName = new StringBuilder();
         for (String source : cnNameSourceAttr) {
-            if ( origDisplayName.length() == 0 ) {
+            if ( origDisplayName.length() == 0 )
                 origDisplayName.append(getProcessedAttr(attributeMap, source));
-            } else {
+            else
                 origDisplayName.append(CN_DELIMITER).append(getProcessedAttr(attributeMap, source));
-            }
         }
 
         // do some postprocessing
@@ -465,9 +455,8 @@ public class DNGenerator {
         // choose the first set of sources from an ordered list of preference which is
         // present in the provided user attributes.
         String[] uniqueIDSourceAttr = chooseAttrSource(cnUniqueIDSources,attributeMap);
-        if ( uniqueIDSourceAttr == null ) {
+        if ( uniqueIDSourceAttr == null )
             throw new GeneralException("No suitable attribute found for building the Unique ID part of the 'CommonName' attribute!");
-        }
 
         logger.debug("	- Unique ID Attribute Sources: '" + getConcatenatedStrings(uniqueIDSourceAttr) + "'");
 
@@ -476,11 +465,10 @@ public class DNGenerator {
 
         StringBuilder origUniqueID = new StringBuilder();
         for (String source : uniqueIDSourceAttr) {
-            if ( origUniqueID.length() == 0 ) {
+            if ( origUniqueID.length() == 0 )
                 origUniqueID.append(getProcessedAttr(attributeMap, source));
-            } else {
+            else
                 origUniqueID.append(CN_DELIMITER).append(getProcessedAttr(attributeMap, source));
-            }
         }
 
         logger.debug("	- Unique ID Attribute Value: '" + origUniqueID + "'");
@@ -509,9 +497,8 @@ public class DNGenerator {
 
         validateSequenceNr(sequenceNr);
 
-        if ( sequenceNr == 0 ) {
+        if ( sequenceNr == 0 )
             return formatDNSuffix(org, cn);
-        }
 
         String dn =  String.format(DN_OPENSSL_FORMAT, org, cn + CN_DELIMITER + sequenceNr);
 
@@ -522,25 +509,21 @@ public class DNGenerator {
 
     public String formatToOpenSSL(String org, String cn, int sequenceNr) {
 
-        if ( baseDNOpenSSL == null || baseDNOpenSSL.isEmpty() ) {
+        if ( baseDNOpenSSL == null || baseDNOpenSSL.isEmpty() )
             throw new GeneralException("Cannot create full DN in openssl format without the base dn!");
-        }
 
-        if ( baseDNOpenSSL.endsWith("/") ) {
+        if ( baseDNOpenSSL.endsWith("/") )
             return baseDNOpenSSL + formatDNSuffix(org, cn, sequenceNr).substring(1);
-        } else {
+        else
             return baseDNOpenSSL + formatDNSuffix(org, cn, sequenceNr);
-        }
-
     }
 
     public String formatToRFC2253(String org, String cn, int sequenceNr) {
 
         validateSequenceNr(sequenceNr);
 
-        if ( sequenceNr > 0 ) {
+        if ( sequenceNr > 0 )
             cn += CN_DELIMITER + sequenceNr;
-        }
 
         return String.format(DN_RFC2253_FORMAT, cn , org) + "," + baseDNRFC2253;
 
@@ -549,11 +532,10 @@ public class DNGenerator {
     public String formatFullDN(String org, String cn, int sequenceNr) {
 
         String format = null;
-        if ( dnType != null && ! dnType.isEmpty()) {
+        if ( dnType != null && ! dnType.isEmpty())
             format  = dnType;
-        } else {
+        else
             format = DEFAULT_DN_TYPE;
-        }
 
         if ( format.equals( DN_TYPE_OPENSSL ) ) {
             return formatToOpenSSL(org, cn, sequenceNr);
@@ -577,10 +559,9 @@ public class DNGenerator {
     protected void validateSequenceNr(int sequenceNr) {
 
         // check if the sequence number is in a valid range.
-        if ( sequenceNr < 0 || sequenceNr > CN_MAX_SEQUENCE_NR ) {
+        if ( sequenceNr < 0 || sequenceNr > CN_MAX_SEQUENCE_NR )
             throw new GeneralException("The index " + sequenceNr + " is not an acceptable value! Sequence number"
                     + "out of range ( 1 - " + CN_MAX_SEQUENCE_NR + " )" );
-        }
     }
 
     /**
@@ -704,9 +685,8 @@ public class DNGenerator {
     @SuppressWarnings("unchecked") // need to cast Object attr to List<String>
     protected String getProcessedAttr(Map<String,Object> attributeMap, String attributeKey) {
 
-        if ( attributeMap == null || attributeKey == null || ! attributeMap.containsKey(attributeKey) ) {
+        if ( attributeMap == null || attributeKey == null || ! attributeMap.containsKey(attributeKey) )
             return null;
-        }
 
         Object attr = attributeMap.get(attributeKey);
         String attribute = null;
@@ -748,12 +728,11 @@ public class DNGenerator {
         ShibAttributeFilter attributeFilter = filters.get(attrKey);
 
         if ( attributeFilter != null ) {
-
             logger.debug("		- Applying filter '" + attributeFilter.getClass().getCanonicalName() + "' for attribute : '" + attrValue + "'");
             attrValue = attributeFilter.process(attrValue);
             logger.debug("		- Attribute after filter : '" + attrValue + "'");
-
         }
+
         return attrValue;
     }
 
@@ -772,14 +751,11 @@ public class DNGenerator {
      */
     protected String truncate(String rdn,int size) {
 
-        if ( size <= 0 ) {
+        if ( size <= 0 )
             size = RDN_MAX_SIZE;
-        }
-
 
         // only truncate if the RDN exceeds the maximum allowed size
         if ( rdn.getBytes(defaultCharset).length > size ) {
-
             logger.debug("	- TRUNCATING RDN to " + size + " bytes");
 
             logger.debug("		- Source RDN : '" + rdn + "'");
@@ -801,7 +777,6 @@ public class DNGenerator {
             rdn = new String(cb.array(), 0, cb.position()) + RDN_TRUNCATE_SIGN;
 
             logger.debug("		- Truncated Form : '" + rdn + "'");
-
         }
 
         return rdn;
@@ -812,11 +787,10 @@ public class DNGenerator {
     private String getConcatenatedStrings(String[] collection) {
         StringBuilder bundle = new StringBuilder();
         for ( String s : collection ) {
-            if ( bundle.length() == 0 ) {
+            if ( bundle.length() == 0 )
                 bundle.append(s);
-            } else {
+            else
                 bundle.append(" ").append(s);
-            }
         }
         return bundle.toString();
     }
@@ -871,8 +845,6 @@ public class DNGenerator {
             }
         }
         System.out.println("---------------------------------------------------------------------");
-
     }
-
 
 }

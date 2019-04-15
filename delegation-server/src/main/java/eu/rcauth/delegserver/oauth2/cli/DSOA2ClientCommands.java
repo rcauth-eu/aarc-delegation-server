@@ -19,7 +19,6 @@ public class DSOA2ClientCommands extends OA2ClientCommands {
         super.longFormat(identifiable);
 
         // add the description when printing the client
-
         DSOA2Client client = (DSOA2Client) identifiable;
         sayi("description=" + client.getDescription());
     }
@@ -31,7 +30,6 @@ public class DSOA2ClientCommands extends OA2ClientCommands {
         DSOA2Client client = (DSOA2Client) identifiable;
 
         // ask for the description when updating / creating the client
-
         client.setDescription(getInput("enter description", client.getDescription()));
     }
 

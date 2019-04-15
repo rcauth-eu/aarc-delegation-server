@@ -14,10 +14,10 @@ import edu.uiuc.ncsa.security.core.Logable;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 
 /**
- * Utility class for building and matching unique attribute lists. A Unique Attribute List is 
+ * Utility class for building and matching unique attribute lists. A Unique Attribute List is
  * a set of attributes that are used together (in form of a hash) to distinguish one user
- * from another. This Unique Attribute List is generated using an Attribute Source List 
- * from the server configuration and a set of User Attributes release by an IdP. 
+ * from another. This Unique Attribute List is generated using an Attribute Source List
+ * from the server configuration and a set of User Attributes release by an IdP.
  * <p>
  * For more details on how Unique Attribute List are constructed consult the RCauth Policy Document
  * ( https://rcauth.eu/policy ) section 3.1.2.
@@ -157,11 +157,10 @@ public class UniqueAttrGenerator {
         for (String attrSource : uniqueAttrSources) {
             if ( attributeMap.containsKey(attrSource) ) {
                 // if an attribute is present in the user map, add it to the list
-                if ( attrList.length() == 0 ) {
+                if ( attrList.length() == 0 )
                     attrList.append(getProcessedAttr(attributeMap, attrSource));
-                } else {
+                else
                     attrList.append(ATTRIBUTE_SEPARATOR).append(getProcessedAttr(attributeMap, attrSource));
-                }
             }
             // if an attribute is missing from the map we simply ignore it
         }
@@ -204,9 +203,8 @@ public class UniqueAttrGenerator {
 
         List<String> attrNames = new ArrayList<>();
         for (String attrSource : uniqueAttrSources) {
-            if ( attributeMap.containsKey(attrSource) ) {
+            if ( attributeMap.containsKey(attrSource) )
                 attrNames.add(attrSource);
-            }
             // if an attribute is missing from the map we simply ignore it
         }
 

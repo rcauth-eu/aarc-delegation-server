@@ -18,19 +18,18 @@ import javax.inject.Provider;
 public class DSOA2SQLTransactionStoreProvider<T extends DSSQLTransactionStore> extends OA2SQLTransactionStoreProvider<T> {
 
     public DSOA2SQLTransactionStoreProvider(ConfigurationNode config,
-								            ConnectionPoolProvider<? extends ConnectionPool> cpp,
-								            String type,
-								            MultiDSClientStoreProvider clientStoreProvider,
-								            Provider<? extends OA2ServiceTransaction> tp,
-								            Provider<TokenForge> tfp,
-								            MapConverter converter) {
-    	
-		   super(config, cpp, type, clientStoreProvider, tp, tfp, converter);
+                                            ConnectionPoolProvider<? extends ConnectionPool> cpp,
+                                            String type,
+                                            MultiDSClientStoreProvider clientStoreProvider,
+                                            Provider<? extends OA2ServiceTransaction> tp,
+                                            Provider<TokenForge> tfp,
+                                            MapConverter converter) {
+        super(config, cpp, type, clientStoreProvider, tp, tfp, converter);
     }
-			
-	@Override
-	public T get() {
-		return newInstance(new DSOA2TransactionTable((DSOA2TransactionKeys)converter.keys, getSchema(), getPrefix(), getTablename()));
-	}
-				
+
+    @Override
+    public T get() {
+        return newInstance(new DSOA2TransactionTable((DSOA2TransactionKeys)converter.keys, getSchema(), getPrefix(), getTablename()));
+    }
+
 }

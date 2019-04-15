@@ -39,12 +39,12 @@ import edu.uiuc.ncsa.security.util.jwk.JSONWebKeys;
 /**
  * A custom ServiceEnvironment implementation which adds a couple of extra this to the environment:
  * <p>
- * Scope Map : Maps claims and their sources into supported scopes. The upper (outer) map maps scopes to 
- * required claims, while the lower (inner) map maps individual claims to their source attribute.  
+ * Scope Map : Maps claims and their sources into supported scopes. The upper (outer) map maps scopes to
+ * required claims, while the lower (inner) map maps individual claims to their source attribute.
  * <p>
- * DN Generator : Used for generating user DNs based on source mapping from the configuration. 
+ * DN Generator : Used for generating user DNs based on source mapping from the configuration.
  * <p>
- * TraceRecord Store Provider : Provider implementation for trace records (written after the model of 
+ * TraceRecord Store Provider : Provider implementation for trace records (written after the model of
  * already existing providers.
  *
  * @author Tamás Balogh

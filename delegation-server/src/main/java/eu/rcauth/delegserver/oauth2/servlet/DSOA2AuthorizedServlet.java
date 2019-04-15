@@ -4,7 +4,7 @@ package eu.rcauth.delegserver.oauth2.servlet;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizedServlet;
 
 /**
- * Custom Authorized Servlet implementation (/authorized). 
+ * Custom Authorized Servlet implementation (/authorized).
  *
  * @author "Tamás Balogh"
  * @author "Mischa Sall&eacute;"
