@@ -120,9 +120,10 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     getDNGenerator(),
                     getCertExtGenerator(),
                     getThreadsafeTraceLogger(),
-                    getIssuer(),
+                    getIssuer(), // see OA2ConfigurationLoader
                     isUtilServerEnabled(),
-                    isOIDCEnabled());   // see OA2ConfigurationLoader
+                    isOIDCEnabled(),
+                    getMultiJSONStoreProvider());
             if (getClaimSource() instanceof BasicClaimsSourceImpl) {
                 ((BasicClaimsSourceImpl) getClaimSource()).setOa2SE((DSOA2ServiceEnvironment) se);
             }

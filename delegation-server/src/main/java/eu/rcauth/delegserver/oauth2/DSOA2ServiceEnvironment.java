@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.inject.Provider;
 
+import edu.uiuc.ncsa.security.util.json.JSONStore;
 import eu.rcauth.delegserver.oauth2.generator.CertExtensionGenerator;
 import eu.rcauth.delegserver.oauth2.generator.DNGenerator;
 import eu.rcauth.delegserver.oauth2.generator.TraceRecordGenerator;
@@ -89,7 +90,8 @@ public class DSOA2ServiceEnvironment extends OA2SE {
                                    ThreadsafeTraceLogger traceLogger,
                                    String issuer,
                                    boolean utilServletEnabled,
-                                   boolean oidcEnabled) {
+                                   boolean oidcEnabled,
+                                   Provider<JSONStore> jsonStoreProvider) {
 
         super(logger,
                 tsp,
@@ -120,7 +122,8 @@ public class DSOA2ServiceEnvironment extends OA2SE {
                 jsonWebKeys,
                 issuer,
                 utilServletEnabled,
-                oidcEnabled);
+                oidcEnabled,
+                jsonStoreProvider);
 
         this.traceRecordSP = trsp;
         this.scopesMap = scopesMap;
