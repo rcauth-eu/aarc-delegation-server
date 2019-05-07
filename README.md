@@ -1,30 +1,72 @@
 # aarc-delegation-server
 
-This is a custom
-[OA4MP](http://grid.ncsa.illinois.edu/myproxy/oauth/server/index.xhtml)
-implementation for AARC
-[Pre-Piloting Work](https://wiki.nikhef.nl/grid/AARC_Pilot)
-in particular for the
-[RCauth.eu online CA](https://wiki.nikhef.nl/grid/AARC_Pilot_-_RCAuth.eu).
+The AARC delegation server is an implementation of the Delegation Server component,
+acting as a webfrontend for the [RCauth.eu online CA](https://rcauth.eu/).  
+It is based on a customised version of the
+[OA4MP](https://github.com/rcauth-eu/OA4MP).
 
-## Delegation Server
+## Implementation
+The Delegation Server acts as both an OpenID Connect provider and protected
+resource, providing end-entity certificates from its backend online CA to its
+clients using OAuth2 authorization flows.  
+Clients are typically Master Portals such as the
+[AARC Master Portal](https://github.com/rcauth-eu/aarc-master-portal).
 
-The Delegation Server is used as a frontend for the
-[RCauth.eu](http://rcauth.eu/) Online CA. It takes care of providing user
-certificates for authenticated users via a registered and trusted
-[Master Portal](https://github.com/rcauth-eu/aarc-master-portal). 
+## Compiling
 
-## Building
+1. You first need to compile and install the two RCauth-adapted dependency
+   libraries 
+    1. [security-lib](https://github.com/rcauth-eu/security-lib)
+    2. [OA4MP](https://github.com/rcauth-eu/OA4MP)
+   
+   Make sure to use the *same* version (branch or tag) for both the
+   security-lib and OA4MP components.  
+   For the **0.2.0** series of the aarc-delegation-server, you must use the
+   **rcauth-4.2** versions.
+   
+2. Checkout the right version of the aarc-delegation-server.
 
-In case you wish the build the Delegation Service you should first build two of
-its dependencies in the following order 
+        git clone https://github.com/rcauth-eu/aarc-delegation-server
+        cd aarc-delegation-server
 
-1. [security-lib](https://github.com/rcauth-eu/security-lib)
-2. [OA4MP](https://github.com/rcauth-eu/OA4MP)
+        git checkout v0.2.0
+        cd delegation-server
 
-See [AARC Pilot - Building from Source](https://wiki.nikhef.nl/grid/AARC_Pilot_-_Building_from_Source) for further details.
+3. Build the delegation-server's war file  
+
+        mvn clean package
+
+   After maven has finished you should find the `.war` file in the target
+   directory:
+
+        aarc-delegation-server/delegation-server/target/oauth2.war
+    
+4. Build the delegation-server's command line client
+
+        mvn -P cli package
+
+   After mvn has finished you should find the resulting cli `.jar` file
+   in the target directory:
+   
+        aarc-delegation-server/delegation-server/target/oa2-cli.jar
+   
+   NOTE: The cli tool is necessary for managing and approving client
+   (Master Portal) registrations.  
+   Also note that you need this version of the cli tool, as opposed to the one
+   coming from the OA4MP component.  
 
 ## Other Resources
 
-If you are looking for a client that talks to the Delegation Server check out
-the [Master Portal](https://github.com/rcauth-eu/aarc-master-portal).
+Background information:
+* [AARC pilot architecture](https://wiki.nikhef.nl/grid/AARC_Pilot_-_Architecture)
+* [AARC Pilot RCauth/MasterPortal information](https://wiki.nikhef.nl/grid/AARC_Pilot)
+* [Ansible scripts for the Delegation Server](https://github.com/rcauth-eu/aarc-ansible-delegation-server)
+
+Related Components:
+* [AARC Master Portal](https://github.com/rcauth-eu/aarc-master-portal).
+* [Demo VO portal](https://github.com/rcauth-eu/aarc-vo-portal)  
+  this component can run inside the master portal's tomcat container,
+  providing a demonstration client portal to the Master Portal.
+* [SSH key portal](https://github.com/rcauth-eu/aarc-ssh-portal)  
+  this component can run inside the master portal's tomcat container,
+  leveraging the Master Portal's sshkey upload endpoint.
