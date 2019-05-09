@@ -31,9 +31,9 @@ public class DSDefaultDNGeneratorConfiguration {
 
     private static Object[] defaultOrgCandidates = null;
 
-    public static final String DEFAULT_SCHAC_HOME_ORG="schacHomeOrganisation";
-    public static final String DEFAULT_ORG_DISPLAY_NAME="organisationDisplayName";
-    public static final String DEFAULT_ENTITY_ID="entityID";
+    public static final String DEFAULT_SCHAC_HOME_ORG="schacHomeOrganization";
+    public static final String DEFAULT_ORG_DISPLAY_NAME="Meta-orgDisplayName";
+    public static final String DEFAULT_ENTITY_ID="Shib-Identity-Provider";
 
 
     public static Object[] getDefaultCnNameCandidates() {
