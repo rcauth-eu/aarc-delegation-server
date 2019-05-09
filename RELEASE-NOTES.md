@@ -69,6 +69,14 @@ In order to do this, you can either:
 
         update clients set scopes = '["openid"]' where name = "SSH Key portal;
 
+#### Mail support
+
+In order to use [mail notifications](http://grid.ncsa.illinois.edu/myproxy/oauth/server/configuration/server-email.xhtml)
+it is now necessary to provide tomcat with the `javax.mail.jar` file.  
+The easiest is to create a symlink to the the jar file as shipped by the `javamail` rpm:
+
+    ln -s /usr/share/java/javamail/javax.mail.jar /usr/share/java/tomcat/
+
 #### Effective request scopes
 
 The effective list of scopes used in a request is the intersection of:
