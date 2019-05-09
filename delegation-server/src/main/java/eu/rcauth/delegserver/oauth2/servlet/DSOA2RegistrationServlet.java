@@ -28,10 +28,10 @@ public class DSOA2RegistrationServlet extends OA2RegistrationServlet {
     protected Client addNewClient(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         DSOA2Client client = (DSOA2Client) super.addNewClient(request, response);
 
-        // TODO: set client description
+        // TODO: do we need to do anything more with the client description
         String desc =  getParameter(request, CLIENT_DESCRIPTION);
 
-        System.out.println("Setting client desc to : " + desc);
+        debug("Setting client desc to: \"" + desc + "\"");
 
         client.setDescription( desc );
 
