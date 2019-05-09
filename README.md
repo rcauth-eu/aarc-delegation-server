@@ -5,6 +5,9 @@ acting as a webfrontend for the [RCauth.eu online CA](https://rcauth.eu/).
 It is based on a customised version of the
 [OA4MP](https://github.com/rcauth-eu/OA4MP).
 
+For release notes and important upgrading information,
+see [RELEASE-NOTES.md](RELEASE-NOTES.md).
+
 ## Implementation
 The Delegation Server acts as both an OpenID Connect provider and protected
 resource, providing end-entity certificates from its backend online CA to its
@@ -16,8 +19,8 @@ Clients are typically Master Portals such as the
 
 1. You first need to compile and install the two RCauth-adapted dependency
    libraries 
-    1. [security-lib](https://github.com/rcauth-eu/security-lib)
-    2. [OA4MP](https://github.com/rcauth-eu/OA4MP)
+    1. [security-lib](https://github.com/rcauth-eu/security-lib) (RCauth version)
+    2. [OA4MP](https://github.com/rcauth-eu/OA4MP) (RCauth version)
    
    Make sure to use the *same* version (branch or tag) for both the
    security-lib and OA4MP components.  
