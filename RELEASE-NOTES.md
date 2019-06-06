@@ -31,13 +31,15 @@ changes:
 
   and likewise for any other attribute filter.
 
-* Make sure you have a `defaultKeyID` attribute specified in the `JSONWebKey` element, e.g.
+* Make sure you have a `defaultKeyID` attribute specified in the `JSONWebKey`
+  element, e.g.
 
        <JSONWebKey defaultKeyID="71463FFC64B4394DD96F29484E9BFB0A">
            <path>/var/www/server/conf/ds.jwk</path>
        </JSONWebKey>
 
-  where the `defaultKeyID` value should match one of the `kid` values in the `ds.jwk` file.
+  where the `defaultKeyID` value should match one of the `kid` values in the
+  `ds.jwk` file.
 
 #### Register the scopes for each client
 
@@ -73,7 +75,8 @@ In order to do this, you can either:
 
 In order to use [mail notifications](http://grid.ncsa.illinois.edu/myproxy/oauth/server/configuration/server-email.xhtml)
 it is now necessary to provide tomcat with the `javax.mail.jar` file.  
-The easiest is to create a symlink to the the jar file as shipped by the `javamail` rpm:
+The easiest is to create a symlink to the the jar file as shipped by
+the `javamail` rpm:
 
     ln -s /usr/share/java/javamail/javax.mail.jar /usr/share/java/tomcat/
 
@@ -88,4 +91,13 @@ The effective list of scopes used in a request is the intersection of:
    (`openid`, `email`, `profile` and `edu.uiuc.ncsa.myproxy.getcert`)
    plus any other scopes such as `org.cilogon.userinfo` that are added to the
    `<scopes>` node of the `cfg.xml`.  
-   Note that the basic scopes can be disabled using the `enabled="false"` attribute.
+   Note that the basic scopes can be disabled using the `enabled="false"`
+   attribute.
+
+#### Other new features
+Apart from the above changes, it is now possible to configure a client (i.e.
+a MasterPortal) to *only* receive limited proxies.
+
+Note that this means that all the clients to that MasterPortal itself will
+*only* receive limited proxies. This could be useful if those clients just
+need to access storage and not use the proxies for job submission.
