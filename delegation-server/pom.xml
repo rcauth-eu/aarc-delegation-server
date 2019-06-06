@@ -157,8 +157,8 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <!-- Note: for Java <10 comment out next one -->
-                            <additionalOptions>-html5</additionalOptions>
+                            <!-- Note: for Java before 10 comment out next one -->
+                            <!--<additionalOptions>-html5</additionalOptions>-->
                             <!-- next flag is useful if there are issues with the
                                  javadoc such as empty javadoc tags -->
                             <!--doclint>none</doclint-->
