@@ -49,6 +49,8 @@ th, td {
 <td><c:out value="${client.homeUri}"/></td></tr>
 <%--<tr><td>Refresh Token lifetime:</td>
 <td><c:set var="xxx" scope="session" value="${client.rtLifetime}"/><c:if test="${xxx > 0}"><c:out value="${client.rtLifetime/1000}"/> seconds</c:if></td></tr>--%>
+<tr><td>Receive limited proxies:</td>
+<td><c:out value="${client.proxyLimited}"/></td></tr>
 <tr style="vertical-align: top"><td>Callback URLs:</td>
 <td><c:forEach items="${client.callbackURIs}" var="uri">
 <c:out value="${uri}"/><br></c:forEach></td></tr>
