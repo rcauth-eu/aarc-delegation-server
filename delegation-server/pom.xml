@@ -73,13 +73,13 @@
         <dependency>
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
-            <version>59.1</version>
+            <version>64.2</version>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
 
@@ -112,7 +112,7 @@
                     <!--compilerArgument>-Xlint:deprecation,unchecked</compilerArgument-->
                     <compilerArgument>-Xlint:all</compilerArgument>
                 </configuration>
-                <version>3.5.1</version>
+                <version>3.8.1</version>
             </plugin>
 
             <!-- update revision properties -->
@@ -146,7 +146,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.1.1</version>
                 <configuration>
                     <use>false</use>
                 </configuration>
@@ -164,6 +164,9 @@
                             <!--doclint>none</doclint-->
                             <!-- enable links to Java's own javadoc -->
                             <detectJavaApiLink>true</detectJavaApiLink>
+                            <!-- for JDK >=10 must source equal to compile source
+                                 see https://bugs.openjdk.java.net/browse/JDK-8212233 -->
+                            <source>1.8</source>
                         </configuration>
                     </execution>
                 </executions>
