@@ -659,10 +659,11 @@ public class DNGenerator {
                 String[] sources = (String[])obj;
                 boolean sourcesPresent = true;
                 for (String s : sources) {
-                    if ( ! attributeMap.containsKey(s) ) {
-                        //one of the keys are not present, or it's empty, therefore ignore it
-                        sourcesPresent = false;
-                    }
+                    if (attributeMap.containsKey(s))
+                        continue;
+                    //one of the keys are not present, or it's empty, therefore ignore it
+                    sourcesPresent = false;
+                    break;
                 }
                 if ( sourcesPresent ) {
                     // attributes present! use them!
