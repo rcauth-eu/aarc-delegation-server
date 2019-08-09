@@ -21,7 +21,9 @@ public class DSOA2TransactionTable extends OA2TransactionTable {
                                                              Types.LONGVARCHAR));
         getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).user_attributes(),
                                                              Types.LONGVARCHAR));
-        getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).trace_record() ,
+        getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).cn_hash() ,
                                                              Types.LONGVARCHAR));
+        getColumnDescriptor().add(new ColumnDescriptorEntry( ((DSOA2TransactionKeys)getOA2Keys()).sequence_nr() ,
+                                                             Types.SMALLINT));
     }
 }

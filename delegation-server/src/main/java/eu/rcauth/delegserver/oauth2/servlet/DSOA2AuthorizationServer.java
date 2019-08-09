@@ -62,10 +62,8 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
     /* OVERRIDDEN METHODS */
 
     /* NOTE: ensures that the transaction which is being used is a
-     * MPOA2ServiceTransaction instance instead of a OA2ServiceTransaction.
-     * Hence MPOA2AuthorizedServletUtil only overrides createNewTransaction().
-     * We need MPOA2ServiceTransaction to handle keeping state between the
-     * mp-client and mp-server via the MPClientSessionIdentifier.
+     * DSOA2ServiceTransaction instance instead of a OA2ServiceTransaction.
+     * Hence DSOA2AuthorizedServletUtil only overrides createNewTransaction().
      */
     @Override
     protected DSOA2AuthorizedServletUtil getInitUtil() {
@@ -96,7 +94,7 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
 
             // set user attributes
             // TODO: Should attributes be passed in headers by shibboleth? Can't we do better?
-            // Update: AbstractAuthorizationServl.et hard-codes the use of headers and fails
+            // Update: AbstractAuthorizationServlet hard-codes the use of headers and fails
             // if UseHeader are not enabled. Ask Jim?
             serviceTransaction.setUserAttributes(ShibHeaderExtractor.getAttrMap(state.getRequest()));
 
@@ -246,8 +244,10 @@ public class DSOA2AuthorizationServer extends ConsentAwareOA2AuthServer {
         traceInfo("Full MyProxy username: " + trans.getMyproxyUsername());
 
         // save the trace record reference to the transaction
-        // TODO: Do we need this for anything?
-        trans.setTraceRecord( traceRecord.getCnHash() );
+        // Note: we do this to easily map the entries in the
+        // transactions and trace_records tables.
+        trans.setCnHash( traceRecord.getCnHash() );
+        trans.setSequenceNr( traceRecord.getSequenceNr() );
 
         // save the generated full user DN as a user attribute
         userAttributes.put(dnGenerator.getAttributeName(),

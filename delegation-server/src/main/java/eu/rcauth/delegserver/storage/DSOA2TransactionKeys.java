@@ -6,7 +6,8 @@ public class DSOA2TransactionKeys extends OA2TransactionKeys {
 
     protected String claims = "claims";
     protected String user_attributes = "user_attributes";
-    protected String trace_record = "trace_record";
+    protected String cn_hash = "trace_record";
+    protected String sequence_nr = "sequence_nr";
 
     public String claims(String... x) {
         if (0 < x.length)
@@ -20,9 +21,15 @@ public class DSOA2TransactionKeys extends OA2TransactionKeys {
         return user_attributes;
     }
 
-    public String trace_record(String... x) {
+    public String cn_hash(String... x) {
         if (0 < x.length)
-            trace_record = x[0];
-        return trace_record;
+            cn_hash = x[0];
+        return cn_hash;
+    }
+
+    public String sequence_nr(String... x) {
+        if (0 < x.length)
+            sequence_nr = x[0];
+        return sequence_nr;
     }
 }

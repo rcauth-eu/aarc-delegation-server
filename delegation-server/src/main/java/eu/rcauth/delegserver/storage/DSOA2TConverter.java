@@ -36,7 +36,14 @@ public class DSOA2TConverter<V extends DSOA2ServiceTransaction> extends OA2TConv
             st.setUserAttributes( attrMap);
         }
 
-        st.setTraceRecord( map.getString(tck.trace_record) );
+        st.setCnHash( map.getString(tck.cn_hash) );
+
+        String seqNrString = map.getString(tck.sequence_nr);
+        try {
+            st.setSequenceNr(Integer.parseUnsignedInt(seqNrString));
+        } catch(NumberFormatException e)    {
+            st.setSequenceNr(-1);
+        }
 
         return st;
     }
@@ -64,9 +71,14 @@ public class DSOA2TConverter<V extends DSOA2ServiceTransaction> extends OA2TConv
             map.put( tck.user_attributes , JSONObject.fromObject(userAttributes).toString() );
         }
 
-        String traceRecord = t.getTraceRecord();
-        if ( traceRecord != null && ! traceRecord.isEmpty() ) {
-            map.put( tck.trace_record , traceRecord );
+        String cnHash = t.getCnHash();
+        if ( cnHash != null && ! cnHash.isEmpty() ) {
+            map.put( tck.cn_hash , cnHash );
+        }
+
+        int seqNumber = t.getSequenceNr();
+        if (seqNumber>=0) {
+            map.put( tck.sequence_nr , seqNumber);
         }
 
     }
