@@ -90,9 +90,9 @@ For further information on the CA see the
 
 <h4>Master Portal Information:</h4>
 <table>
-    <tr style="height: 2.0em;"><td><i style="margin-right: 1.5em;">Name:</i><td>${clientName}</tr>
-    <tr style="height: 2.0em;  vertical-align: top"><td><i style="margin-right: 1.5em;">Description:</i><td>${clientDesc}</tr>
-    <tr style="height: 2.0em;"><td><i style="margin-right: 1.5em;">URL:</i><td>${clientHome}</tr>
+    <tr style="height: 2.0em;"><td><i style="margin-right: 1.5em;">Name:</i><td><c:out value="${clientName}"/></tr>
+    <tr style="height: 2.0em;  vertical-align: top"><td><i style="margin-right: 1.5em;">Description:</i><td><c:out value="${clientDesc}"/></tr>
+    <tr style="height: 2.0em;"><td><i style="margin-right: 1.5em;">URL:</i><td><c:out value="${clientHome}"/></tr>
 </table>
 
 
