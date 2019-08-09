@@ -9,6 +9,10 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2RegistrationServlet;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
 
+/**
+ * This registration servlet is a standard {@link OA2RegistrationServlet}
+ * but adding a description field, which is shown on the consent/user inform page
+  */
 public class DSOA2RegistrationServlet extends OA2RegistrationServlet {
 
     public static final String CLIENT_DESCRIPTION = "clientDescription";
@@ -28,7 +32,6 @@ public class DSOA2RegistrationServlet extends OA2RegistrationServlet {
     protected Client addNewClient(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         DSOA2Client client = (DSOA2Client) super.addNewClient(request, response);
 
-        // TODO: do we need to do anything more with the client description
         String desc =  getParameter(request, CLIENT_DESCRIPTION);
 
         debug("Setting client desc to: \"" + desc + "\"");

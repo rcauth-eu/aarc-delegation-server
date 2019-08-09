@@ -24,8 +24,6 @@ public class DSOA2Client extends OA2Client {
         DSOA2Client client = new DSOA2Client(getIdentifier());
         super.populateClone(client);
         client.setDescription( this.description );
-        // TODO Seems the next one is missing in OA2Client or any of its parents
-//        client.setPublicClient(isPublicClient());
 
         return client;
     }

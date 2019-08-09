@@ -37,7 +37,6 @@ public class UnverifiedConnectionFactory {
     public class DSTrustManager extends MyTrustManager {
 
         public DSTrustManager() {
-            // TODO by casting to String we use the 'old' ssl MyTrustManager
             super(null, (String)null);
             this.setTrustRootPath( this.DEFAULT_TRUST_ROOT_PATH );
         }
