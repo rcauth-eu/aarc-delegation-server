@@ -150,19 +150,13 @@ public class TraceRecordGenerator {
                 logger.debug("Matching trace record " + traceRecord.getCnHash() + " " + traceRecord.getSequenceNr());
 
                 try {
+                    // Here we handle the case of multiple trace records each with different sequence number:
+                    // they would correspond to different input attribute sets, so look for the matching one,
+                    // there should be only one, so can just pick the first match
+
                     if ( uniqueAttrGenerator.matches(attributeMap, traceRecord ) ) {
 
                         logger.debug("Trace Record matches attribute set!");
-
-                        /*
-                        if ( matchingTraceRecord != null ) {
-                            // found a second match for the attribute set! This should not happen!
-                            //TODO: This is a corner case somewhat... Should we try to map the user to at least one of the returned
-                            //      values? What happens if the user can be perfectly mapped to more then one of these records returned?
-                            //      Should we just choose a random match? or fail altogether?
-                            throw new GeneralException("More than one Trace Record matched the user attributes!");
-                        }
-                        */
 
                         // this should be it!
                         matchingTraceRecord = traceRecord;
@@ -176,9 +170,10 @@ public class TraceRecordGenerator {
                         }
                         matchingTraceRecord.setCommonName( originalCN );
 
-                        // Instead of looking for other matches, just simple take the fist one. The trace records
+                        // Instead of looking for other matches, just simple take the first one. The trace records
                         // returned by the DB are ordered by their last_seen date, which makes the trace record matching
-                        // deterministic in case of multiple matches.
+                        // deterministic in case of multiple matches. In any case, for given set of input attributes,
+                        // there should only be one match.
                         break;
 
                     } else {
