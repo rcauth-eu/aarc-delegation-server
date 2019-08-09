@@ -159,14 +159,11 @@ public class DSOA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends 
                     converter,
                     provider) );
 
-            // TODO: The backend for this is not written. yet. But it might just work out of the box
-            /*
-            traceRecordSP.addListener( new SQLTraceRecordStoreProvider(cn,
+            traceRecordSP.addListener( new SQLTraceRecordStoreProvider<>(cn,
                     getPgConnectionPoolProvider(),
                     OA4MPConfigTags.POSTGRESQL_STORE,
                     converter,
                     provider) );
-            */
 
         }
         return traceRecordSP;
