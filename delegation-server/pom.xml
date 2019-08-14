@@ -238,6 +238,7 @@
                                 <manifest>
                                     <addClasspath>true</addClasspath>
                                     <mainClass>eu.rcauth.delegserver.oauth2.cli.DSOA2Commands</mainClass>
+                                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
