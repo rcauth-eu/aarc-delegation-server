@@ -2,6 +2,8 @@ package eu.rcauth.delegserver.storage;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2ClientKeys;
 
+import java.util.List;
+
 public class DSOA2ClientKeys extends OA2ClientKeys {
 
     String description = "description";
@@ -12,4 +14,10 @@ public class DSOA2ClientKeys extends OA2ClientKeys {
         return description;
     }
 
+    @Override
+    public List<String> allKeys() {
+        List<String> allKeys = super.allKeys();
+        allKeys.add(description());
+        return allKeys;
+    }
 }

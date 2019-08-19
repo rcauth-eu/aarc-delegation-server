@@ -4,6 +4,7 @@ import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2ClientConverter;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
+import net.sf.json.JSONObject;
 
 public class DSOA2ClientConverter<V extends DSOA2Client> extends OA2ClientConverter<V> {
 
@@ -36,4 +37,20 @@ public class DSOA2ClientConverter<V extends DSOA2Client> extends OA2ClientConver
         return client;
     }
 
+    @Override
+    public V fromJSON(JSONObject json) {
+        V v = super.fromJSON(json);
+        v.setDescription(getJsonUtil().getJSONValueString(json, ((DSOA2ClientKeys)getCK2()).description()));
+
+        return v;
+    }
+
+    @Override
+    public void toJSON(V client, JSONObject json) {
+        super.toJSON(client, json);
+
+        if (client.getDescription() != null) {
+            getJsonUtil().setJSONValue(json, ((DSOA2ClientKeys)getCK2()).description(), client.getDescription());
+        }
+    }
 }
