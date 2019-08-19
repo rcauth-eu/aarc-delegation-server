@@ -53,7 +53,6 @@
 
     <servlet>
         <servlet-name>getCert</servlet-name>
-        <!-- <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2CertServlet</servlet-class> -->
         <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSOA2CertServlet</servlet-class>
 
     </servlet>
@@ -82,6 +81,16 @@
 
 
     <servlet>
+        <servlet-name>admin-register</servlet-name>
+        <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AdminRegistrationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>admin-register</servlet-name>
+        <url-pattern>/admin-register</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
         <servlet-name>clientVetting</servlet-name>
         <servlet-class>eu.rcauth.delegserver.oauth2.servlet.DSOA2RegistrationServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
@@ -90,6 +99,17 @@
         <servlet-name>clientVetting</servlet-name>
         <url-pattern>/register</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>client</servlet-name>
+        <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.ClientServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>client</servlet-name>
+        <url-pattern>/clients</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <servlet-name>discovery</servlet-name>
         <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2DiscoveryServlet</servlet-class>
