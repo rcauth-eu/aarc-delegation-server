@@ -4,7 +4,7 @@
 <html>
 
 <head>
-    <title>RCAuth Delegation Service (Online CA) Client Registration Page</title>
+    <title>RCauth Delegation Service (Online CA) Client Registration Page</title>
     <link rel="stylesheet" type="text/css" href="default.css" />
     <link rel="stylesheet" type="text/css" href="rcauth.css" />
 </head>
@@ -23,7 +23,7 @@
   <div class="clear"></div>
 
   <div id=main>
-    <h2>Welcome to the RCAuth Client Registration Page</h2>
+    <h2>Welcome to the RCauth Client Registration Page</h2>
 
     <p>This page allows you to register your client with the
         RCauth delegation service that supports the OIDC/OAuth 2. To get your client approved,
