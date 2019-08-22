@@ -32,6 +32,11 @@
         <a href="http://grid.ncsa.illinois.edu/myproxy/oauth/client/manuals/registering-with-an-oauth2-server.xhtml"
            target="_blank">Registering a Client with an OAuth 2 server</a> document.
     </p><br>
+        <I><B>NOTE:</B> This registration page is <B>ONLY</B> for special
+        administrative clients, for a normal client, use the
+        <A href="${regularRegEndpoint}">standard registration endpoint</A>.</I>
+    </p><br>
+
     <table>
         <tr>
             <td colspan="2"><b><font color="red"><c:out value="${retryMessage}"/></font></b></td>
