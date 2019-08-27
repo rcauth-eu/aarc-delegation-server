@@ -133,6 +133,18 @@
         <url-pattern>/userinfo</url-pattern>
     </servlet-mapping>
 
+    <!-- NOTE: /revoke is only useful for refresh tokens -->
+<!--
+    <servlet>
+        <servlet-name>revoke</servlet-name>
+        <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.RevocationServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>revoke</servlet-name>
+        <url-pattern>/revoke</url-pattern>
+    </servlet-mapping>
+-->
 
     <!--
       The next section should be uncommented if you are running this as a standalone service under Tomcat.
