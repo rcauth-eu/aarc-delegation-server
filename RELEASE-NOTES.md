@@ -11,9 +11,19 @@ changes:
     * `disableDefaultStores="false"`
     * `OIDCEnabled="true"`
 
-  The latter is currently optional, being the default setting.
+  The latter is optional, being the default setting.
 
-* Change the name of the scopehandler
+* Make sure you have a `defaultKeyID` attribute specified in the `JSONWebKey`
+  element, e.g.
+
+       <JSONWebKey defaultKeyID="71463FFC64B4394DD96F29484E9BFB0A">
+           <path>/var/www/server/conf/ds.jwk</path>
+       </JSONWebKey>
+
+  where the `defaultKeyID` value should match one of the `kid` values in the
+  `ds.jwk` file.
+
+* Change the name of the scopes handler
 
         org.delegserver.oauth2.DSDynamicScopeHandler
 
@@ -31,15 +41,12 @@ changes:
 
   and likewise for any other attribute filter.
 
-* Make sure you have a `defaultKeyID` attribute specified in the `JSONWebKey`
-  element, e.g.
+* Add the following two new tables to the mysql schema:
 
-       <JSONWebKey defaultKeyID="71463FFC64B4394DD96F29484E9BFB0A">
-           <path>/var/www/server/conf/ds.jwk</path>
-       </JSONWebKey>
+        <permissions/>
+        <adminClients/>
 
-  where the `defaultKeyID` value should match one of the `kid` values in the
-  `ds.jwk` file.
+  These are necessary for the new client management API described below.
 
 #### Register the scopes for each client
 
@@ -63,7 +70,7 @@ In order to do this, you can either:
 
   *Make a backup of the client database first, e.g. using `mysqldump`!!*
 
-  You can run something like:
+  You can run a mysql command such as:
 
         update clients set scopes = '["openid","email","profile","edu.uiuc.ncsa.myproxy.getcert"]';
 
@@ -94,9 +101,7 @@ The effective list of scopes used in a request is the intersection of:
    Note that the basic scopes can be disabled using the `enabled="false"`
    attribute.
 
-#### Other new features
-
-Apart from the changes above, there are several new features.
+#### Client management API
 
 It is now possible to manage clients (i.e. MasterPortals) also using a
 JSON-based REST API (`/clients`) making use of special administrative client
@@ -107,8 +112,11 @@ approve, list, update and remove clients.
 For examples and description, see
 [oa4mp-server-admin-oauth2](https://github.com/rcauth-eu/OA4MP/tree/rcauth-4.2/oa4mp-server-admin-oauth2/src/main/scripts/client-scripts).
 
-Furthermore, it is now possible to configure a client (i.e. a MasterPortal) to
-*only* receive limited proxies.  
-Note that this means that in turn all the clients to that MasterPortal itself
-will also *only* receive limited proxies. This could be useful if those clients
-just need to access storage and not use the proxies for job submission.
+#### Other new features
+
+Apart from the above changes, it is now possible to configure a client (i.e. a
+MasterPortal) to *only* receive limited proxies.
+
+Note that this means that *all* the clients to that MasterPortal itself will
+also *only* receive limited proxies. This could be useful if those clients just
+need to access storage and not use the proxies for job submission.
