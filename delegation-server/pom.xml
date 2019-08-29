@@ -32,8 +32,8 @@
 
     <properties>
         <revision>0.2.0-SNAPSHOT</revision>
-        <oa4mpVersion>4.2-RCauth</oa4mpVersion>
-        <seclibVersion>4.2-RCauth</seclibVersion>
+        <oa4mpVersion>4.2-RCauth-SNAPSHOT</oa4mpVersion>
+        <seclibVersion>4.2-RCauth-SNAPSHOT</seclibVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
