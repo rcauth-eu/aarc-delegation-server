@@ -61,8 +61,8 @@ Clients are typically Master Portals such as the
 ## Other Resources
 
 Background information:
-* [AARC pilot architecture](https://wiki.nikhef.nl/grid/AARC_Pilot_-_Architecture)
-* [AARC Pilot RCauth/MasterPortal information](https://wiki.nikhef.nl/grid/AARC_Pilot)
+* [RCauth.eu and MasterPortal architecture](https://wiki.nikhef.nl/grid/RCauth.eu_and_MasterPortal_architecture)
+* [RCauth.eu and MasterPortal documentation](https://wiki.nikhef.nl/grid/RCauth.eu_and_MasterPortal_documentation)
 * [Ansible scripts for the Delegation Server](https://github.com/rcauth-eu/aarc-ansible-delegation-server)
 
 Related Components:
