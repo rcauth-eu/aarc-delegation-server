@@ -2,6 +2,8 @@ package eu.rcauth.delegserver.oauth2.servlet;
 
 import java.security.GeneralSecurityException;
 
+import edu.uiuc.ncsa.security.oauth_2_0.OA2ATException;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceEnvironment;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceTransaction;
 
@@ -9,6 +11,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2CertServlet;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
+import org.apache.http.HttpStatus;
 
 /**
  * Custom Cert Servlet implementation (/getcert) that uses the MyProxy
@@ -36,7 +39,9 @@ public class DSOA2CertServlet extends OA2CertServlet {
             se.getTraceLogger().error("MyProxy USERNAME not set for current transaction! " +
                                       "Make sure that the MyProxy USERNAME is created and" +
                                       "saved in the current transaction before calling /getcert!");
-            throw new GeneralException("MyProxy USERNAME not set for current transaction!");
+            throw new OA2ATException(OA2Errors.SERVER_ERROR,
+                                     "MyProxy USERNAME not set for current transaction!",
+                                     HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
         se.getTraceLogger().debug("Proceeding with MyProxy call with username : " + username);
