@@ -56,7 +56,7 @@ public class DSDynamicClaimsSourceImpl extends BasicClaimsSourceImpl    {
 
     /**
      * Return a flattened list of all the claims in all the scopes as configured
-     * in the <scopes> node. Used in the {@link OA2DiscoveryServlet}.
+     * in the &lt;scopes&gt; node. Used in the {@link OA2DiscoveryServlet}.
      * @return complete set of configured claims
      */
     @Override
