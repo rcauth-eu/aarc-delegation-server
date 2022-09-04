@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.naming.ldap.Rdn;
+
 import org.bouncycastle.util.Arrays;
 import eu.rcauth.delegserver.oauth2.shib.ShibAttrParser;
 import eu.rcauth.delegserver.oauth2.shib.filters.ShibAttributeFilter;
@@ -525,7 +527,12 @@ public class DNGenerator {
         if ( sequenceNr > 0 )
             cn += CN_DELIMITER + sequenceNr;
 
-        return String.format(DN_RFC2253_FORMAT, cn , org) + "," + baseDNRFC2253;
+        /* Note: we need to escape the CN and O values to protect e.g. comma.
+         * We can use javax.naming.ldap.Rdn.escapeValue() for that. */
+        return String.format(DN_RFC2253_FORMAT,
+                             Rdn.escapeValue(cn),
+                             Rdn.escapeValue(org))
+               + "," + baseDNRFC2253;
 
     }
 
