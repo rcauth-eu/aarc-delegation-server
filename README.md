@@ -32,7 +32,7 @@ Clients are typically Master Portals such as the
         git clone https://github.com/rcauth-eu/aarc-delegation-server
         cd aarc-delegation-server
 
-        git checkout v0.2.5
+        git checkout v0.2.6
         cd delegation-server
 
 3. Build the delegation-server's war file  
