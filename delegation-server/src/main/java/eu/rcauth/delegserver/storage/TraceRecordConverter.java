@@ -4,7 +4,7 @@ import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
-import net.sf.json.JSONArray;
+import org.kordamp.json.JSONArray;
 
 import java.util.ArrayList;
 

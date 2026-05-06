@@ -4,7 +4,7 @@ import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2ClientConverter;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 public class DSOA2ClientConverter<V extends DSOA2Client> extends OA2ClientConverter<V> {
 

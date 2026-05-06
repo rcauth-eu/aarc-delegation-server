@@ -9,7 +9,7 @@ import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.token.TokenForge;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 import java.util.Map;
 
 public class DSOA2TConverter<V extends DSOA2ServiceTransaction> extends OA2TConverter<V> {

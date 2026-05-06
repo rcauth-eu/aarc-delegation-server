@@ -11,8 +11,8 @@ import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 
 import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
 import org.apache.http.HttpHeaders;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceEnvironment;
 import eu.rcauth.delegserver.oauth2.DSOA2ServiceTransaction;
